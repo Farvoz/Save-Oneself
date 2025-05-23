@@ -14,8 +14,8 @@
 
         #game-container {
             position: relative;
-            width: 600px;
-            height: 600px;
+            width: 800px;
+            height: 800px;
             margin: 20px;
             border: 2px solid #333;
             background-color: white;
@@ -23,24 +23,24 @@
 
         .card {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background-color: #2196F3;
-            border: 2px solid #1976D2;
+            width: 75px;
+            height: 75px;
+            background-color: #F5F5DC;
+            border: 2px solid #E8E8D0;
             border-radius: 8px;
             transition: transform 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            color: white;
+            color: black;
             z-index: 2;
         }
 
         .highlight {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 75px;
+            height: 75px;
             background-color: #FFEB3B;
             border: 2px dashed #FFC107;
             border-radius: 8px;
@@ -88,7 +88,7 @@
 <body>
     <div id="counters">
         <div class="counter">❤️ Жизни: <span id="lives">16</span></div>
-        <div class="counter">🃏 Карты: <span id="cards-left">16</span></div>
+        <div class="counter">🃏 Карты: <span id="cards-left">15</span></div>
     </div>
     <div id="game-container"></div>
     <div id="game-over"></div>
@@ -100,15 +100,50 @@
         const gameOverDiv = document.getElementById('game-over');
         
         let lives = 16;
-        let cards = 16;
+        let cards = 15;
         let occupiedPositions = {};
-        const step = 60; // Расстояние между карточками
+        const step = 85;
+        
+        // Создаем колоду из объектов-карточек
+        const directions = ['NW', 'NE', 'SW', 'SE'];
+
+        let deck = [
+            { value: 0, direction: 'NE', id: 'hook', requirements: 'water' },
+            { value: 1, direction: 'NW', id: '', requirements: '' },
+            { value: 2, direction: 'SW', id: '', requirements: '' },
+            { value: 3, direction: 'SE', id: '', requirements: '' },
+            { value: 0, direction: '', id: '', requirements: '' },
+            { value: 1, direction: '', id: '', requirements: '' },
+            { value: 2, direction: '', id: '', requirements: '' },
+            { value: 3, direction: '', id: '', requirements: '' },
+            { value: 0, direction: '', id: '', requirements: '' },
+            { value: 1, direction: '', id: '', requirements: '' },
+            { value: 2, direction: '', id: '', requirements: '' },  
+        ];
+
+        // сделать набор карт для обратной стороны
+        let deckBack = [
+            { value: 3, backId: 'hook', id: 'fish' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+            { value: 0, backId: '', id: '' },
+        ];
+
 
         // Инициализация игры
         function init() {
-            const startX = (container.offsetWidth - 50) / 2;
-            const startY = (container.offsetHeight - 50) / 2;
+            const startX = (container.offsetWidth - 75) / 2;
+            const startY = (container.offsetHeight - 75) / 2;
+
+            // Перемешиваем колоду
+            deck.sort(() => Math.random() - 0.5);
             addCard(startX, startY);
+
             updateHighlights();
         }
 
@@ -118,9 +153,46 @@
             card.className = 'card';
             card.style.left = x + 'px';
             card.style.top = y + 'px';
+            
+            // Получаем карточку из колоды
+            const cardObj = deck[15 - cards];
+            
+            // Создаем структуру для отображения значения, направления и названия
+            const valueDiv = document.createElement('div');
+            valueDiv.textContent = cardObj.value;
+            valueDiv.style.fontSize = '24px';
+            
+            const directionDiv = document.createElement('div');
+            directionDiv.textContent = cardObj.direction;
+            directionDiv.style.fontSize = '14px';
+            directionDiv.style.marginTop = '2px';
+            
+            // Добавляем название карты, если оно есть
+            if (cardObj.id && cardObj.id !== '') {
+                const nameDiv = document.createElement('div');
+                nameDiv.textContent = cardObj.id;
+                nameDiv.style.fontSize = '12px';
+                nameDiv.style.marginTop = '2px';
+                nameDiv.style.fontStyle = 'italic';
+                card.appendChild(nameDiv);
+            }
+            
+            card.appendChild(valueDiv);
+            card.appendChild(directionDiv);
+            
+            // Добавляем цвет в зависимости от значения
+            const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'];
+            card.style.backgroundColor = colors[cardObj.value];
+            
+            // Обновляем стили карточки для вертикального расположения элементов
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.alignItems = 'center';
+            card.style.justifyContent = 'center';
+            
             container.appendChild(card);
             
-            occupiedPositions[`${x},${y}`] = true;
+            occupiedPositions[`${x},${y}`] = cardObj;
             updateGameState();
         }
 
@@ -161,16 +233,35 @@
             });
         }
 
+        // Функция, которая проверяет, есть ли 4 карточки в любой колонке или ряду
+        function hasMaxRowsOrColumns(x, y) {
+            // Получаем все занятые позиции
+            const positions = Object.keys(occupiedPositions).map(pos => pos.split(',').map(Number));
+            
+            // Добавляем новую позицию для проверки
+            positions.push([x, y]);
+            
+            // Получаем уникальные X и Y координаты
+            const uniqueX = [...new Set(positions.map(pos => pos[0]))];
+            const uniqueY = [...new Set(positions.map(pos => pos[1]))];
+            
+            // Если количество уникальных X или Y больше 4,
+            // значит карточку нельзя разместить в этой позиции
+            return uniqueX.length <= 4 && uniqueY.length <= 4;
+        }
+
+        
         // Проверка валидности позиции
         function isValidPosition(x, y) {
-            return x >= 0 && x <= 550 && 
-                   y >= 0 && y <= 550 &&
-                   !occupiedPositions[`${x},${y}`];
+            return x >= 0 && x <= 725 && 
+                   y >= 0 && y <= 725 &&
+                   !occupiedPositions[`${x},${y}`] && hasMaxRowsOrColumns(x, y);
         }
 
         // Размещение карточки
         function placeCard(x, y) {
-            lives--;
+            const cardObj = deck[15 - cards];
+            lives -= (cardObj.value + 1); // Отнимаем значение карточки + 1
             cards--;
             
             addCard(x, y);
@@ -182,7 +273,10 @@
 
             // Проверка конца игры
             if (lives <= 0 || cards <= 0) {
-                gameOverDiv.textContent = `Игра окончена! Счёт: ${16 - cards} карт`;
+                const gameOverText = lives <= 0 ? 
+                    `Игра окончена! Закончились жизни. Выложено карт: ${16 - cards}` : 
+                    `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
+                gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
                 container.style.pointerEvents = 'none';
             }
