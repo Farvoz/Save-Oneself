@@ -61,6 +61,56 @@
             top: 5px;   /* (85px - 75px) / 2 */
         }
 
+        .card-lives {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 16px;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-name {
+            font-size: 12px;
+            margin-bottom: 2px;
+            font-style: italic;
+        }
+
+        .card-direction {
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        /* Добавляем стили для стрелок направления корабля */
+        .ship-direction {
+            font-size: 24px;
+            margin: 2px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ship-direction .pause-icon {
+            font-size: 16px;
+            margin-left: 4px;
+        }
+
         .highlight {
             position: absolute;
             width: 75px;
@@ -133,6 +183,7 @@
 
         // Создаем карточку корабля
         const shipCard = {
+            type: 'ship',
             lives: 0,
             direction: undefined,
             id: 'ship',
@@ -147,30 +198,30 @@
 
 
         let deck = [
-            { lives: 0, direction: 'NE', id: 'hook', requirements: 'water' },
-            { lives: 0, direction: 'NW', id: '', requirements: '' },
-            { lives: 0, direction: 'SW', id: 'telescope', requirements: '' },
-            { lives: 0, direction: 'SE', id: '', requirements: '' },
-            { lives: 2, direction: '', id: 'water', requirements: 'telescope' },
-            { lives: 0, direction: '', id: '', requirements: '' },
-            { lives: 0, direction: '', id: '', requirements: '' },
-            { lives: 0, direction: '', id: '', requirements: '' },
-            { lives: 0, direction: '', id: '', requirements: '' },
-            { lives: 0, direction: '', id: '', requirements: '' },
-            { lives: 0, direction: '', id: '', requirements: '' },  
+            { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back' },
+            { lives: 0, direction: 'NW', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: 'SW', id: 'telescope', requirements: '', type: 'back' },
+            { lives: 0, direction: 'SE', id: '', requirements: '', type: 'back' },
+            { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
+            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },  
         ];
 
         // сделать набор карт для обратной стороны
         let deckBack = [
-            { lives: 3, backId: 'hook', id: 'fish' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
-            { lives: 0, backId: '', id: '' },
+            { lives: 3, backId: 'hook', id: 'fish', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 0, backId: '', id: '', type: 'front' },
         ];
 
         // Функция для конвертации полярных координат в декартовы
@@ -223,7 +274,7 @@
             placeCard(0, 0); // Размещаем первую карту в [0,0]
         }
 
-        // Функция для создания карточки корабля
+        // Функция для создания карточки корабля. Передаем координаты
         function createShipCard(row, col) {
             const coords = polarToCartesian(row, col);
             const card = document.createElement('div');
@@ -232,14 +283,32 @@
             card.style.left = coords.x + 'px';
             card.style.top = coords.y + 'px';
             
+            // Для корабля используем старое отображение
             const livesDiv = document.createElement('div');
             livesDiv.textContent = shipCard.lives;
             livesDiv.style.fontSize = '24px';
             
+            // Добавляем стрелку направления и паузу
             const directionDiv = document.createElement('div');
-            directionDiv.textContent = shipCard.direction;
-            directionDiv.style.fontSize = '14px';
-            directionDiv.style.marginTop = '2px';
+            directionDiv.className = 'ship-direction';
+            
+            // Добавляем стрелку направления
+            const directionArrow = document.createElement('span');
+            switch(shipCard.direction) {
+                case 'NW': directionArrow.textContent = '➡️'; break;
+                case 'NE': directionArrow.textContent = '⬇️'; break;
+                case 'SW': directionArrow.textContent = '⬆️'; break;
+                case 'SE': directionArrow.textContent = '⬅️'; break;
+            }
+            directionDiv.appendChild(directionArrow);
+            
+            // Добавляем индикатор паузы, если нужно
+            if (shipCard.skipMove) {
+                const pauseIcon = document.createElement('span');
+                pauseIcon.className = 'pause-icon';
+                pauseIcon.textContent = '⏸️';
+                directionDiv.appendChild(pauseIcon);
+            }
             
             const nameDiv = document.createElement('div');
             nameDiv.textContent = shipCard.id;
@@ -247,15 +316,6 @@
             nameDiv.style.marginTop = '2px';
             nameDiv.style.fontStyle = 'italic';
             
-            // Добавляем индикатор пропуска хода
-            if (shipCard.skipMove) {
-                const skipDiv = document.createElement('div');
-                skipDiv.textContent = '⏸️';
-                skipDiv.style.fontSize = '12px';
-                skipDiv.style.marginTop = '2px';
-                card.appendChild(skipDiv);
-            }
-
             // Добавляем счетчик шагов
             const movesDiv = document.createElement('div');
             movesDiv.textContent = `Шаги: ${shipCard.moves}/4`;
@@ -321,9 +381,9 @@
                     break;
             }
 
-            createShipCard(shipRow, shipCol);
             shipCard.direction = direction;
             shipCard.position = `${shipRow},${shipCol}`;
+            createShipCard(shipRow, shipCol);
             updateHighlights();
         }
 
@@ -410,47 +470,50 @@
             
             const cardObj = deck[16 - cards];
             
-            const livesDiv = document.createElement('div');
-            livesDiv.textContent = cardObj.lives;
-            livesDiv.style.fontSize = '24px';
+            // Создаем контейнер для основного содержимого
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
             
-            const directionDiv = document.createElement('div');
-            directionDiv.textContent = cardObj.direction;
-            directionDiv.style.fontSize = '14px';
-            directionDiv.style.marginTop = '2px';
+            // Добавляем число жизней в правом верхнем углу для карт типа back и front
+            if (cardObj.lives > 0 && (cardObj.type === 'back' || cardObj.type === 'front')) {
+                const livesDiv = document.createElement('div');
+                livesDiv.className = 'card-lives';
+                livesDiv.textContent = cardObj.lives;
+                card.appendChild(livesDiv);
+            }
+            
+            // Добавляем название карты, если оно есть
+            if (cardObj.id && cardObj.id !== '') {
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'card-name';
+                nameDiv.textContent = cardObj.id;
+                cardContent.appendChild(nameDiv);
+            }
+            
+            // Добавляем направление, если оно есть
+            if (cardObj.direction) {
+                const directionDiv = document.createElement('div');
+                directionDiv.className = 'card-direction';
+                directionDiv.textContent = cardObj.direction;
+                cardContent.appendChild(directionDiv);
+            }
+            
+            card.appendChild(cardContent);
+            
+            // Добавляем цвет в зависимости от значения
+            const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'];
+            card.style.backgroundColor = colors[cardObj.lives];
+            
+            container.appendChild(card);
+            
+            occupiedPositions.set(`${row},${col}`, cardObj);
             
             // Если есть направление и еще не размещен ни один корабль, размещаем корабль
             if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !shipCard.direction) {
                 placeShip(cardObj.direction);
             }
             
-            // Добавляем название карты, если оно есть
-            if (cardObj.id && cardObj.id !== '') {
-                const nameDiv = document.createElement('div');
-                nameDiv.textContent = cardObj.id;
-                nameDiv.style.fontSize = '12px';
-                nameDiv.style.marginTop = '2px';
-                nameDiv.style.fontStyle = 'italic';
-                card.appendChild(nameDiv);
-            }
-            
-            card.appendChild(livesDiv);
-            card.appendChild(directionDiv);
-            
-            // Добавляем цвет в зависимости от значения
-            const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'];
-            card.style.backgroundColor = colors[cardObj.lives];
-            
-            // Обновляем стили карточки для вертикального расположения элементов
-            card.style.display = 'flex';
-            card.style.flexDirection = 'column';
-            card.style.alignItems = 'center';
-            card.style.justifyContent = 'center';
-            
-            container.appendChild(card);
-            
-            occupiedPositions.set(`${row},${col}`, cardObj);
-            updateHighlights(); // Добавляем обновление после добавления карты
+            updateHighlights();
             updateGameState();
         }
 
