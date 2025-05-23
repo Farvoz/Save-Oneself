@@ -99,73 +99,222 @@
         const cardsCounter = document.getElementById('cards-left');
         const gameOverDiv = document.getElementById('game-over');
         
-        let lives = 16;
-        let cards = 15;
-        let occupiedPositions = {};
+        let lives = 17;
+        let cards = 16;
+        let occupiedPositions = new Map(); // Используем Map для хранения позиций
         const step = 85;
+
+        // Создаем карточку корабля
+        const shipCard = {
+            lives: 0,
+            direction: undefined,
+            id: 'ship',
+            requirements: '',
+            position: undefined
+        };
         
         // Создаем колоду из объектов-карточек
         const directions = ['NW', 'NE', 'SW', 'SE'];
 
+
         let deck = [
-            { value: 0, direction: 'NE', id: 'hook', requirements: 'water' },
-            { value: 1, direction: 'NW', id: '', requirements: '' },
-            { value: 2, direction: 'SW', id: '', requirements: '' },
-            { value: 3, direction: 'SE', id: '', requirements: '' },
-            { value: 0, direction: '', id: '', requirements: '' },
-            { value: 1, direction: '', id: '', requirements: '' },
-            { value: 2, direction: '', id: '', requirements: '' },
-            { value: 3, direction: '', id: '', requirements: '' },
-            { value: 0, direction: '', id: '', requirements: '' },
-            { value: 1, direction: '', id: '', requirements: '' },
-            { value: 2, direction: '', id: '', requirements: '' },  
+            { lives: 0, direction: 'NE', id: 'hook', requirements: 'water' },
+            { lives: 0, direction: 'NW', id: '', requirements: '' },
+            { lives: 0, direction: 'SW', id: 'telescope', requirements: '' },
+            { lives: 0, direction: 'SE', id: '', requirements: '' },
+            { lives: 2, direction: '', id: 'water', requirements: 'telescope' },
+            { lives: 0, direction: '', id: '', requirements: '' },
+            { lives: 0, direction: '', id: '', requirements: '' },
+            { lives: 0, direction: '', id: '', requirements: '' },
+            { lives: 0, direction: '', id: '', requirements: '' },
+            { lives: 0, direction: '', id: '', requirements: '' },
+            { lives: 0, direction: '', id: '', requirements: '' },  
         ];
 
         // сделать набор карт для обратной стороны
         let deckBack = [
-            { value: 3, backId: 'hook', id: 'fish' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
-            { value: 0, backId: '', id: '' },
+            { lives: 3, backId: 'hook', id: 'fish' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
+            { lives: 0, backId: '', id: '' },
         ];
 
+        // Функция для конвертации полярных координат в декартовы
+        function polarToCartesian(row, col) {
+            const startX = (container.offsetWidth - 75) / 2;
+            const startY = (container.offsetHeight - 75) / 2;
+            return {
+                x: startX + (col * step),
+                y: startY + (row * step)
+            };
+        }
+
+        // Функция для конвертации декартовых координат в полярные
+        function cartesianToPolar(x, y) {
+            const startX = (container.offsetWidth - 75) / 2;
+            const startY = (container.offsetHeight - 75) / 2;
+            const col = Math.round((x - startX) / step);
+            const row = Math.round((y - startY) / step);
+            return { row, col };
+        }
 
         // Инициализация игры
         function init() {
-            const startX = (container.offsetWidth - 75) / 2;
-            const startY = (container.offsetHeight - 75) / 2;
+            // const startX = (container.offsetWidth - 75) / 2;
+            // const startY = (container.offsetHeight - 75) / 2;
 
             // Перемешиваем колоду
             deck.sort(() => Math.random() - 0.5);
-            addCard(startX, startY);
+            placeCard(0, 0); // Размещаем первую карту в [0,0]
 
+            // На каждый ход:
+            // 1. Добавляем карту (также уменьшается количество карт в колоде)
+            //      Пользователь кликает
+            // 2. Уменьшаем количество жизней
+            decreaseLives();
+            // 3. Сдвигаем корабль
+            moveShip();
+
+            // 4. Обновляем подсветку
             updateHighlights();
         }
 
-        // Добавление новой карточки
-        function addCard(x, y) {
+        // Функция для создания карточки корабля
+        function createShipCard(row, col) {
+            const coords = polarToCartesian(row, col);
             const card = document.createElement('div');
             card.className = 'card';
-            card.style.left = x + 'px';
-            card.style.top = y + 'px';
+            card.setAttribute('data-position', `${row},${col}`);
+            card.style.left = coords.x + 'px';
+            card.style.top = coords.y + 'px';
             
-            // Получаем карточку из колоды
-            const cardObj = deck[15 - cards];
+            const livesDiv = document.createElement('div');
+            livesDiv.textContent = shipCard.lives;
+            livesDiv.style.fontSize = '24px';
             
-            // Создаем структуру для отображения значения, направления и названия
-            const valueDiv = document.createElement('div');
-            valueDiv.textContent = cardObj.value;
-            valueDiv.style.fontSize = '24px';
+            const directionDiv = document.createElement('div');
+            directionDiv.textContent = shipCard.direction;
+            directionDiv.style.fontSize = '14px';
+            directionDiv.style.marginTop = '2px';
+            
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = shipCard.id;
+            nameDiv.style.fontSize = '12px';
+            nameDiv.style.marginTop = '2px';
+            nameDiv.style.fontStyle = 'italic';
+            
+            card.appendChild(nameDiv);
+            card.appendChild(livesDiv);
+            card.appendChild(directionDiv);
+            
+            card.style.backgroundColor = '#87CEEB';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.alignItems = 'center';
+            card.style.justifyContent = 'center';
+            
+            container.appendChild(card);
+            occupiedPositions.set(`${row},${col}`, shipCard);
+        }
+
+        // Функция для размещения корабля в углу
+        function placeShip(direction) {
+            if (shipCard.direction === direction) return;
+
+            let row, col;
+            switch(direction) {
+                case 'NW':
+                    row = -3; col = -3;
+                    break;
+                case 'NE':
+                    row = -3; col = 3;
+                    break;
+                case 'SW':
+                    row = 3; col = -3;
+                    break;
+                case 'SE':
+                    row = 3; col = 3;
+                    break;
+            }
+
+            createShipCard(row, col);
+            shipCard.direction = direction;
+            shipCard.position = `${row},${col}`;
+        }
+
+        // Функция для перемещения корабля
+        function moveShip() {
+            // Проверяем, есть ли корабль на поле
+            if (!shipCard.position) return;
+
+            const [oldRow, oldCol] = shipCard.position.split(',').map(Number);
+            let newRow = oldRow;
+            let newCol = oldCol;
+
+            // Определяем новую позицию в зависимости от направления
+            switch(shipCard.direction) {
+                case 'NW':
+                    newCol++;
+                    break;
+                case 'NE':
+                    newRow++; 
+                    break;
+                case 'SW':
+                    newRow--;
+                    break;
+                case 'SE':
+                    newCol--;
+                    break;
+            }
+
+            // Проверяем, не выходит ли корабль за пределы поля
+            if (newRow < -3 || newRow > 3 || newCol < -3 || newCol > 3) {
+                return; // Корабль остается на месте, если достиг границы
+            }
+
+            // Проверяем, не занята ли новая позиция
+            // if (occupiedPositions.has(`${newRow},${newCol}`)) {
+            //     return; // Корабль остается на месте, если позиция занята
+            // }
+
+            // Удаляем корабль со старой позиции
+            occupiedPositions.delete(oldPos);
+            const oldCard = document.querySelector(`.card[data-position="${oldPos}"]`);
+            if (oldCard) oldCard.remove();
+
+            // Размещаем корабль на новой позиции
+            createShipCard(newRow, newCol);
+        }
+
+        // Добавление новой карточки
+        function addCard(row, col) {
+            const coords = polarToCartesian(row, col);
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-position', `${row},${col}`);
+            card.style.left = coords.x + 'px';
+            card.style.top = coords.y + 'px';
+            
+            const cardObj = deck[16 - cards];
+            
+            const livesDiv = document.createElement('div');
+            livesDiv.textContent = cardObj.lives;
+            livesDiv.style.fontSize = '24px';
             
             const directionDiv = document.createElement('div');
             directionDiv.textContent = cardObj.direction;
             directionDiv.style.fontSize = '14px';
             directionDiv.style.marginTop = '2px';
+            
+            // Если есть направление и еще не размещен ни один корабль, размещаем корабль
+            if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !shipCard.direction) {
+                placeShip(cardObj.direction);
+            }
             
             // Добавляем название карты, если оно есть
             if (cardObj.id && cardObj.id !== '') {
@@ -177,12 +326,12 @@
                 card.appendChild(nameDiv);
             }
             
-            card.appendChild(valueDiv);
+            card.appendChild(livesDiv);
             card.appendChild(directionDiv);
             
             // Добавляем цвет в зависимости от значения
             const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'];
-            card.style.backgroundColor = colors[cardObj.value];
+            card.style.backgroundColor = colors[cardObj.lives];
             
             // Обновляем стили карточки для вертикального расположения элементов
             card.style.display = 'flex';
@@ -192,7 +341,7 @@
             
             container.appendChild(card);
             
-            occupiedPositions[`${x},${y}`] = cardObj;
+            occupiedPositions.set(`${row},${col}`, cardObj);
             updateGameState();
         }
 
@@ -201,30 +350,29 @@
             // Удаляем старую подсветку
             document.querySelectorAll('.highlight').forEach(el => el.remove());
 
-            // Ищем все возможные позиции
-            Object.keys(occupiedPositions).forEach(pos => {
-                const [x, y] = pos.split(',').map(Number);
+            occupiedPositions.forEach((card, pos) => {
+                const [row, col] = pos.split(',').map(Number);
                 
-                // Проверяем все 4 направления
                 const directions = [
-                    {dx: -step, dy: 0}, // left
-                    {dx: step, dy: 0},  // right
-                    {dx: 0, dy: -step}, // top
-                    {dx: 0, dy: step}   // bottom
+                    {dr: 0, dc: -1}, // left
+                    {dr: 0, dc: 1},  // right
+                    {dr: -1, dc: 0}, // top
+                    {dr: 1, dc: 0}   // bottom
                 ];
 
-                directions.forEach(({dx, dy}) => {
-                    const newX = x + dx;
-                    const newY = y + dy;
+                directions.forEach(({dr, dc}) => {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
                     
-                    if (isValidPosition(newX, newY)) {
+                    if (isValidPosition(newRow, newCol)) {
+                        const coords = polarToCartesian(newRow, newCol);
                         const highlight = document.createElement('div');
                         highlight.className = 'highlight';
-                        highlight.style.left = newX + 'px';
-                        highlight.style.top = newY + 'px';
+                        highlight.style.left = coords.x + 'px';
+                        highlight.style.top = coords.y + 'px';
                         
                         highlight.addEventListener('click', () => {
-                            if (lives > 0 && cards > 0) placeCard(newX, newY);
+                            if (lives > 0 && cards > 0) placeCard(newRow, newCol);
                         });
                         
                         container.appendChild(highlight);
@@ -233,53 +381,62 @@
             });
         }
 
-        // Функция, которая проверяет, есть ли 4 карточки в любой колонке или ряду
-        function hasMaxRowsOrColumns(x, y) {
-            // Получаем все занятые позиции
-            const positions = Object.keys(occupiedPositions).map(pos => pos.split(',').map(Number));
+        // Функция проверки максимального количества карт в ряду/колонке
+        function hasMaxRowsOrColumns(row, col) {
+            const positions = Array.from(occupiedPositions.keys()).map(pos => pos.split(',').map(Number));
+            positions.push([row, col]);
             
-            // Добавляем новую позицию для проверки
-            positions.push([x, y]);
+            const uniqueRows = [...new Set(positions.map(pos => pos[0]))];
+            const uniqueCols = [...new Set(positions.map(pos => pos[1]))];
             
-            // Получаем уникальные X и Y координаты
-            const uniqueX = [...new Set(positions.map(pos => pos[0]))];
-            const uniqueY = [...new Set(positions.map(pos => pos[1]))];
-            
-            // Если количество уникальных X или Y больше 4,
-            // значит карточку нельзя разместить в этой позиции
-            return uniqueX.length <= 4 && uniqueY.length <= 4;
+            return uniqueRows.length <= 4 && uniqueCols.length <= 4;
         }
 
-        
         // Проверка валидности позиции
-        function isValidPosition(x, y) {
-            return x >= 0 && x <= 725 && 
-                   y >= 0 && y <= 725 &&
-                   !occupiedPositions[`${x},${y}`] && hasMaxRowsOrColumns(x, y);
+        function isValidPosition(row, col) {
+            // Проверяем границы поля (4x4)
+            if (row < -3 || row > 3 || col < -3 || col > 3) return false;
+            
+            // Проверяем, не занята ли позиция
+            if (occupiedPositions.has(`${row},${col}`)) return false;
+            
+            // Проверяем максимальное количество карт в ряду/колонке
+            if (!hasMaxRowsOrColumns(row, col)) return false;
+            
+            // Проверяем, не является ли позиция угловой
+            if (Math.abs(row) === 3 && Math.abs(col) === 3) return false;
+            
+            return true;
         }
 
         // Размещение карточки
-        function placeCard(x, y) {
-            const cardObj = deck[15 - cards];
-            lives -= (cardObj.value + 1); // Отнимаем значение карточки + 1
+        function placeCard(row, col) {
+            const cardObj = deck[16 - cards];
+            lives = lives + cardObj.lives;
             cards--;
             
-            addCard(x, y);
+            addCard(row, col);
+            
+            // Обновляем подсветку после движения кораблей
             updateHighlights();
             
-            // Обновление счетчиков
             livesCounter.textContent = lives;
             cardsCounter.textContent = cards;
 
-            // Проверка конца игры
             if (lives <= 0 || cards <= 0) {
                 const gameOverText = lives <= 0 ? 
-                    `Игра окончена! Закончились жизни. Выложено карт: ${16 - cards}` : 
+                    `Игра окончена! Закончились жизни. Выложено карт: ${17 - cards}` : 
                     `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
                 container.style.pointerEvents = 'none';
             }
+        }
+
+        // Функция уменьшения жизней
+        function decreaseLives() {
+            lives = lives - 1;
+            livesCounter.textContent = lives;
         }
 
         // Обновление состояния игры
