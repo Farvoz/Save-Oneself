@@ -92,8 +92,11 @@
         }
 
         .card-direction {
-            font-size: 14px;
+            font-size: 8px;
             margin-top: 2px;
+            position: absolute;
+            left: 0;
+            top: 0;
         }
 
         /* Добавляем стили для стрелок направления корабля */
@@ -116,7 +119,7 @@
             width: 75px;
             height: 75px;
             /* сделать светло-светло-серый */
-            background-color: #E8E8D0;
+            background-color: #fffff3;
             border: 2px dashed #FFC107;
             border-radius: 8px;
             cursor: pointer;
@@ -189,52 +192,45 @@
             requirements: '',
             position: undefined,
             skipMove: true,  // Флаг для пропуска движения
-            moves: 0        // Счетчик шагов корабля
+            moves: 0,        // Счетчик шагов корабля
+            emoji: '⛵'      // Эмоджи для корабля
         };
         
         let deck = [
-            { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back' },
-            { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back' },
-            { lives: 0, direction: '', id: 'flint', requirements: 'vines', type: 'back' },
-            { lives: 0, direction: 'SW', id: 'vines', requirements: 'palm-trees', type: 'back' },
-            { lives: 0, direction: 'SE', id: 'palm-trees', requirements: 'rocks', type: 'back' },
-            { lives: 0, direction: 'NW', id: 'sticks', requirements: 'flint', type: 'back' },
-
+            { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back', emoji: '🎣' },
+            { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back', emoji: '💧' },
+            { lives: 0, direction: '', id: 'flint', requirements: 'vines', type: 'back', emoji: '⚡' },
+            { lives: 0, direction: 'SW', id: 'vines', requirements: 'palm-trees', type: 'back', emoji: '🌿' },
+            { lives: 0, direction: 'SE', id: 'palm-trees', requirements: 'rocks', type: 'back', emoji: '🌴' },
+            { lives: 0, direction: 'NW', id: 'sticks', requirements: 'flint', type: 'back', emoji: '🪵' },
             // Нужно находиться на возвышенности
-            { lives: 0, direction: '', id: 'telescope', requirements: 'higher-ground', type: 'back' },
-            { lives: 0, direction: '', id: 'rocks', requirements: 'higher-ground', type: 'back' },
-
+            { lives: 0, direction: '', id: 'telescope', requirements: 'higher-ground', type: 'back', emoji: '🔭' },
+            { lives: 0, direction: '', id: 'rocks', requirements: 'higher-ground', type: 'back', emoji: '🪨' },
             // Особые требования
-            { lives: 0, direction: '', id: 'higher-ground', requirements: 'torch', type: 'back' },
-
+            { lives: 0, direction: '', id: 'higher-ground', requirements: 'torch', type: 'back', emoji: '⛰️' },
             // Особые требования от корабля
-            { lives: 0, direction: '', id: 'bottle', requirements: '_ship-set-sail', type: 'back' },
+            { lives: 0, direction: '', id: 'bottle', requirements: '_ship-set-sail', type: 'back', emoji: '🍾' },
         ];
 
         let cards = deck.length - 1;
 
         // сделать набор карт для обратной стороны
         let deckBack = [
-            { lives: 3, backId: 'hook', id: 'fish', type: 'front' },
-            { lives: 2, backId: 'water', id: 'waterfall', type: 'front' },
-            { lives: 0, backId: 'flint', id: 'torch', type: 'front' },
-            { lives: 2, backId: 'palm-trees', id: 'coconuts', type: 'front' },
-            { lives: 0, backId: 'sticks', id: 'spear', type: 'front' },
-
+            { lives: 3, backId: 'hook', id: 'fish', type: 'front', emoji: '🐟' },
+            { lives: 2, backId: 'water', id: 'waterfall', type: 'front', emoji: '🌊' },
+            { lives: 0, backId: 'flint', id: 'torch', type: 'front', emoji: '🔥' },
+            { lives: 2, backId: 'palm-trees', id: 'coconuts', type: 'front', emoji: '🥥' },
+            { lives: 0, backId: 'sticks', id: 'spear', type: 'front', emoji: '🗡️' },
             // Особые свойства: защищает от урона шторма
-            { lives:2, backId: 'vines', id: 'shelter', type: 'front' },
-
+            { lives: 2, backId: 'vines', id: 'shelter', type: 'front', emoji: '🏠' },
             // Эта карта меняет правила кораблей. Особые требования
-            { lives: 0, backId: 'telescope', id: 'ship-sighted', type: 'front' },
-
-            // Карта спасает с острова. Нужно смотреть ряд
-            { lives: 0, backId: 'rocks', id: 'sos', type: 'front' },
-
+            { lives: 0, backId: 'telescope', id: 'ship-sighted', type: 'front', emoji: '🚢' },
+              // Карта спасает с острова. Нужно смотреть ряд
+            { lives: 0, backId: 'rocks', id: 'sos', type: 'front', emoji: '🆘' },
             // Карта спасает с острова. Нужно смотреть колонку
-            { lives: 0, backId: 'higher-ground', id: 'lit-beacon', type: 'front' },
-
+            { lives: 0, backId: 'higher-ground', id: 'lit-beacon', type: 'front', emoji: '🏮' },
             // Карта спасает с острова: если корабль проплывает рядом
-            { lives: 0, backId: 'bottle', id: 'message', type: 'front' },
+            { lives: 0, backId: 'bottle', id: 'message', type: 'front', emoji: '📜' },
         ];
 
         // Функция для конвертации полярных координат в декартовы
@@ -319,7 +315,7 @@
             }
             
             const nameDiv = document.createElement('div');
-            nameDiv.textContent = shipCard.id;
+            nameDiv.textContent = `${shipCard.emoji} ${shipCard.id}`;
             nameDiv.style.fontSize = '12px';
             nameDiv.style.marginTop = '2px';
             nameDiv.style.fontStyle = 'italic';
@@ -335,7 +331,9 @@
             card.appendChild(nameDiv);
             card.appendChild(directionDiv);
             
-            card.style.backgroundColor = '#87CEEB';
+            // Устанавливаем цвет фона для корабля
+            card.style.backgroundColor = '#87CEEB';  // голубой для корабля
+            
             card.style.display = 'flex';
             card.style.flexDirection = 'column';
             card.style.alignItems = 'center';
@@ -392,6 +390,37 @@
             shipCard.position = `${shipRow},${shipCol}`;
             createShipCard(shipRow, shipCol);
             updateHighlights();
+        }
+
+        // Функция для проверки победы
+        function checkVictory() {
+            // Находим позиции карт sos и lit-beacon
+            let sosPosition = null;
+            let beaconPosition = null;
+            
+            for (const [pos, card] of occupiedPositions) {
+                if (card.type === 'front') {
+                    if (card.id === 'sos') {
+                        sosPosition = pos.split(',').map(Number);
+                    } else if (card.id === 'lit-beacon') {
+                        beaconPosition = pos.split(',').map(Number);
+                    }
+                }
+            }
+            
+            // Если корабль не размещен, победы нет
+            if (!shipCard.position) return false;
+            
+            // Получаем позицию корабля
+            const [shipRow, shipCol] = shipCard.position.split(',').map(Number);
+            
+            // Проверяем условия победы:
+            // 1. Корабль в том же ряду, что и sos
+            // 2. Корабль в той же колонке, что и lit-beacon
+            const sosVictory = sosPosition && shipRow === sosPosition[0];
+            const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
+            
+            return sosVictory || beaconVictory;
         }
 
         // Функция для перемещения корабля
@@ -457,6 +486,32 @@
             shipCard.position = `${newRow},${newCol}`;
             updateHighlights();
 
+            // Проверяем условие победы
+            if (checkVictory()) {
+                let victoryText;
+                const [shipRow, shipCol] = shipCard.position.split(',').map(Number);
+                
+                // Определяем, какое условие победы сработало
+                for (const [pos, card] of occupiedPositions) {
+                    if (card.type === 'front') {
+                        const [cardRow, cardCol] = pos.split(',').map(Number);
+                        if (card.id === 'sos' && shipRow === cardRow) {
+                            victoryText = 'Победа! Корабль заметил сигнал SOS!';
+                            break;
+                        } else if (card.id === 'lit-beacon' && shipCol === cardCol) {
+                            victoryText = 'Победа! Корабль заметил маяк!';
+                            break;
+                        }
+                    }
+                }
+                
+                gameOverDiv.textContent = victoryText;
+                gameOverDiv.style.display = 'block';
+                gameOverDiv.style.backgroundColor = 'rgba(0, 128, 0, 0.9)'; // Зеленый фон для победы
+                container.style.pointerEvents = 'none';
+                return;
+            }
+
             // Проверяем условие поражения после хода
             if (shipCard.moves >= 5) {
                 const gameOverText = 'Игра окончена! Корабль совершил 5 шагов.';
@@ -489,11 +544,11 @@
                 card.appendChild(livesDiv);
             }
             
-            // Добавляем название карты, если оно есть
+            // Добавляем эмоджи и название карты, если они есть
             if (cardObj.id && cardObj.id !== '') {
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'card-name';
-                nameDiv.textContent = cardObj.id;
+                nameDiv.textContent = `${cardObj.emoji} ${cardObj.id}`;
                 cardContent.appendChild(nameDiv);
             }
             
@@ -504,12 +559,47 @@
                 directionDiv.textContent = cardObj.direction;
                 cardContent.appendChild(directionDiv);
             }
+
+            // Добавляем требования для карт типа back
+            if (cardObj.type === 'back' && cardObj.requirements) {
+                const requirementsDiv = document.createElement('div');
+                requirementsDiv.className = 'card-requirements';
+                requirementsDiv.style.fontSize = '10px';
+                requirementsDiv.style.color = '#666';
+                requirementsDiv.style.fontStyle = 'italic';
+                requirementsDiv.style.marginTop = '2px';
+                requirementsDiv.style.textAlign = 'center';
+                
+                // Форматируем текст требований
+                let requirementsText = '';
+                if (cardObj.requirements === '_ship-set-sail') {
+                    requirementsText = 'нужен корабль на паузе';
+                } else {
+                    requirementsText = `нужна ${cardObj.requirements}`;
+                }
+                requirementsDiv.textContent = requirementsText;
+                cardContent.appendChild(requirementsDiv);
+            }
             
             card.appendChild(cardContent);
             
-            // Добавляем цвет в зависимости от значения
-            const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA'];
-            card.style.backgroundColor = colors[cardObj.lives];
+            // Устанавливаем цвет фона в зависимости от типа карты
+            if (cardObj === shipCard) {
+                // Корабль - голубой
+                card.style.backgroundColor = '#87CEEB';
+            } else if (cardObj.type === 'back') {
+                // Обратная сторона - бежевый
+                card.style.backgroundColor = '#F5F5DC';
+            } else if (cardObj.type === 'front') {
+                // Лицевая сторона - светло-зеленый
+                card.style.backgroundColor = '#E8F5E9';
+            }
+            
+            // Добавляем обработчик клика для карт типа back
+            if (cardObj.type === 'back') {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', () => tryFlipCard(row, col));
+            }
             
             container.appendChild(card);
             
@@ -521,6 +611,83 @@
             }
             
             updateHighlights();
+            updateGameState();
+        }
+
+        // Функция для проверки возможности переворота карты
+        function canFlipCard(cardObj) {
+            // Если карта уже перевернута, нельзя перевернуть обратно
+            if (cardObj.type === 'front') return false;
+            
+            // Если у карты есть требования, проверяем их
+            if (cardObj.requirements) {
+                // Проверяем специальное требование для корабля
+                if (cardObj.requirements === '_ship-set-sail') {
+                    return shipCard.direction === undefined;
+                }
+                
+                // Ищем карту с требуемым id среди перевернутых карт
+                for (const [_, card] of occupiedPositions) {
+                    if (card.id === cardObj.requirements) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Функция для переворота карты
+        function tryFlipCard(row, col) {
+            const cardObj = occupiedPositions.get(`${row},${col}`);
+            if (!cardObj || !canFlipCard(cardObj)) return;
+
+            // Находим соответствующую карту в deckBack
+            const frontCard = deckBack.find(card => card.backId === cardObj.id);
+            if (!frontCard) return;
+
+            // Обновляем объект карты
+            cardObj.type = 'front';
+            cardObj.id = frontCard.id;
+            cardObj.lives = frontCard.lives;
+
+            // Обновляем отображение карты
+            const cardElement = document.querySelector(`.card[data-position="${row},${col}"]`);
+            if (!cardElement) return;
+
+            // Очищаем содержимое карты
+            cardElement.innerHTML = '';
+            
+            // Создаем новое содержимое
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
+            
+            // Добавляем жизни, если они есть
+            if (cardObj.lives > 0) {
+                const livesDiv = document.createElement('div');
+                livesDiv.className = 'card-lives';
+                livesDiv.textContent = cardObj.lives;
+                cardElement.appendChild(livesDiv);
+            }
+            
+            // Добавляем название карты с эмоджи
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'card-name';
+            nameDiv.textContent = `${cardObj.emoji} ${cardObj.id}`;
+            cardContent.appendChild(nameDiv);
+            
+            cardElement.appendChild(cardContent);
+            
+            // Обновляем цвет карты при перевороте
+            if (cardObj.type === 'front') {
+                cardElement.style.backgroundColor = '#E8F5E9';  // светло-зеленый для лицевой стороны
+            }
+            
+            // Убираем курсор pointer, так как карта больше не кликабельна
+            cardElement.style.cursor = 'default';
+            
+            // Обновляем состояние игры
             updateGameState();
         }
 
@@ -664,6 +831,28 @@
                 }
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
+                container.style.pointerEvents = 'none';
+            } else if (checkVictory()) {
+                let victoryText;
+                const [shipRow, shipCol] = shipCard.position.split(',').map(Number);
+                
+                // Определяем, какое условие победы сработало
+                for (const [pos, card] of occupiedPositions) {
+                    if (card.type === 'front') {
+                        const [cardRow, cardCol] = pos.split(',').map(Number);
+                        if (card.id === 'sos' && shipRow === cardRow) {
+                            victoryText = 'Победа! Корабль заметил сигнал SOS!';
+                            break;
+                        } else if (card.id === 'lit-beacon' && shipCol === cardCol) {
+                            victoryText = 'Победа! Корабль заметил маяк!';
+                            break;
+                        }
+                    }
+                }
+                
+                gameOverDiv.textContent = victoryText;
+                gameOverDiv.style.display = 'block';
+                gameOverDiv.style.backgroundColor = 'rgba(0, 128, 0, 0.9)'; // Зеленый фон для победы
                 container.style.pointerEvents = 'none';
             }
         }
