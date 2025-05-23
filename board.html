@@ -137,7 +137,9 @@
             direction: undefined,
             id: 'ship',
             requirements: '',
-            position: undefined
+            position: undefined,
+            skipMove: true,  // Флаг для пропуска движения
+            moves: 0        // Счетчик шагов корабля
         };
         
         // Создаем колоду из объектов-карточек
@@ -245,6 +247,23 @@
             nameDiv.style.marginTop = '2px';
             nameDiv.style.fontStyle = 'italic';
             
+            // Добавляем индикатор пропуска хода
+            if (shipCard.skipMove) {
+                const skipDiv = document.createElement('div');
+                skipDiv.textContent = '⏸️';
+                skipDiv.style.fontSize = '12px';
+                skipDiv.style.marginTop = '2px';
+                card.appendChild(skipDiv);
+            }
+
+            // Добавляем счетчик шагов
+            const movesDiv = document.createElement('div');
+            movesDiv.textContent = `Шаги: ${shipCard.moves}/4`;
+            movesDiv.style.fontSize = '12px';
+            movesDiv.style.marginTop = '2px';
+            movesDiv.style.color = shipCard.moves >= 3 ? 'red' : 'inherit';
+            card.appendChild(movesDiv);
+            
             card.appendChild(nameDiv);
             card.appendChild(livesDiv);
             card.appendChild(directionDiv);
@@ -259,36 +278,74 @@
             occupiedPositions.set(`${row},${col}`, shipCard);
         }
 
-        // Функция для размещения корабля в углу
+        // Функция для размещения корабля рядом с картой
         function placeShip(direction) {
             if (shipCard.direction === direction) return;
 
-            let row, col;
+            // Находим крайние карточки
+            let minRow = 0, maxRow = 0, minCol = 0, maxCol = 0;
+            let shipRow, shipCol;
+
+            // Получаем все позиции карт, исключая корабль
+            const cardPositions = Array.from(occupiedPositions.entries())
+                .filter(([_, card]) => card !== shipCard)
+                .map(([pos]) => pos.split(',').map(Number));
+
+            if (cardPositions.length === 0) return;
+
+            // Находим границы поля с картами
+            cardPositions.forEach(([row, col]) => {
+                minRow = Math.min(minRow, row);
+                maxRow = Math.max(maxRow, row);
+                minCol = Math.min(minCol, col);
+                maxCol = Math.max(maxCol, col);
+            });
+
+            // Определяем позицию корабля в зависимости от направления
             switch(direction) {
                 case 'NW':
-                    row = -3; col = -3;
+                    shipRow = minRow - 1;
+                    shipCol = minCol - 1;
                     break;
                 case 'NE':
-                    row = -3; col = 3;
+                    shipRow = minRow - 1;
+                    shipCol = maxCol + 1;
                     break;
                 case 'SW':
-                    row = 3; col = -3;
+                    shipRow = maxRow + 1;
+                    shipCol = minCol - 1;
                     break;
                 case 'SE':
-                    row = 3; col = 3;
+                    shipRow = maxRow + 1;
+                    shipCol = maxCol + 1;
                     break;
             }
 
-            createShipCard(row, col);
+            createShipCard(shipRow, shipCol);
             shipCard.direction = direction;
-            shipCard.position = `${row},${col}`;
-            updateHighlights(); // Добавляем обновление после размещения корабля
+            shipCard.position = `${shipRow},${shipCol}`;
+            updateHighlights();
         }
 
         // Функция для перемещения корабля
-        function moveShip() {
+        function tryMoveShip() {
             // Проверяем, есть ли корабль на поле
             if (!shipCard.position) return;
+
+            // Если корабль должен пропустить ход, сбрасываем флаг и выходим
+            if (shipCard.skipMove) {
+                shipCard.skipMove = false;
+                return;
+            }
+
+            // Проверяем, не достиг ли корабль максимального количества шагов
+            if (shipCard.moves >= 4) {
+                const gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+                gameOverDiv.textContent = gameOverText;
+                gameOverDiv.style.display = 'block';
+                container.style.pointerEvents = 'none';
+                return;
+            }
 
             const [oldRow, oldCol] = shipCard.position.split(',').map(Number);
             let newRow = oldRow;
@@ -315,6 +372,14 @@
                 return;
             }
 
+            // Проверяем, не занята ли новая позиция
+            if (occupiedPositions.has(`${newRow},${newCol}`)) {
+                return;
+            }
+
+            // Увеличиваем счетчик шагов
+            shipCard.moves++;
+
             // Удаляем корабль со старой позиции
             occupiedPositions.delete(shipCard.position);
             const oldCard = document.querySelector(`.card[data-position="${shipCard.position}"]`);
@@ -323,7 +388,15 @@
             // Размещаем корабль на новой позиции
             createShipCard(newRow, newCol);
             shipCard.position = `${newRow},${newCol}`;
-            updateHighlights(); // Добавляем обновление после перемещения корабля
+            updateHighlights();
+
+            // Проверяем условие поражения после хода
+            if (shipCard.moves >= 4) {
+                const gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+                gameOverDiv.textContent = gameOverText;
+                gameOverDiv.style.display = 'block';
+                container.style.pointerEvents = 'none';
+            }
         }
 
         // Добавление новой карточки
@@ -497,16 +570,21 @@
             decreaseLives();
 
             // 3. Сдвигаем корабль
-            moveShip();
+            tryMoveShip();
             
             // Обновляем подсветку после всех изменений
             updateHighlights();
             
             // Проверяем условия окончания игры
-            if (lives <= 0 || cards <= 0) {
-                const gameOverText = lives <= 0 ? 
-                    `Игра окончена! Закончились жизни. Выложено карт: ${17 - cards}` : 
-                    `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
+            if (lives <= 0 || cards <= 0 || shipCard.moves >= 4) {
+                let gameOverText;
+                if (lives <= 0) {
+                    gameOverText = `Игра окончена! Закончились жизни. Выложено карт: ${17 - cards}`;
+                } else if (cards <= 0) {
+                    gameOverText = `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
+                } else {
+                    gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+                }
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
                 container.style.pointerEvents = 'none';
