@@ -115,7 +115,8 @@
             position: absolute;
             width: 75px;
             height: 75px;
-            background-color: #FFEB3B;
+            /* сделать светло-светло-серый */
+            background-color: #E8E8D0;
             border: 2px dashed #FFC107;
             border-radius: 8px;
             cursor: pointer;
@@ -177,9 +178,7 @@
         const gameOverDiv = document.getElementById('game-over');
         
         let lives = 17;
-        let cards = 16;
         let occupiedPositions = new Map(); // Используем Map для хранения позиций
-        const step = 85;
 
         // Создаем карточку корабля
         const shipCard = {
@@ -193,35 +192,49 @@
             moves: 0        // Счетчик шагов корабля
         };
         
-        // Создаем колоду из объектов-карточек
-        const directions = ['NW', 'NE', 'SW', 'SE'];
-
-
         let deck = [
             { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back' },
-            { lives: 0, direction: 'NW', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: 'SW', id: 'telescope', requirements: '', type: 'back' },
-            { lives: 0, direction: 'SE', id: '', requirements: '', type: 'back' },
             { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },
-            { lives: 0, direction: '', id: '', requirements: '', type: 'back' },  
+            { lives: 0, direction: '', id: 'flint', requirements: 'vines', type: 'back' },
+            { lives: 0, direction: 'SW', id: 'vines', requirements: 'palm-trees', type: 'back' },
+            { lives: 0, direction: 'SE', id: 'palm-trees', requirements: 'rocks', type: 'back' },
+            { lives: 0, direction: 'NW', id: 'sticks', requirements: 'flint', type: 'back' },
+
+            // Нужно находиться на возвышенности
+            { lives: 0, direction: '', id: 'telescope', requirements: 'higher-ground', type: 'back' },
+            { lives: 0, direction: '', id: 'rocks', requirements: 'higher-ground', type: 'back' },
+
+            // Особые требования
+            { lives: 0, direction: '', id: 'higher-ground', requirements: 'torch', type: 'back' },
+
+            // Особые требования от корабля
+            { lives: 0, direction: '', id: 'bottle', requirements: '_ship-set-sail', type: 'back' },
         ];
+
+        let cards = deck.length - 1;
 
         // сделать набор карт для обратной стороны
         let deckBack = [
             { lives: 3, backId: 'hook', id: 'fish', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
-            { lives: 0, backId: '', id: '', type: 'front' },
+            { lives: 2, backId: 'water', id: 'waterfall', type: 'front' },
+            { lives: 0, backId: 'flint', id: 'torch', type: 'front' },
+            { lives: 2, backId: 'palm-trees', id: 'coconuts', type: 'front' },
+            { lives: 0, backId: 'sticks', id: 'spear', type: 'front' },
+
+            // Особые свойства: защищает от урона шторма
+            { lives:2, backId: 'vines', id: 'shelter', type: 'front' },
+
+            // Эта карта меняет правила кораблей. Особые требования
+            { lives: 0, backId: 'telescope', id: 'ship-sighted', type: 'front' },
+
+            // Карта спасает с острова. Нужно смотреть ряд
+            { lives: 0, backId: 'rocks', id: 'sos', type: 'front' },
+
+            // Карта спасает с острова. Нужно смотреть колонку
+            { lives: 0, backId: 'higher-ground', id: 'lit-beacon', type: 'front' },
+
+            // Карта спасает с острова: если корабль проплывает рядом
+            { lives: 0, backId: 'bottle', id: 'message', type: 'front' },
         ];
 
         // Функция для конвертации полярных координат в декартовы
@@ -283,11 +296,6 @@
             card.style.left = coords.x + 'px';
             card.style.top = coords.y + 'px';
             
-            // Для корабля используем старое отображение
-            const livesDiv = document.createElement('div');
-            livesDiv.textContent = shipCard.lives;
-            livesDiv.style.fontSize = '24px';
-            
             // Добавляем стрелку направления и паузу
             const directionDiv = document.createElement('div');
             directionDiv.className = 'ship-direction';
@@ -318,14 +326,13 @@
             
             // Добавляем счетчик шагов
             const movesDiv = document.createElement('div');
-            movesDiv.textContent = `Шаги: ${shipCard.moves}/4`;
+            movesDiv.textContent = `Шаги: ${shipCard.moves}/5`;
             movesDiv.style.fontSize = '12px';
             movesDiv.style.marginTop = '2px';
             movesDiv.style.color = shipCard.moves >= 3 ? 'red' : 'inherit';
             card.appendChild(movesDiv);
             
             card.appendChild(nameDiv);
-            card.appendChild(livesDiv);
             card.appendChild(directionDiv);
             
             card.style.backgroundColor = '#87CEEB';
@@ -399,8 +406,8 @@
             }
 
             // Проверяем, не достиг ли корабль максимального количества шагов
-            if (shipCard.moves >= 4) {
-                const gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+            if (shipCard.moves >= 5) {
+                const gameOverText = 'Игра окончена! Корабль совершил 5 шагов.';
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
                 container.style.pointerEvents = 'none';
@@ -451,8 +458,8 @@
             updateHighlights();
 
             // Проверяем условие поражения после хода
-            if (shipCard.moves >= 4) {
-                const gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+            if (shipCard.moves >= 5) {
+                const gameOverText = 'Игра окончена! Корабль совершил 5 шагов.';
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
                 container.style.pointerEvents = 'none';
@@ -468,7 +475,7 @@
             card.style.left = coords.x + 'px';
             card.style.top = coords.y + 'px';
             
-            const cardObj = deck[16 - cards];
+            const cardObj = deck[deck.length - cards];
             
             // Создаем контейнер для основного содержимого
             const cardContent = document.createElement('div');
@@ -620,9 +627,18 @@
 
         // Размещение карточки
         function placeCard(row, col) {
+            // Проверяем, есть ли карты в колоде
+            if (cards <= 0) {
+                const gameOverText = `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
+                gameOverDiv.textContent = gameOverText;
+                gameOverDiv.style.display = 'block';
+                container.style.pointerEvents = 'none';
+                return;
+            }
+
             // На каждый ход:
             // 1. Добавляем карту (также уменьшается количество карт в колоде)
-            const cardObj = deck[16 - cards];
+            const cardObj = deck[deck.length - cards];
             lives = lives + cardObj.lives;
             cards--;
             cardsCounter.textContent = cards;
@@ -639,14 +655,12 @@
             updateHighlights();
             
             // Проверяем условия окончания игры
-            if (lives <= 0 || cards <= 0 || shipCard.moves >= 4) {
+            if (lives <= 0 || shipCard.moves >= 5) {
                 let gameOverText;
                 if (lives <= 0) {
-                    gameOverText = `Игра окончена! Закончились жизни. Выложено карт: ${17 - cards}`;
-                } else if (cards <= 0) {
-                    gameOverText = `Игра окончена! Закончились карты. Осталось жизней: ${lives}`;
+                    gameOverText = `Игра окончена! Закончились жизни. Выложено карт: ${deck.length - cards}`;
                 } else {
-                    gameOverText = 'Игра окончена! Корабль совершил 4 шага.';
+                    gameOverText = 'Игра окончена! Корабль совершил 5 шагов.';
                 }
                 gameOverDiv.textContent = gameOverText;
                 gameOverDiv.style.display = 'block';
