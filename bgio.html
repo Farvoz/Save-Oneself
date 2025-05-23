@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Placement Game</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/boardgame.io/0.49.12/boardgame.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/boardgame.io@0.49.12/dist/boardgameio.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .game-info {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border: 1px solid #90caf9;
+            max-width: 600px;
+        }
+        
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 120px);
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cell {
+            width: 80px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .cell:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .cell.valid-move {
+            background-color: rgba(46, 204, 113, 0.3);
+        }
+        
+        .cell.valid-move:hover {
+            background-color: rgba(46, 204, 113, 0.5);
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            position: relative;
+        }
+        
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+        
+        .card.winning-card {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.7);
+        }
+        
+        .game-status {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            min-height: 30px;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .card-count {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .victory {
+            font-size: 24px;
+            color: #27ae60;
+            margin-top: 20px;
+            font-weight: bold;
+            animation: victory-pulse 1s infinite alternate;
+        }
+        
+        @keyframes victory-pulse {
+            from {
+                transform: scale(1);
+                text-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+            }
+            to {
+                transform: scale(1.05);
+                text-shadow: 0 0 20px rgba(39, 174, 96, 0.8);
+            }
+        }
+        
+        .card-animation {
+            animation: place-card 0.5s ease-out;
+        }
+        
+        @keyframes place-card {
+            0% {
+                transform: scale(0) rotate(-10deg);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Card Placement Game</h1>
+    
+    <div class="game-info">
+        <p><strong>Rules:</strong></p>
+        <ul>
+            <li>Initially, there are 0 cards in the game.</li>
+            <li>First card can be placed anywhere on the board.</li>
+            <li>Each subsequent card must be placed adjacent to an existing card (horizontally, vertically, or diagonally).</li>
+            <li>The playing field is a 4x4 grid, so a maximum of 16 cards can be placed.</li>
+            <li>Win Conditions:</li>
+            <ul>
+                <li>Place all 16 cards to win!</li>
+                <li>OR create a diagonal line of 4 cards from any corner to win instantly!</li>
+            </ul>
+        </ul>
+    </div>
+    
+    <div id="game-container"></div>
+    
+    <script>
+        // Game definition using boardgame.io
+        const CardPlacementGame = {
+            // Game setup - initialize the state
+            setup: () => ({
+                cells: Array(16).fill(null),
+                cardsPlaced: 0,
+                winningCells: [],
+                lastPlacedIndex: null
+            }),
+            
+            // Move definitions
+            moves: {
+                placeCard: (G, ctx, cellId) => {
+                    // Check if cell already has a card
+                    if (G.cells[cellId] !== null) {
+                        return G; // Cell already occupied
+                    }
+                    
+                    // For the first move, any cell is valid
+                    if (G.cardsPlaced === 0) {
+                        G.cells[cellId] = G.cardsPlaced + 1;
+                        G.cardsPlaced++;
+                        G.lastPlacedIndex = cellId;
+                        return G;
+                    }
+                    
+                    // For subsequent moves, check if adjacent to an existing card
+                    const row = Math.floor(cellId / 4);
+                    const col = cellId % 4;
+                    
+                    // Check all 8 surrounding cells
+                    let isValidMove = false;
+                    for (let r = Math.max(0, row - 1); r <= Math.min(3, row + 1); r++) {
+                        for (let c = Math.max(0, col - 1); c <= Math.min(3, col + 1); c++) {
+                            // Skip the current cell
+                            if (r === row && c === col) {
+                                continue;
+                            }
+                            
+                            const adjacentCellId = r * 4 + c;
+                            // If adjacent cell has a card, this is a valid move
+                            if (G.cells[adjacentCellId] !== null) {
+                                isValidMove = true;
+                                break;
+                            }
+                        }
+                        if (isValidMove) break;
+                    }
+                    
+                    if (isValidMove) {
+                        G.cells[cellId] = G.cardsPlaced + 1;
+                        G.cardsPlaced++;
+                        G.lastPlacedIndex = cellId;
+                    }
+                    
+                    return G;
+                }
+            },
+            
+            // Turn definition - player is single player in this game
+            turn: {
+                moveLimit: 1
+            },
+            
+            // End game condition
+            endIf: (G, ctx) => {
+                // Win condition 1: All cells filled
+                if (G.cardsPlaced === 16) {
+                    return { winner: 'player', message: 'Victory! You placed all 16 cards!' };
+                }
+                
+                // Win condition 2: Diagonal from corner to corner
+                // Check main diagonal (top-left to bottom-right)
+                if (G.cells[0] !== null && G.cells[0] && 
+                    G.cells[5] !== null && G.cells[5] && 
+                    G.cells[10] !== null && G.cells[10] && 
+                    G.cells[15] !== null && G.cells[15]) {
+                    G.winningCells = [0, 5, 10, 15];
+                    return { winner: 'player', message: 'Victory! You completed a diagonal line!' };
+                }
+                
+                // Check other diagonal (top-right to bottom-left)
+                if (G.cells[3] !== null && G.cells[3] && 
+                    G.cells[6] !== null && G.cells[6] && 
+                    G.cells[9] !== null && G.cells[9] && 
+                    G.cells[12] !== null && G.cells[12]) {
+                    G.winningCells = [3, 6, 9, 12];
+                    return { winner: 'player', message: 'Victory! You completed a diagonal line!' };
+                }
+                
+                return false;
+            }
+        };
+        
+        // The game board UI component
+        class CardGameBoard {
+            constructor(rootElement) {
+                this.rootElement = rootElement;
+            }
+            
+            // Create the game board UI
+            createBoard(G, ctx, moves) {
+                // Create container elements
+                const boardContainer = document.createElement('div');
+                boardContainer.className = 'board-container';
+                
+                const cardCount = document.createElement('div');
+                cardCount.className = 'card-count';
+                cardCount.textContent = `Cards placed: ${G.cardsPlaced}/16`;
+                
+                const board = document.createElement('div');
+                board.className = 'board';
+                
+                const gameStatus = document.createElement('div');
+                gameStatus.className = 'game-status';
+                
+                // Add game status message
+                if (ctx.gameover) {
+                    gameStatus.innerHTML = `<div class="victory">${ctx.gameover.message}</div>`;
+                } else if (G.cardsPlaced === 0) {
+                    gameStatus.textContent = 'Place your first card anywhere!';
+                } else {
+                    gameStatus.textContent = `Place your next card adjacent to an existing one! (${G.cardsPlaced}/16)`;
+                }
+                
+                // Create cells
+                for (let i = 0; i < 16; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    // Add valid-move class to valid cells
+                    if (!ctx.gameover && this.isValidMove(G, i)) {
+                        cell.classList.add('valid-move');
+                    }
+                    
+                    // Add click handler
+                    cell.onclick = () => {
+                        if (!ctx.gameover && this.isValidMove(G, i)) {
+                            moves.placeCard(i);
+                        }
+                    };
+                    
+                    // If cell has a card, add it
+                    if (G.cells[i] !== null) {
+                        const card = document.createElement('div');
+                        const isWinningCard = G.winningCells && G.winningCells.includes(i);
+                        card.className = `card ${isWinningCard ? 'winning-card' : ''}`;
+                        
+                        // Add animation class to the last placed card
+                        if (G.lastPlacedIndex === i && !ctx.gameover) {
+                            card.classList.add('card-animation');
+                        }
+                        
+                        card.textContent = G.cells[i];
+                        cell.appendChild(card);
+                    }
+                    
+                    board.appendChild(cell);
+                }
+                
+                // Create reset button
+                const resetButton = document.createElement('button');
+                resetButton.textContent = 'New Game';
+                resetButton.onclick = () => {
+                    window.location.reload();
+                };
+                
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'controls';
+                controlsDiv.appendChild(resetButton);
+                
+                // Assemble the components
+                boardContainer.appendChild(cardCount);
+                boardContainer.appendChild(board);
+                boardContainer.appendChild(gameStatus);
+                boardContainer.appendChild(controlsDiv);
+                
+                // Clear and append to the root element
+                this.rootElement.innerHTML = '';
+                this.rootElement.appendChild(boardContainer);
+            }
+            
+            // Check if a move is valid
+            isValidMove(G, cellId) {
+                // If cell already has a card, it's not valid
+                if (G.cells[cellId] !== null) {
+                    return false;
+                }
+                
+                // If no cards have been placed, any cell is valid
+                if (G.cardsPlaced === 0) {
+                    return true;
+                }
+                
+                // Otherwise, check if adjacent to an existing card
+                const row = Math.floor(cellId / 4);
+                const col = cellId % 4;
+                
+                // Check all 8 surrounding cells
+                for (let r = Math.max(0, row - 1); r <= Math.min(3, row + 1); r++) {
+                    for (let c = Math.max(0, col - 1); c <= Math.min(3, col + 1); c++) {
+                        // Skip the current cell
+                        if (r === row && c === col) {
+                            continue;
+                        }
+                        
+                        const adjacentCellId = r * 4 + c;
+                        // If adjacent cell has a card, this is a valid move
+                        if (G.cells[adjacentCellId] !== null) {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            // Update the board when game state changes
+            update(state) {
+                this.createBoard(state.G, state.ctx, {
+                    placeCard: (cellId) => state.moves.placeCard(cellId)
+                });
+            }
+        }
+        
+        // Initialize the game client
+        const BoardGameClient = {
+            game: CardPlacementGame,
+            board: CardGameBoard,
+            debug: false
+        };
+        
+        // Start the app
+        const app = new BoardgameIO.Client(BoardGameClient);
+        const gameContainer = document.getElementById('game-container');
+        app.start(gameContainer);
+    </script>
+</body>
+</html>
