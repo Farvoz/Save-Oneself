@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, increaseLives, placeCard, placeShip } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, increaseLives, placeCard, placeShip, findCardOnBoard } from './gameActions';
 
 const logGameState = (context, phase) => {
     console.log(`=== Phase: ${phase} ===`);
@@ -31,6 +31,7 @@ export const createGameStateMachine = () => {
                         },
                         playerPosition: '0,0'
                     }),
+                    // TODO: Добавить логику открытия карты и применения эффектов                
                     ({ context }) => logGameState(context, 'initial')
                 ],
                 states: {
@@ -66,8 +67,14 @@ export const createGameStateMachine = () => {
 
                                         // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
                                         if (card.lives < 0) {
-                                            const { lives } = decreaseLives(context, card.lives);
-                                            newLives = lives;
+                                            // Check if there's protection from negative effects
+                                            const isProtected = findCardOnBoard(context.occupiedPositions, 'spear') && card.id === 'pig' 
+                                                || findCardOnBoard(context.occupiedPositions, 'shelter') && card.id === 'storm';
+
+                                            if (!isProtected) {
+                                                const { lives } = decreaseLives(context, card.lives);
+                                                newLives = lives;
+                                            }
                                         }
 
                                         // если карта с направлением и нет других кораблей, то размещается корабль

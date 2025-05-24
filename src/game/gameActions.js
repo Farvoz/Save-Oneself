@@ -1,5 +1,11 @@
-import { checkVictory } from './gameRules';
 import { INITIAL_SHIP } from './gameData';
+
+// Helper function to find a card on the board
+export const findCardOnBoard = (occupiedPositions, cardId) => {
+    return Array.from(occupiedPositions.values())
+        .some(card => card.id === cardId);
+};
+
 // Move the player to a new position
 export const movePlayer = (context, row, col) => {
     const newPosition = `${row},${col}`;
@@ -170,8 +176,7 @@ export const moveShip = (context) => {
     let newDirection = context.shipCard.direction;
 
     // Check if ship-sighted card exists
-    const hasShipSighted = Array.from(context.occupiedPositions.values())
-        .some(card => card.type === 'front' && card.id === 'ship-sighted');
+    const hasShipSighted = findCardOnBoard(context.occupiedPositions, 'ship-sighted');
 
     // If ship-sighted exists, check if ship reached a corner
     if (hasShipSighted && context.shipCard.cornerCoordinates) {
@@ -235,8 +240,8 @@ export const moveShip = (context) => {
 };
 
 // Decrease lives
-export const decreaseLives = (context, lives = 1) => {
-    const newLives = Math.max(0, context.lives - lives);
+export const decreaseLives = (context, lives = -1) => {
+    const newLives = Math.max(0, context.lives + lives);
     
     if (newLives <= 0) {
         throw new Error('GAME_OVER_NO_LIVES');

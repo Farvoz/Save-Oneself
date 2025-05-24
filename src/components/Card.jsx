@@ -47,7 +47,7 @@ const Card = ({
                 <div className="player-marker">Игрок</div>
             )}
             <div className="card-content">
-                {card.lives > 0 && (
+                {card.lives !== 0 && (
                     <div className="card-lives">{card.lives}</div>
                 )}
                 {card.id && (
