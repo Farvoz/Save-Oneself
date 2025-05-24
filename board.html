@@ -14,25 +14,25 @@
 
         #game-container {
             position: relative;
-            width: 595px;  /* 7 * 85px - step */
-            height: 595px; /* 7 * 85px - step */
+            width: 700px;  /* 7 * 100px - step */
+            height: 700px; /* 7 * 100px - step */
             margin: 20px;
             border: 2px solid #333;
             background-color: white;
             display: grid;
-            grid-template-columns: repeat(7, 85px);
-            grid-template-rows: repeat(7, 85px);
+            grid-template-columns: repeat(7, 100px);
+            grid-template-rows: repeat(7, 100px);
         }
 
         .grid-cell {
-            width: 85px;
-            height: 85px;
+            width: 100px;
+            height: 100px;
             border: 1px solid #ccc;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
             color: #666;
             box-sizing: border-box;
         }
@@ -44,8 +44,8 @@
 
         .card {
             position: absolute;
-            width: 75px;
-            height: 75px;
+            width: 90px;
+            height: 90px;
             background-color: #F5F5DC;
             border: 2px solid #E8E8D0;
             border-radius: 8px;
@@ -57,20 +57,20 @@
             color: black;
             z-index: 2;
             /* Центрируем карту в ячейке */
-            left: 5px;  /* (85px - 75px) / 2 */
-            top: 5px;   /* (85px - 75px) / 2 */
+            left: 5px;  /* (100px - 90px) / 2 */
+            top: 5px;   /* (100px - 90px) / 2 */
         }
 
         .card-lives {
             position: absolute;
             top: 2px;
             right: 2px;
-            font-size: 16px;
+            font-size: 18px;
             color: #333;
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -86,13 +86,13 @@
         }
 
         .card-name {
-            font-size: 12px;
+            font-size: 14px;
             margin-bottom: 2px;
             font-style: italic;
         }
 
         .card-direction {
-            font-size: 8px;
+            font-size: 10px;
             margin-top: 2px;
             position: absolute;
             left: 0;
@@ -101,7 +101,7 @@
 
         /* Добавляем стили для стрелок направления корабля */
         .ship-direction {
-            font-size: 24px;
+            font-size: 28px;
             margin: 2px 0;
             color: #333;
             display: flex;
@@ -110,14 +110,14 @@
         }
 
         .ship-direction .pause-icon {
-            font-size: 16px;
+            font-size: 18px;
             margin-left: 4px;
         }
 
         .highlight {
             position: absolute;
-            width: 75px;
-            height: 75px;
+            width: 90px;
+            height: 90px;
             /* сделать светло-светло-серый */
             background-color: #fffff3;
             border: 2px dashed #FFC107;
@@ -126,8 +126,8 @@
             opacity: 0.8;
             z-index: 1;
             /* Центрируем подсветку в ячейке */
-            left: 5px;  /* (85px - 75px) / 2 */
-            top: 5px;   /* (85px - 75px) / 2 */
+            left: 5px;  /* (100px - 90px) / 2 */
+            top: 5px;   /* (100px - 90px) / 2 */
         }
 
         .highlight:hover {
@@ -238,15 +238,15 @@
             const startX = 0;  // Теперь начинаем с 0, так как используем grid
             const startY = 0;  // Теперь начинаем с 0, так как используем grid
             return {
-                x: startX + ((col + 3) * 85),  // +3 для смещения от -3 до 3
-                y: startY + ((row + 3) * 85)   // +3 для смещения от -3 до 3
+                x: startX + ((col + 3) * 100),  // +3 для смещения от -3 до 3
+                y: startY + ((row + 3) * 100)   // +3 для смещения от -3 до 3
             };
         }
 
         // Функция для конвертации декартовых координат в полярные
         function cartesianToPolar(x, y) {
-            const col = Math.round(x / 85) - 3;  // -3 для смещения от 0 до -3
-            const row = Math.round(y / 85) - 3;  // -3 для смещения от 0 до -3
+            const col = Math.round(x / 100) - 3;  // -3 для смещения от 0 до -3
+            const row = Math.round(y / 100) - 3;  // -3 для смещения от 0 до -3
             return { row, col };
         }
 
@@ -316,14 +316,14 @@
             
             const nameDiv = document.createElement('div');
             nameDiv.textContent = `${shipCard.emoji} ${shipCard.id}`;
-            nameDiv.style.fontSize = '12px';
+            nameDiv.style.fontSize = '14px';
             nameDiv.style.marginTop = '2px';
             nameDiv.style.fontStyle = 'italic';
             
             // Добавляем счетчик шагов
             const movesDiv = document.createElement('div');
             movesDiv.textContent = `Шаги: ${shipCard.moves}/5`;
-            movesDiv.style.fontSize = '12px';
+            movesDiv.style.fontSize = '14px';
             movesDiv.style.marginTop = '2px';
             movesDiv.style.color = shipCard.moves >= 3 ? 'red' : 'inherit';
             card.appendChild(movesDiv);
@@ -564,7 +564,7 @@
             if (cardObj.type === 'back' && cardObj.requirements) {
                 const requirementsDiv = document.createElement('div');
                 requirementsDiv.className = 'card-requirements';
-                requirementsDiv.style.fontSize = '10px';
+                requirementsDiv.style.fontSize = '12px';
                 requirementsDiv.style.color = '#666';
                 requirementsDiv.style.fontStyle = 'italic';
                 requirementsDiv.style.marginTop = '2px';
