@@ -1,99 +1,103 @@
 import { createMachine, assign } from 'xstate';
+import { INITIAL_STATE } from './gameData';
+import { isValidPosition, hasFlippableCards, canFlipCard } from './gameRules';
+import { shuffleDeck, placeCard, flipCard, moveShip, decreaseLives } from './gameActions';
 
-export const createGameStateMachine = (gameLogic) => {
+export const createGameStateMachine = () => {
     return createMachine({
         id: 'game',
         initial: 'playing',
-        context: {
-            gameLogic,
-            lives: 16,
-            deckLength: 15,
-            playerPosition: null,
-            occupiedPositions: new Map(),
-            gameOverMessage: null,
-            isVictory: false
-        },
+        context: INITIAL_STATE,
         states: {
             playing: {
                 initial: 'placement',
                 entry: [
-                    ({ context }) => {
-                        context.gameLogic.startGame();
-                    }
+                    // Shuffle deck and place first card
+                    assign({
+                        deck: ({ context }) => shuffleDeck(context).deck
+                    }),
+                    assign({
+                        occupiedPositions: ({ context }) => {
+                            const newMap = new Map();
+                            const firstCard = context.deck.pop();
+                            newMap.set('0,0', firstCard);
+                            return newMap;
+                        },
+                        playerPosition: '0,0'
+                    }),
                 ],
                 states: {
                     placement: {
-                        // при начале логировать
-                        entry: [
-                            ({ context }) => {
-                                console.log('placement', context);
-                            }
-                        ],
                         on: {
                             PLACE_CARD: {
+                                guard: ({ context, event }) => 
+                                    isValidPosition(context, event.row, event.col),
                                 actions: [
-                                    (context, event) => {
-                                        const success = context.gameLogic.placeCard(event.row, event.col);
-                                        if (success) {
-                                            return 'decreasingLives';
-                                        }
-                                    }
-                                ]
+                                    assign(({ context, event }) => 
+                                        placeCard(context, event.row, event.col)
+                                    )
+                                ],
+                                target: 'decreasingLives'
                             }
                         }
                     },
                     decreasingLives: {
                         entry: [
-                            ({ context }) => {
-                                console.log('decreasingLives');
-                                context.gameLogic.decreaseLives();
-                            }
+                            assign(({ context }) => {
+                                try {
+                                    return decreaseLives(context);
+                                } catch (error) {
+                                    if (error.message === 'GAME_OVER_NO_LIVES') {
+                                        throw new Error('GAME_OVER_NO_LIVES');
+                                    }
+                                    return context;
+                                }
+                            })
                         ],
                         after: {
                             500: [
                                 {
                                     target: 'checkingFlippable',
-                                    guard: ({ context }) => context.gameLogic.hasFlippableCards()
+                                    guard: ({ context }) => hasFlippableCards(context)
                                 },
-                                {
-                                    target: 'shipMoving'
-                                }
+                                { target: 'shipMoving' }
                             ]
                         }
                     },
                     checkingFlippable: {
-                        entry: [
-                            ({ context }) => {
-                                console.log('checkingFlippable');
-                            }
-                        ],
                         on: {
                             FLIP_CARD: {
+                                guard: ({ context, event }) => {
+                                    const card = context.occupiedPositions.get(`${event.row},${event.col}`);
+                                    return card && canFlipCard(context, card);
+                                },
                                 actions: [
-                                    ({ context, event }) => {
-                                        const success = context.gameLogic.tryFlipCard(event.row, event.col);
-                                        if (success) {
-                                            return 'shipMoving';
-                                        }
-                                    }
-                                ]
-                            },
-                            SKIP_PHASE: {
+                                    assign(({ context, event }) => 
+                                        flipCard(context, event.row, event.col)
+                                    )
+                                ],
                                 target: 'shipMoving'
-                            }
+                            },
+                            SKIP_PHASE: 'shipMoving'
                         }
                     },
                     shipMoving: {
                         entry: [
-                            ({ context }) => {
-                                console.log('shipMoving');
-                                context.gameLogic.tryMoveShip();
-                            }
+                            assign(({ context }) => {
+                                try {
+                                    return { shipCard: moveShip(context) };
+                                } catch (error) {
+                                    if (error.message === 'GAME_OVER_SHIP_TOO_FAR') {
+                                        throw new Error('GAME_OVER_SHIP_TOO_FAR');
+                                    } else if (error.message === 'GAME_OVER_VICTORY') {
+                                        throw new Error('GAME_OVER_VICTORY');
+                                    }
+                                    return context;
+                                }
+                            })
                         ],
                         after: {
-                            1000: {
-                                target: 'placement'
-                            }
+                            1000: 'placement'
                         }
                     }
                 },
@@ -101,8 +105,19 @@ export const createGameStateMachine = (gameLogic) => {
                     GAME_OVER: {
                         target: 'gameOver',
                         actions: assign({
-                            gameOverMessage: (_, event) => event.message,
-                            isVictory: (_, event) => event.isVictory
+                            gameOverMessage: (_, event) => {
+                                switch (event.error) {
+                                    case 'GAME_OVER_NO_LIVES':
+                                        return 'Игра окончена! Закончились жизни.';
+                                    case 'GAME_OVER_SHIP_TOO_FAR':
+                                        return 'Игра окончена! Корабль уплыл слишком далеко.';
+                                    case 'GAME_OVER_VICTORY':
+                                        return 'Победа! Корабль заметил сигнал!';
+                                    default:
+                                        return event.message;
+                                }
+                            },
+                            isVictory: (_, event) => event.error === 'GAME_OVER_VICTORY'
                         })
                     }
                 }

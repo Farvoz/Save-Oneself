@@ -9,8 +9,8 @@ const PHASE_MESSAGES = {
 };
 
 const GamePhase = ({ phase, onSkipPhase }) => {
-    const message = PHASE_MESSAGES[phase] || 'Неизвестная фаза';
-    const showSkipButton = phase === 'checkingFlippable';
+    const message = PHASE_MESSAGES[phase.playing] || 'Неизвестная фаза';
+    const showSkipButton = phase.playing === 'checkingFlippable';
 
     return (
         <div className="game-phase">

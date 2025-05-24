@@ -1,49 +1,39 @@
 import React from 'react';
+import Card from './Card';
+import { useSelector } from '@xstate/react';
 
-const Grid = ({ 
-    onCellClick, 
-    playerPosition, 
-    occupiedPositions, 
-    currentPhase,
-    validMoves,
-    children 
-}) => {
+const Grid = ({ onCellClick, occupiedPositions, state }) => {
     const renderGridCell = (row, col) => {
-        const isCoordinate = Math.abs(row) === 3 || Math.abs(col) === 3;
-        const isCorner = Math.abs(row) === 3 && Math.abs(col) === 3;
         const pos = `${row},${col}`;
-        const isValidMove = validMoves?.has(pos);
-        
-        let cellContent = '';
-        if (isCoordinate) {
-            if (isCorner) {
-                cellContent = `${row},${col}`;
-            } else if (Math.abs(row) === 3) {
-                cellContent = col;
-            } else {
-                cellContent = row;
-            }
-        }
+        const card = occupiedPositions.get(pos);
+        const isClickable = card && state.matches('checkingFlippable') && card.type === 'back';
 
         return (
             <div 
                 key={pos}
-                className={`grid-cell ${isCoordinate ? 'coordinate' : ''} ${isValidMove ? 'valid-move' : ''}`}
-                onClick={() => onCellClick && onCellClick(row, col)}
+                className="grid-cell"
+                onClick={() => onCellClick(row, col)}
             >
-                {cellContent}
+                {card && (
+                    <Card
+                        card={card}
+                        row={row}
+                        col={col}
+                        isClickable={isClickable}
+                        onClick={() => onCellClick(row, col)}
+                    />
+                )}
             </div>
         );
     };
 
     return (
-        <div id="game-container" className="game-container">
+        <div className="grid">
             {Array.from({ length: 7 }, (_, i) => i - 3).map(row => 
                 Array.from({ length: 7 }, (_, i) => i - 3).map(col => 
                     renderGridCell(row, col)
                 )
             )}
-            {children}
         </div>
     );
 };

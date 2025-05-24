@@ -1,20 +1,25 @@
 import React from 'react';
 
+import './Card.css';
+
 const Card = ({ 
-    cardObj, 
-    position, 
+    card, 
+    row,
+    col, 
     isPlayerPosition, 
     onClick, 
     isClickable 
 }) => {
-    const { row, col } = position;
     const coords = polarToCartesian(row, col);
 
     const cardStyle = {
+        position: 'absolute',
         left: `${coords.x}px`,
         top: `${coords.y}px`,
+        width: '100px',
+        height: '100px',
         cursor: isClickable ? 'pointer' : 'default',
-        backgroundColor: getCardBackground(cardObj)
+        backgroundColor: getCardBackground(card)
     };
 
     return (
@@ -28,18 +33,18 @@ const Card = ({
                 <div className="player-marker">Игрок</div>
             )}
             <div className="card-content">
-                {cardObj.lives > 0 && (
-                    <div className="card-lives">{cardObj.lives}</div>
+                {card.lives > 0 && (
+                    <div className="card-lives">{card.lives}</div>
                 )}
-                {cardObj.id && (
-                    <div className="card-name">{`${cardObj.emoji} ${cardObj.id}`}</div>
+                {card.id && (
+                    <div className="card-name">{`${card.emoji} ${card.id}`}</div>
                 )}
-                {cardObj.direction && (
-                    <div className="card-direction">{cardObj.direction}</div>
+                {card.direction && (
+                    <div className="card-direction">{card.direction}</div>
                 )}
-                {cardObj.type === 'back' && cardObj.requirements && (
+                {card.type === 'back' && card.requirements && (
                     <div className="card-requirements">
-                        {getRequirementsText(cardObj.requirements)}
+                        {getRequirementsText(card.requirements)}
                     </div>
                 )}
             </div>
@@ -48,10 +53,14 @@ const Card = ({
 };
 
 // Utility functions
-const polarToCartesian = (row, col) => ({
-    x: ((col + 3) * 100),
-    y: ((row + 3) * 100)
-});
+const polarToCartesian = (row, col) => {
+    // Преобразуем координаты сетки (-3 до 3) в пиксели (0 до 600)
+    // Центр (0,0) должен быть в точке (300,300)
+    const x = col  * 100;  // -3 -> 0, 0 -> 300, 3 -> 600
+    const y = (0 - row) * 100;  // -3 -> 600, 0 -> 300, 3 -> 0
+    
+    return { x, y };
+};
 
 const getCardBackground = (cardObj) => {
     if (cardObj.type === 'ship') return '#87CEEB';
