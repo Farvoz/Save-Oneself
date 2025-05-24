@@ -316,7 +316,27 @@ class GameLogic {
         const sosVictory = sosPosition && shipRow === sosPosition[0];
         const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
         
-        return sosVictory || beaconVictory;
+        if (sosVictory || beaconVictory) {
+            this.events.dispatchEvent(new CustomEvent('gameOver', {
+                detail: {
+                    message: 'Победа! Корабль заметил сигнал!',
+                    isVictory: true
+                }
+            }));
+            return true;
+        }
+        
+        if (this.lives <= 0) {
+            this.events.dispatchEvent(new CustomEvent('gameOver', {
+                detail: {
+                    message: 'Игра окончена! Закончились жизни.',
+                    isVictory: false
+                }
+            }));
+            return true;
+        }
+        
+        return false;
     }
 
     // Utility functions
@@ -402,3 +422,5 @@ class GameLogic {
         return true;
     }
 }
+
+export { GameLogic };
