@@ -12,7 +12,6 @@
 .grid-cell {
     width: 100px;
     height: 100px;
-    border: 1px solid #ccc;
     position: relative;
     display: flex;
     align-items: center;

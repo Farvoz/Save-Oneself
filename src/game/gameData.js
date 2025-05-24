@@ -21,9 +21,9 @@ export const INITIAL_FRONT_DECK = [
     { lives: 0, backId: 'sticks', id: 'spear', type: 'front', emoji: '🗡️' },
     { lives: 2, backId: 'vines', id: 'shelter', type: 'front', emoji: '🏠' },
     { lives: 0, backId: 'telescope', id: 'ship-sighted', type: 'front', emoji: '🚢' },
-    { lives: 0, backId: 'rocks', id: 'sos', type: 'front', emoji: '🆘' },
-    { lives: 0, backId: 'higher-ground', id: 'lit-beacon', type: 'front', emoji: '🔥' },
-    { lives: 0, backId: 'bottle', id: 'message', type: 'front', emoji: '📜' },
+    { lives: 0, backId: 'rocks', id: 'sos', type: 'front', emoji: '🆘', description: 'Если корабль пересекает этот ряд, то вы выигрываете!' },
+    { lives: 0, backId: 'higher-ground', id: 'lit-beacon', type: 'front', emoji: '🔥', description: 'Если корабль пересекает этот колонку, то вы выигрываете!' },
+    { lives: 0, backId: 'bottle', id: 'message', type: 'front', emoji: '📜', description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то вы выигрываете!' },
 ];
 
 // Initial ship card
@@ -34,6 +34,16 @@ export const INITIAL_SHIP = {
     position: undefined,
     skipMove: true,
     emoji: '⛵',
+    getEmoji() {
+        if (!this.direction) return this.emoji;
+        const arrows = {
+            'NE': '⬇️',
+            'SE': '⬅️', 
+            'SW': '⬆️',
+            'NW': '➡️'
+        };
+        return `${this.emoji}${arrows[this.direction]}`;
+    },
     moves: 0
 };
 

@@ -62,7 +62,6 @@ export const placeShip = (occupiedPositions, direction) => {
         position: shipPosition,
         moves: 0,
         type: 'ship',
-        emoji: '🚢',
         skipMove: true
     };
 

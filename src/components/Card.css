@@ -1,14 +1,53 @@
-
 /* Card styles */
 .card {
-    border: 2px solid #E8E8D0;
+    position: relative;
+    border: 1px solid #ccc;
     border-radius: 8px;
-    transition: transform 0.2s;
+    transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+    perspective: 1000px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     color: black;
+    z-index: 2;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+.card[title] {
+    position: relative;
+}
+
+.card[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 2;
+    margin-bottom: 5px;
+}
+
+.card[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% - 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
     z-index: 2;
 }
 

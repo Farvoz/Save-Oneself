@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { INITIAL_DECK, INITIAL_FRONT_DECK } from '../game/gameData';   
 import './Card.css';
 
 const Card = ({ 
@@ -8,26 +8,40 @@ const Card = ({
     col, 
     isPlayerPosition, 
     onClick, 
-    isClickable 
+    isClickable,
+    isFlipped,
+    isAvailableMove
 }) => {
-    const coords = polarToCartesian(row, col);
+    const handleClick = () => {
+        if (isClickable && onClick) {
+            onClick(row, col);
+        }
+    };
+
+    const getEmoji = () => {
+        if (card.type === 'ship') {
+            return card.getEmoji ? card.getEmoji() : '🚢';
+        }
+        return card.emoji;
+    };
 
     const cardStyle = {
         position: 'absolute',
-        left: `${coords.x}px`,
-        top: `${coords.y}px`,
-        width: '94px',
-        height: '94px',
+        left: '1px',
+        top: '1px',
+        width: '90px',
+        height: '90px',
         cursor: isClickable ? 'pointer' : 'default',
         backgroundColor: getCardBackground(card)
     };
 
     return (
         <div 
-            className={`card ${isPlayerPosition ? 'player-position' : ''}`}
+            className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isClickable ? 'clickable' : ''} ${isAvailableMove ? 'available-move' : ''}`}
             style={cardStyle}
             data-position={`${row},${col}`}
-            onClick={() => onClick && onClick(row, col)}
+            onClick={handleClick}
+            title={card.description}
         >
             {isPlayerPosition && (
                 <div className="player-marker">Игрок</div>
@@ -37,7 +51,7 @@ const Card = ({
                     <div className="card-lives">{card.lives}</div>
                 )}
                 {card.id && (
-                    <div className="card-name">{`${card.emoji} ${card.id}`}</div>
+                    <div className="card-name">{`${getEmoji()} ${card.id}`}</div>
                 )}
                 {card.direction && (
                     <div className="card-direction">{card.direction}</div>
@@ -52,30 +66,22 @@ const Card = ({
     );
 };
 
-// Utility functions
-const polarToCartesian = (row, col) => {
-    return { x: 0, y: 0 };
-
-    // Преобразуем координаты сетки (-3 до 3) в пиксели (0 до 600)
-    // Центр (0,0) должен быть в точке (300,300)
-    const x = col  * 100;  // -3 -> 0, 0 -> 300, 3 -> 600
-    const y = (0 - row) * 100;  // -3 -> 600, 0 -> 300, 3 -> 0
-    
-    return { x, y };
-};
-
 const getCardBackground = (cardObj) => {
     if (cardObj.type === 'ship') return '#87CEEB';
     if (cardObj.type === 'back') return '#F5F5DC';
     if (cardObj.type === 'front') return '#E8F5E9';
     return '#F5F5DC';
 };
-
 const getRequirementsText = (requirements) => {
     if (requirements === '_ship-set-sail') {
         return 'нужен корабль на паузе';
     }
-    return `нужна ${requirements}`;
+
+    // Find required card from both decks
+    const requiredCard = [...INITIAL_DECK, ...INITIAL_FRONT_DECK].find(card => card.id === requirements);
+    const emoji = requiredCard ? requiredCard.emoji : '❓';
+
+    return `нужна ${emoji}`;
 };
 
 export default Card; 
