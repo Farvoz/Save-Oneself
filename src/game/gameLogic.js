@@ -57,25 +57,21 @@ class GameLogic {
     }
 
     placeCard(row, col) {
-        if (this.currentPhase !== 1 || !this.isValidPosition(row, col)) {
-            return false;
-        }
-
-        if (this.occupiedPositions.has(`${row},${col}`)) {
-            return this.movePlayer(row, col);
-        }
+        // if (this.currentPhase !== 1 || !this.isValidPosition(row, col)) {
+        //     return false;
+        // }
 
         const cardObj = this.deck[this.deck.length - 1];
-        this.lives = Math.min(16, this.lives + cardObj.lives);
         this.deck.pop();
-        
         this.occupiedPositions.set(`${row},${col}`, cardObj);
+        
+        // После размещения карты происходят следующие события:
+        this.lives = Math.min(16, this.lives + cardObj.lives);
         
         if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !this.shipCard.direction) {
             this.placeShip(cardObj.direction);
         }
 
-        this.movePlayer(row, col);
         this.emitGameState();
         return true;
     }
@@ -220,8 +216,13 @@ class GameLogic {
 
     movePlayer(row, col) {
         if (!this.isValidPosition(row, col)) return false;
-        
+
         this.playerPosition = `${row},${col}`;
+
+        if (!this.occupiedPositions.has(`${row},${col}`)) {
+            this.placeCard(row, col);    
+        }
+
         this.emitGameState();
         return true;
     }

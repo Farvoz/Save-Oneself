@@ -11,18 +11,22 @@ export const createGameStateMachine = (gameLogic) => {
             playerPosition: null,
             occupiedPositions: new Map(),
             gameOverMessage: null,
-            isVictory: false,
-            validMoves: new Set()
+            isVictory: false
         },
         states: {
             playing: {
                 initial: 'placement',
+                entry: [
+                    ({ context }) => {
+                        context.gameLogic.startGame();
+                    }
+                ],
                 states: {
                     placement: {
                         // при начале логировать
                         entry: [
-                            (context) => {
-                                console.log('placement');
+                            ({ context }) => {
+                                console.log('placement', context);
                             }
                         ],
                         on: {
@@ -40,7 +44,7 @@ export const createGameStateMachine = (gameLogic) => {
                     },
                     decreasingLives: {
                         entry: [
-                            (context) => {
+                            ({ context }) => {
                                 console.log('decreasingLives');
                                 context.gameLogic.decreaseLives();
                             }
@@ -49,7 +53,7 @@ export const createGameStateMachine = (gameLogic) => {
                             500: [
                                 {
                                     target: 'checkingFlippable',
-                                    guard: (context) => context.gameLogic.hasFlippableCards()
+                                    guard: ({ context }) => context.gameLogic.hasFlippableCards()
                                 },
                                 {
                                     target: 'shipMoving'
@@ -59,14 +63,14 @@ export const createGameStateMachine = (gameLogic) => {
                     },
                     checkingFlippable: {
                         entry: [
-                            (context) => {
+                            ({ context }) => {
                                 console.log('checkingFlippable');
                             }
                         ],
                         on: {
                             FLIP_CARD: {
                                 actions: [
-                                    (context, event) => {
+                                    ({ context, event }) => {
                                         const success = context.gameLogic.tryFlipCard(event.row, event.col);
                                         if (success) {
                                             return 'shipMoving';
@@ -81,7 +85,7 @@ export const createGameStateMachine = (gameLogic) => {
                     },
                     shipMoving: {
                         entry: [
-                            (context) => {
+                            ({ context }) => {
                                 console.log('shipMoving');
                                 context.gameLogic.tryMoveShip();
                             }
