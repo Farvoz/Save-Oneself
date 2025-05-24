@@ -94,20 +94,20 @@ export const checkVictory = (context) => {
     const sosVictory = sosPosition && shipRow === sosPosition[0];
     const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
     
-    // Check message victory condition (поправить)
+    // Check message victory condition
     let messageVictory = false;
     if (messagePosition) {
         const [msgRow, msgCol] = messagePosition;
-        // Check if message card is not in a corner
-        const positions = Array.from(context.occupiedPositions.entries())
-            .filter(([_, card]) => card.type === 'back' || card.type === 'front')
-            .map(([pos]) => pos.split(',').map(Number));
-        const minRow = Math.min(...positions.map(pos => pos[0]));
-        const maxRow = Math.max(...positions.map(pos => pos[0]));
-        const minCol = Math.min(...positions.map(pos => pos[1]));
-        const maxCol = Math.max(...positions.map(pos => pos[1]));
+        const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
         
-        const isCorner = (msgRow === minRow || msgRow === maxRow) && (msgCol === minCol || msgCol === maxCol);
+        // Check if message card is not in a corner
+        const isCorner = (
+            (msgRow === topLeft[0] && msgCol === topLeft[1]) ||
+            (msgRow === topRight[0] && msgCol === topRight[1]) ||
+            (msgRow === bottomLeft[0] && msgCol === bottomLeft[1]) ||
+            (msgRow === bottomRight[0] && msgCol === bottomRight[1])
+        );
+        
         if (!isCorner) {
             // Check if ship is adjacent to message card
             const isAdjacent = Math.abs(shipRow - msgRow) + Math.abs(shipCol - msgCol) === 1;

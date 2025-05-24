@@ -48,11 +48,49 @@ export const placeShip = (occupiedPositions, direction) => {
         maxCol = Math.max(maxCol, col);
     });
 
+    // Set corner coordinates based on direction
+    let cornerCoordinates;
     switch(direction) {
-        case 'NW': shipRow = minRow - 1; shipCol = minCol - 1; break;
-        case 'NE': shipRow = minRow - 1; shipCol = maxCol + 1; break;
-        case 'SW': shipRow = maxRow + 1; shipCol = minCol - 1; break;
-        case 'SE': shipRow = maxRow + 1; shipCol = maxCol + 1; break;
+        case 'NW': 
+            shipRow = minRow - 1; 
+            shipCol = minCol - 1;
+            cornerCoordinates = {
+                topLeft: [minRow, minCol],
+                topRight: [minRow, minCol + 3],
+                bottomLeft: [minRow + 3, minCol],
+                bottomRight: [minRow + 3, minCol + 3]
+            };
+            break;
+        case 'NE': 
+            shipRow = minRow - 1; 
+            shipCol = maxCol + 1;
+            cornerCoordinates = {
+                topLeft: [minRow, maxCol - 3],
+                topRight: [minRow, maxCol],
+                bottomLeft: [minRow + 3, maxCol - 3],
+                bottomRight: [minRow + 3, maxCol]
+            };
+            break;
+        case 'SW': 
+            shipRow = maxRow + 1; 
+            shipCol = minCol - 1;
+            cornerCoordinates = {
+                topLeft: [maxRow - 3, minCol],
+                topRight: [maxRow - 3, minCol + 3],
+                bottomLeft: [maxRow, minCol],
+                bottomRight: [maxRow, minCol + 3]
+            };
+            break;
+        case 'SE': 
+            shipRow = maxRow + 1; 
+            shipCol = maxCol + 1;
+            cornerCoordinates = {
+                topLeft: [maxRow - 3, maxCol - 3],
+                topRight: [maxRow - 3, maxCol],
+                bottomLeft: [maxRow, maxCol - 3],
+                bottomRight: [maxRow, maxCol]
+            };
+            break;
     }
 
     const shipPosition = `${shipRow},${shipCol}`;
@@ -62,7 +100,8 @@ export const placeShip = (occupiedPositions, direction) => {
         position: shipPosition,
         moves: 0,
         type: 'ship',
-        skipMove: true
+        skipMove: true,
+        cornerCoordinates // Add corner coordinates to ship card
     };
 
     // Add ship to occupied positions

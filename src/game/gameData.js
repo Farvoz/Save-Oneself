@@ -56,7 +56,13 @@ export const INITIAL_SHIP = {
         };
         return `${this.emoji}${arrows[this.direction]}`;
     },
-    moves: 0
+    moves: 0,
+    cornerCoordinates: {
+        topLeft: [0, 0],
+        topRight: [0, 0],
+        bottomLeft: [0, 0],
+        bottomRight: [0, 0]
+    }
 };
 
 // Initial game state
