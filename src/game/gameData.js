@@ -29,7 +29,6 @@ export const INITIAL_FRONT_DECK = [
 // Initial ship card
 export const INITIAL_SHIP = {
     type: 'ship',
-    lives: 0,
     direction: undefined,
     id: 'ship',
     position: undefined,

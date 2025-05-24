@@ -16,8 +16,8 @@ const Card = ({
         position: 'absolute',
         left: `${coords.x}px`,
         top: `${coords.y}px`,
-        width: '100px',
-        height: '100px',
+        width: '94px',
+        height: '94px',
         cursor: isClickable ? 'pointer' : 'default',
         backgroundColor: getCardBackground(card)
     };

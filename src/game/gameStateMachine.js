@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { isValidPosition, hasFlippableCards, canFlipCard } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives } from './gameActions';
+import { hasFlippableCards, canFlipCard } from './gameRules';
+import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, increaseLives, placeCard, placeShip } from './gameActions';
 
 const logGameState = (context, phase) => {
     console.log(`=== Phase: ${phase} ===`);
@@ -39,16 +39,53 @@ export const createGameStateMachine = () => {
                         on: {
                             MOVE_PLAYER: {
                                 actions: [
-                                    assign(({ context, event }) => 
-                                        movePlayer(context, event.row, event.col)
-                                    )
+                                    assign(({ context, event }) => {
+                                        const { playerPosition } = movePlayer(context, event.row, event.col);
+                                        
+                                        // если место свободное, то placeCard
+                                        const [row, col] = playerPosition.split(',').map(Number);
+                                        let card = context.occupiedPositions.get(`${row},${col}`);
+                                        let newOccupiedPositions = context.occupiedPositions;
+                                        let newDeck = context.deck;
+                                        let newLives = context.lives;
+                                        let newShipCard = context.shipCard;
+
+
+                                        // если карта не существует, то placeCard
+                                        if (!card) {
+                                            const { occupiedPositions, deck, cardObj } = placeCard(context, row, col);
+                                            newOccupiedPositions = occupiedPositions;
+                                            newDeck = deck;
+                                            card = cardObj;
+                                        }
+
+                                        // если карта с жизнями, то восстанавливается жизнь
+                                        if (card && card.lives > 0) {
+                                            const { lives } = increaseLives(context, card.lives);
+                                            newLives = lives;
+                                        }
+
+                                        // если карта с направлением и нет других кораблей, то размещается корабль
+                                        if (card.direction && !context.shipCard.direction) {
+                                            const { shipCard, occupiedPositions } = placeShip(newOccupiedPositions, card.direction);
+                                            newOccupiedPositions = occupiedPositions;
+                                            newShipCard = shipCard;
+                                        }
+
+                                        return {
+                                            playerPosition,
+                                            occupiedPositions: newOccupiedPositions,
+                                            deck: newDeck,
+                                            lives: newLives,
+                                            shipCard: newShipCard
+                                        }
+                                    }),
                                 ],
-                                // target: 'decreasingLives'
-                                target: 'moving'
+                                target: 'decreasingLives'
                             }
                         }
                     },
-                    decreasingLives: {
+                    decreasingLives: { 
                         entry: [
                             assign(({ context }) => {
                                 try {
@@ -63,7 +100,7 @@ export const createGameStateMachine = () => {
                             ({ context }) => logGameState(context, 'decreasing_lives')
                         ],
                         after: {
-                            500: [
+                            300: [
                                 {
                                     target: 'checkingFlippable',
                                     guard: ({ context }) => hasFlippableCards(context)
@@ -98,20 +135,21 @@ export const createGameStateMachine = () => {
                         entry: [
                             assign(({ context }) => {
                                 try {
-                                    return { shipCard: moveShip(context) };
+                                    return moveShip(context);
                                 } catch (error) {
                                     if (error.message === 'GAME_OVER_SHIP_TOO_FAR') {
-                                        throw new Error('GAME_OVER_SHIP_TOO_FAR');
+                                        // переход в конец игры
+                                        return { gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.', isVictory: false };
                                     } else if (error.message === 'GAME_OVER_VICTORY') {
-                                        throw new Error('GAME_OVER_VICTORY');
+                                        // переход в конец игры
+                                        return { gameOverMessage: 'Победа! Корабль заметил сигнал!', isVictory: true };
                                     }
                                     return context;
                                 }
-                            }),
-                            ({ context }) => logGameState(context, 'ship_moving')
+                            })
                         ],
                         after: {
-                            1000: 'moving'
+                            500: 'moving'
                         }
                     }
                 },

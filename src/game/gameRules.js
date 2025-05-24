@@ -2,11 +2,7 @@
 
 // Check if a position is valid for card moving
 export const isValidPosition = (context, row, col) => {
-    // Special case for first card moving
     if (!context.playerPosition && row === 0 && col === 0) return true;
-
-    if (row < -3 || row > 3 || col < -3 || col > 3) return false;
-    if (Math.abs(row) === 3 && Math.abs(col) === 3) return false;
     
     if (!hasMaxRowsOrColumns(context, row, col)) return false;
 
@@ -17,9 +13,10 @@ export const isValidPosition = (context, row, col) => {
     }
     
     if (context.shipCard.direction) {
-        let minRow = 3, maxRow = -3, minCol = 3, maxCol = -3;
+        let minRow = Infinity, maxRow = -Infinity, minCol = Infinity, maxCol = -Infinity;
+
         context.occupiedPositions.forEach((card, pos) => {
-            if (card.id === 'ship') return;
+            if (card.type === 'ship') return;
             const [cardRow, cardCol] = pos.split(',').map(Number);
             minRow = Math.min(minRow, cardRow);
             maxRow = Math.max(maxRow, cardRow);
@@ -92,7 +89,7 @@ export const checkVictory = (context) => {
 // Helper function to check if adding a card would exceed row/column limits
 const hasMaxRowsOrColumns = (context, row, col) => {
     const positions = Array.from(context.occupiedPositions.entries())
-        .filter(([_, card]) => card !== context.shipCard)
+        .filter(([_, card]) => card.type !== 'ship')
         .map(([pos]) => pos.split(',').map(Number));
     positions.push([row, col]);
     

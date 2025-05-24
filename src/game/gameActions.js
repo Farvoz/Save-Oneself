@@ -1,14 +1,8 @@
 import { checkVictory } from './gameRules';
-
+import { INITIAL_SHIP } from './gameData';
 // Move the player to a new position
 export const movePlayer = (context, row, col) => {
     const newPosition = `${row},${col}`;
-    const card = context.occupiedPositions.get(newPosition);
-    
-    // Если на новой позиции нет карты, размещаем новую
-    if (!card) {
-        return placeCard(context, row, col);
-    }
     
     // Если карта есть, просто обновляем позицию игрока
     return {
@@ -25,40 +19,27 @@ export const shuffleDeck = (context) => {
 
 // Place a card on the board
 export const placeCard = (context, row, col) => {
-    const newOccupiedPositions = new Map(context.occupiedPositions);
+    let newOccupiedPositions = new Map(context.occupiedPositions);
     const cardObj = context.deck[context.deck.length - 1];
     const newDeck = context.deck.slice(0, -1);
     
     newOccupiedPositions.set(`${row},${col}`, cardObj);
     
-    // Update lives
-    const newLives = Math.min(16, context.lives + cardObj.lives);
-    
-    // Check for ship moving
-    let newShipCard = { ...context.shipCard };
-    if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !newShipCard.direction) {
-        newShipCard = placeShip(context, cardObj.direction);
-    }
-    
     return {
         occupiedPositions: newOccupiedPositions,
         deck: newDeck,
-        lives: newLives,
-        shipCard: newShipCard,
-        playerPosition: `${row},${col}`
+        cardObj: cardObj
     };
 };
 
 // Place the ship on the board
-const placeShip = (context, direction) => {
+export const placeShip = (occupiedPositions, direction) => {
     let minRow = 0, maxRow = 0, minCol = 0, maxCol = 0;
     let shipRow, shipCol;
 
-    const cardPositions = Array.from(context.occupiedPositions.entries())
-        .filter(([_, card]) => card !== context.shipCard)
+    const cardPositions = Array.from(occupiedPositions.entries())
+        .filter(([_, card]) => card.type !== 'ship')
         .map(([pos]) => pos.split(',').map(Number));
-
-    if (cardPositions.length === 0) return context.shipCard;
 
     cardPositions.forEach(([row, col]) => {
         minRow = Math.min(minRow, row);
@@ -74,11 +55,24 @@ const placeShip = (context, direction) => {
         case 'SE': shipRow = maxRow + 1; shipCol = maxCol + 1; break;
     }
 
-    return {
-        ...context.shipCard,
+    const shipPosition = `${shipRow},${shipCol}`;
+    const newShipCard = {
+        ...INITIAL_SHIP,
         direction,
-        position: `${shipRow},${shipCol}`,
-        moves: 0
+        position: shipPosition,
+        moves: 0,
+        type: 'ship',
+        emoji: '🚢',
+        skipMove: true
+    };
+
+    // Add ship to occupied positions
+    const newOccupiedPositions = new Map(occupiedPositions);
+    newOccupiedPositions.set(shipPosition, newShipCard);
+
+    return {
+        shipCard: newShipCard,
+        occupiedPositions: newOccupiedPositions
     };
 };
 
@@ -116,7 +110,22 @@ export const flipCard = (context, row, col) => {
 // Move the ship
 export const moveShip = (context) => {
     if (!context.shipCard.position || !context.shipCard.direction) {
-        return context.shipCard;
+        return {
+            shipCard: context.shipCard,
+            occupiedPositions: context.occupiedPositions
+        };
+    }
+
+    // Если корабль должен пропустить ход, просто сбрасываем флаг
+    if (context.shipCard.skipMove) {
+        const newShipCard = {
+            ...context.shipCard,
+            skipMove: false
+        };
+        return {
+            shipCard: newShipCard,
+            occupiedPositions: context.occupiedPositions
+        };
     }
 
     const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
@@ -129,11 +138,17 @@ export const moveShip = (context) => {
         case 'NW': newCol++; break;
     }
 
+    const newPosition = `${newRow},${newCol}`;
     const newShipCard = {
         ...context.shipCard,
-        position: `${newRow},${newCol}`,
+        position: newPosition,
         moves: context.shipCard.moves + 1
     };
+
+    // Update occupied positions
+    const newOccupiedPositions = new Map(context.occupiedPositions);
+    newOccupiedPositions.delete(context.shipCard.position); // Remove old position
+    newOccupiedPositions.set(newPosition, newShipCard); // Add new position
 
     // Check for game over conditions
     if (newShipCard.moves >= 5) {
@@ -144,7 +159,10 @@ export const moveShip = (context) => {
         throw new Error('GAME_OVER_VICTORY');
     }
 
-    return newShipCard;
+    return {
+        shipCard: newShipCard,
+        occupiedPositions: newOccupiedPositions
+    };
 };
 
 // Decrease lives
@@ -156,4 +174,9 @@ export const decreaseLives = (context) => {
     }
     
     return { lives: newLives };
-}; 
+};
+
+// Увеличивает жизни на Х
+export const increaseLives = (context, lives) => {
+    return { lives: Math.min(16, context.lives + lives) };
+};
