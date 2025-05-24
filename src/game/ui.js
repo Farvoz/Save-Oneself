@@ -17,6 +17,7 @@ class GameUI {
         this.playerPosition = null;
 
         // Initialize event listeners
+        this.createGrid();
         this.initializeEventListeners();
         this.subscribeToGameEvents();
     }
@@ -29,7 +30,6 @@ class GameUI {
             this.playerPosition = playerPosition;
             this.occupiedPositions = new Map(occupiedPositions);
             this.updatePhaseDisplay(currentPhase);
-            this.createGrid();
             this.updateHighlights();
         });
 
@@ -89,8 +89,18 @@ class GameUI {
 
     // Grid creation and management
     createGrid() {
-        this.container.innerHTML = ''; // Clear existing grid
+        // Сохраняем существующие карты
+        const existingCards = new Map();
+        document.querySelectorAll('.card').forEach(card => {
+            const position = card.getAttribute('data-position');
+            existingCards.set(position, card);
+        });
+
+        // Очищаем только клетки сетки, но не карты
+        const gridCells = document.querySelectorAll('.grid-cell');
+        gridCells.forEach(cell => cell.remove());
         
+        // Создаем новые клетки
         for (let row = -3; row <= 3; row++) {
             for (let col = -3; col <= 3; col++) {
                 const cell = document.createElement('div');
@@ -110,6 +120,11 @@ class GameUI {
                 this.container.appendChild(cell);
             }
         }
+
+        // Восстанавливаем карты на их позициях
+        existingCards.forEach((card, position) => {
+            this.container.appendChild(card);
+        });
     }
 
     // Card management
@@ -136,7 +151,7 @@ class GameUI {
         this.setCardBackground(card, cardObj);
 
         // Add click handlers for back cards
-        if (cardObj.type === 'back') {
+        if (cardObj.type === 'back' && this.gameLogic.currentPhase === 3) {
             this.addCardClickHandler(card, row, col);
         }
 
@@ -147,7 +162,7 @@ class GameUI {
     addCardClickHandler(card, row, col) {
         card.addEventListener('click', () => {
             if (this.gameLogic.currentPhase === 1) {
-                this.gameLogic.movePlayer(row, col);
+                this.gameLogic.placeCard(row, col);
             } else if (this.gameLogic.currentPhase === 3) {
                 this.gameLogic.tryFlipCard(row, col);
             }
@@ -196,7 +211,7 @@ class GameUI {
         if (cardObj.requirements === '_ship-set-sail') {
             requirementsText = 'нужен корабль на паузе';
         } else {
-            const requiredCard = [...this.gameLogic.deck, ...this.gameLogic.deckBack].find(card => card.id === cardObj.requirements);
+            const requiredCard = [...this.gameLogic.deck, ...this.gameLogic.frontDeck].find(card => card.id === cardObj.requirements);
             const emoji = requiredCard ? requiredCard.emoji : '';
             requirementsText = `нужна ${emoji}`;
         }
@@ -264,8 +279,16 @@ class GameUI {
             const newRow = row + dr;
             const newCol = col + dc;
             
-            if (this.gameLogic.isValidPosition(newRow, newCol)) {
-                this.createHighlight(newRow, newCol);
+            if (newRow >= -3 && newRow <= 3 && 
+                newCol >= -3 && newCol <= 3 && 
+                !(Math.abs(newRow) === 3 && Math.abs(newCol) === 3)) {
+                
+                const highlight = this.createHighlight(newRow, newCol);
+                
+                if (this.occupiedPositions.has(`${newRow},${newCol}`)) {
+                    highlight.style.backgroundColor = 'rgba(255, 255, 243, 0.5)';
+                    highlight.style.borderStyle = 'solid';
+                }
             }
         });
     }
@@ -279,11 +302,12 @@ class GameUI {
         
         highlight.addEventListener('click', () => this.handleHighlightClick(row, col));
         this.container.appendChild(highlight);
+        return highlight;
     }
 
     handleHighlightClick(row, col) {
         if (this.gameLogic.currentPhase === 1) {
-            this.gameLogic.movePlayer(row, col);
+            this.gameLogic.placeCard(row, col);
         }
     }
 

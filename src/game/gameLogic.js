@@ -1,6 +1,5 @@
 class GameLogic {
     constructor() {
-        console.log('GameLogic constructor called');
         this.deck = [
             { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back', emoji: '🎣' },
             { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back', emoji: '💧' },
@@ -14,7 +13,7 @@ class GameLogic {
             { lives: 0, direction: '', id: 'bottle', requirements: '_ship-set-sail', type: 'back', emoji: '🍾' },
         ];
 
-        this.deckBack = [
+        this.frontDeck = [
             { lives: 3, backId: 'hook', id: 'fish', type: 'front', emoji: '🐟' },
             { lives: 2, backId: 'water', id: 'waterfall', type: 'front', emoji: '🌊' },
             { lives: 0, backId: 'flint', id: 'torch', type: 'front', emoji: '🔥' },
@@ -45,20 +44,18 @@ class GameLogic {
         this.playerPosition = null;
         this.currentPhase = 1;
         this.isPhaseTransitioning = false;
+        this.selectedPosition = null;
 
         // Event emitter for game state changes
         this.events = new EventTarget();
-        console.log('EventTarget created');
     }
 
     // Add a new method to start the game
     startGame() {
-        console.log('Starting game...');
         this.initializeGame();
     }
 
     initializeGame() {
-        console.log('Initializing game...');
         this.deck.sort(() => Math.random() - 0.5);
         this.placeCard(0, 0);
         this.playerPosition = '0,0';
@@ -73,7 +70,6 @@ class GameLogic {
             currentPhase: this.currentPhase,
             occupiedPositions: Array.from(this.occupiedPositions.entries())
         };
-        console.log('Emitting initial game state:', gameState);
         
         this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
             detail: gameState
@@ -82,17 +78,25 @@ class GameLogic {
 
     // Card placement and movement
     placeCard(row, col) {
+        if (this.currentPhase !== 1 || !this.isValidPosition(row, col)) {
+            return false;
+        }
+
+        if (this.occupiedPositions.has(`${row},${col}`)) {
+            return this.movePlayer(row, col);
+        }
+
         const cardObj = this.deck[this.deck.length - 1];
-        console.log('Card to place:', cardObj);
         this.lives = Math.min(16, this.lives + cardObj.lives);
         this.deck.pop();
         
         this.occupiedPositions.set(`${row},${col}`, cardObj);
         
         if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !this.shipCard.direction) {
-            console.log('Placing ship with direction:', cardObj.direction);
             this.placeShip(cardObj.direction);
         }
+
+        this.movePlayer(row, col);
 
         // Emit state change
         this.events.dispatchEvent(new CustomEvent('cardPlaced', {
@@ -105,6 +109,8 @@ class GameLogic {
                 occupiedPositions: Array.from(this.occupiedPositions.entries())
             }
         }));
+
+        return true;
     }
 
     // Ship management
@@ -166,7 +172,6 @@ class GameLogic {
         this.isPhaseTransitioning = true;
         this.currentPhase = this.currentPhase % 4 + 1;
 
-        console.log('Phase changed to:', this.currentPhase);
         const gameState = {
             lives: this.lives,
             deckLength: this.deck.length,
@@ -174,7 +179,6 @@ class GameLogic {
             currentPhase: this.currentPhase,
             occupiedPositions: Array.from(this.occupiedPositions.entries())
         };
-        console.log('Emitting game state after phase change:', gameState);
 
         // Emit phase change
         this.events.dispatchEvent(new CustomEvent('phaseChanged', {
@@ -200,7 +204,6 @@ class GameLogic {
                     currentPhase: this.currentPhase,
                     occupiedPositions: Array.from(this.occupiedPositions.entries())
                 };
-                console.log('Emitting game state after phase 2:', newGameState);
                 
                 this.events.dispatchEvent(new CustomEvent('phaseChanged', {
                     detail: {
@@ -225,7 +228,6 @@ class GameLogic {
                     currentPhase: this.currentPhase,
                     occupiedPositions: Array.from(this.occupiedPositions.entries())
                 };
-                console.log('Emitting game state after phase 4:', newGameState);
                 
                 this.events.dispatchEvent(new CustomEvent('phaseChanged', {
                     detail: {
@@ -249,7 +251,7 @@ class GameLogic {
         
         if (cardObj.requirements) {
             if (cardObj.requirements === '_ship-set-sail') {
-                return this.shipCard.direction === undefined;
+                return this.shipCard.direction !== undefined && this.shipCard.skipMove;
             }
             
             for (const [_, card] of this.occupiedPositions) {
@@ -269,7 +271,7 @@ class GameLogic {
         const cardObj = this.occupiedPositions.get(`${row},${col}`);
         if (!cardObj || !this.canFlipCard(cardObj)) return false;
 
-        const frontCard = this.deckBack.find(card => card.backId === cardObj.id);
+        const frontCard = this.frontDeck.find(card => card.backId === cardObj.id);
         if (!frontCard) return false;
 
         Object.assign(cardObj, {
@@ -308,7 +310,7 @@ class GameLogic {
             }
         }
         
-        if (!this.shipCard.position) return false;
+        if (!this.shipCard.position || !this.shipCard.skipMove) return false;
         
         const [shipRow, shipCol] = this.shipCard.position.split(',').map(Number);
         const sosVictory = sosPosition && shipRow === sosPosition[0];
@@ -320,9 +322,15 @@ class GameLogic {
     // Utility functions
     isValidPosition(row, col) {
         if (row < -3 || row > 3 || col < -3 || col > 3) return false;
-        if (this.occupiedPositions.has(`${row},${col}`)) return false;
-        if (!this.hasMaxRowsOrColumns(row, col)) return false;
         if (Math.abs(row) === 3 && Math.abs(col) === 3) return false;
+        
+        if (!this.hasMaxRowsOrColumns(row, col)) return false;
+
+        if (this.playerPosition) {
+            const [currentRow, currentCol] = this.playerPosition.split(',').map(Number);
+            const isAdjacent = Math.abs(row - currentRow) + Math.abs(col - currentCol) === 1;
+            if (!isAdjacent) return false;
+        }
         
         if (this.shipCard.direction) {
             let minRow = 3, maxRow = -3, minCol = 3, maxCol = -3;
@@ -368,7 +376,17 @@ class GameLogic {
 
     // Movement handling
     movePlayer(row, col) {
-        if (!this.isValidPosition(row, col)) return false;
+        if (row < -3 || row > 3 || col < -3 || col > 3) {
+            return false;
+        }
+
+        if (this.playerPosition) {
+            const [currentRow, currentCol] = this.playerPosition.split(',').map(Number);
+            const isAdjacent = Math.abs(row - currentRow) + Math.abs(col - currentCol) === 1;
+            if (!isAdjacent) {
+                return false;
+            }
+        }
         
         this.playerPosition = `${row},${col}`;
         
