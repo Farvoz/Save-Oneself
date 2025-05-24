@@ -54,6 +54,8 @@ const Card = ({
 
 // Utility functions
 const polarToCartesian = (row, col) => {
+    return { x: 0, y: 0 };
+
     // Преобразуем координаты сетки (-3 до 3) в пиксели (0 до 600)
     // Центр (0,0) должен быть в точке (300,300)
     const x = col  * 100;  // -3 -> 0, 0 -> 300, 3 -> 600

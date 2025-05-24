@@ -1,7 +1,13 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
 import { isValidPosition, hasFlippableCards, canFlipCard } from './gameRules';
-import { shuffleDeck, placeCard, flipCard, moveShip, decreaseLives } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives } from './gameActions';
+
+const logGameState = (context, phase) => {
+    console.log(`=== Phase: ${phase} ===`);
+    console.log('Occupied Positions:', Object.fromEntries(context.occupiedPositions));
+    console.log('==================');
+};
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -10,7 +16,7 @@ export const createGameStateMachine = () => {
         context: INITIAL_STATE,
         states: {
             playing: {
-                initial: 'placement',
+                initial: 'moving',
                 entry: [
                     // Shuffle deck and place first card
                     assign({
@@ -25,19 +31,20 @@ export const createGameStateMachine = () => {
                         },
                         playerPosition: '0,0'
                     }),
+                    ({ context }) => logGameState(context, 'initial')
                 ],
                 states: {
-                    placement: {
+                    moving: {
+                        entry: ({ context }) => logGameState(context, 'moving'),
                         on: {
-                            PLACE_CARD: {
-                                guard: ({ context, event }) => 
-                                    isValidPosition(context, event.row, event.col),
+                            MOVE_PLAYER: {
                                 actions: [
                                     assign(({ context, event }) => 
-                                        placeCard(context, event.row, event.col)
+                                        movePlayer(context, event.row, event.col)
                                     )
                                 ],
-                                target: 'decreasingLives'
+                                // target: 'decreasingLives'
+                                target: 'moving'
                             }
                         }
                     },
@@ -52,7 +59,8 @@ export const createGameStateMachine = () => {
                                     }
                                     return context;
                                 }
-                            })
+                            }),
+                            ({ context }) => logGameState(context, 'decreasing_lives')
                         ],
                         after: {
                             500: [
@@ -65,6 +73,7 @@ export const createGameStateMachine = () => {
                         }
                     },
                     checkingFlippable: {
+                        entry: ({ context }) => logGameState(context, 'checking_flippable'),
                         on: {
                             FLIP_CARD: {
                                 guard: ({ context, event }) => {
@@ -74,11 +83,15 @@ export const createGameStateMachine = () => {
                                 actions: [
                                     assign(({ context, event }) => 
                                         flipCard(context, event.row, event.col)
-                                    )
+                                    ),
+                                    ({ context }) => logGameState(context, 'after_flip')
                                 ],
                                 target: 'shipMoving'
                             },
-                            SKIP_PHASE: 'shipMoving'
+                            SKIP_PHASE: {
+                                actions: ({ context }) => logGameState(context, 'skip_flip_phase'),
+                                target: 'shipMoving'
+                            }
                         }
                     },
                     shipMoving: {
@@ -94,31 +107,35 @@ export const createGameStateMachine = () => {
                                     }
                                     return context;
                                 }
-                            })
+                            }),
+                            ({ context }) => logGameState(context, 'ship_moving')
                         ],
                         after: {
-                            1000: 'placement'
+                            1000: 'moving'
                         }
                     }
                 },
                 on: {
                     GAME_OVER: {
                         target: 'gameOver',
-                        actions: assign({
-                            gameOverMessage: (_, event) => {
-                                switch (event.error) {
-                                    case 'GAME_OVER_NO_LIVES':
-                                        return 'Игра окончена! Закончились жизни.';
-                                    case 'GAME_OVER_SHIP_TOO_FAR':
-                                        return 'Игра окончена! Корабль уплыл слишком далеко.';
-                                    case 'GAME_OVER_VICTORY':
-                                        return 'Победа! Корабль заметил сигнал!';
-                                    default:
-                                        return event.message;
-                                }
-                            },
-                            isVictory: (_, event) => event.error === 'GAME_OVER_VICTORY'
-                        })
+                        actions: [
+                            assign({
+                                gameOverMessage: (_, event) => {
+                                    switch (event.error) {
+                                        case 'GAME_OVER_NO_LIVES':
+                                            return 'Игра окончена! Закончились жизни.';
+                                        case 'GAME_OVER_SHIP_TOO_FAR':
+                                            return 'Игра окончена! Корабль уплыл слишком далеко.';
+                                        case 'GAME_OVER_VICTORY':
+                                            return 'Победа! Корабль заметил сигнал!';
+                                        default:
+                                            return event.message;
+                                    }
+                                },
+                                isVictory: (_, event) => event.error === 'GAME_OVER_VICTORY'
+                            }),
+                            ({ context }) => logGameState(context, 'game_over')
+                        ]
                     }
                 }
             },

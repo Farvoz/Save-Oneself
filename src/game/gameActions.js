@@ -1,5 +1,21 @@
 import { checkVictory } from './gameRules';
 
+// Move the player to a new position
+export const movePlayer = (context, row, col) => {
+    const newPosition = `${row},${col}`;
+    const card = context.occupiedPositions.get(newPosition);
+    
+    // Если на новой позиции нет карты, размещаем новую
+    if (!card) {
+        return placeCard(context, row, col);
+    }
+    
+    // Если карта есть, просто обновляем позицию игрока
+    return {
+        playerPosition: newPosition
+    };
+};
+
 // Shuffle the deck
 export const shuffleDeck = (context) => {
     const deck = [...context.deck];
@@ -18,7 +34,7 @@ export const placeCard = (context, row, col) => {
     // Update lives
     const newLives = Math.min(16, context.lives + cardObj.lives);
     
-    // Check for ship placement
+    // Check for ship moving
     let newShipCard = { ...context.shipCard };
     if (cardObj.direction && ['NW', 'NE', 'SW', 'SE'].includes(cardObj.direction) && !newShipCard.direction) {
         newShipCard = placeShip(context, cardObj.direction);
@@ -28,7 +44,8 @@ export const placeCard = (context, row, col) => {
         occupiedPositions: newOccupiedPositions,
         deck: newDeck,
         lives: newLives,
-        shipCard: newShipCard
+        shipCard: newShipCard,
+        playerPosition: `${row},${col}`
     };
 };
 

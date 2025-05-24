@@ -45,7 +45,7 @@ export const INITIAL_STATE = {
     frontDeck: [...INITIAL_FRONT_DECK],
     shipCard: { ...INITIAL_SHIP },
     occupiedPositions: new Map(),
-    playerPosition: null,
+    playerPosition: '0,0',
     gameOverMessage: null,
     isVictory: false
 }; 

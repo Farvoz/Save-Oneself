@@ -1,8 +1,8 @@
 // Game rules and validation functions
 
-// Check if a position is valid for card placement
+// Check if a position is valid for card moving
 export const isValidPosition = (context, row, col) => {
-    // Special case for first card placement
+    // Special case for first card moving
     if (!context.playerPosition && row === 0 && col === 0) return true;
 
     if (row < -3 || row > 3 || col < -3 || col > 3) return false;

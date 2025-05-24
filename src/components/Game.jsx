@@ -5,23 +5,26 @@ import Counters from './Counters';
 import GamePhase from './GamePhase';
 import GameOver from './GameOver';
 import { createGameStateMachine } from '../game/gameStateMachine';
+import { isValidPosition } from '../game/gameRules';
+
+const machine = createGameStateMachine();
 
 const Game = () => {
-    const gameService = useActorRef(createGameStateMachine());
+    const gameService = useActorRef(machine);
 
     const state = useSelector(gameService, (state) => state);
     const context = useSelector(gameService, (state) => state.context);
 
     const handleCellClick = useCallback((row, col) => {
-        if (state.matches('placement')) {
-            gameService.send({ type: 'PLACE_CARD', row, col });
-        } else if (state.matches('checkingFlippable')) {
+        if (state.matches('playing.moving') && isValidPosition(context, row, col)) {
+            gameService.send({ type: 'MOVE_PLAYER', row, col });
+        } else if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'FLIP_CARD', row, col });
         }
     }, [state, gameService]);
 
     const handleSkipPhase = useCallback(() => {
-        if (state.matches('checkingFlippable')) {
+        if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'SKIP_PHASE' });
         }
     }, [state, gameService]);
@@ -38,7 +41,12 @@ const Game = () => {
                     onSkipPhase={handleSkipPhase}
                 />
             </div>
-            <Grid onCellClick={handleCellClick} occupiedPositions={context.occupiedPositions} state={state} />
+            <Grid 
+                onCellClick={handleCellClick} 
+                occupiedPositions={context.occupiedPositions} 
+                state={state}
+                context={context}
+            />
             <GameOver
                 message={context.gameOverMessage}
                 isVictory={context.isVictory}
