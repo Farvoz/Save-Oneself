@@ -44,6 +44,15 @@ export const canFlipCard = (context, card) => {
             return context.shipCard.direction !== undefined && context.shipCard.skipMove;
         }
         
+        // Check if player is on higher-ground when required
+        if (card.requirements === 'higher-ground' || card.id === 'higher-ground') {
+            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
+            const playerCard = context.occupiedPositions.get(`${playerRow},${playerCol}`);
+            if (!playerCard || playerCard.id !== 'higher-ground') {
+                return false;
+            }
+        }
+        
         for (const [_, otherCard] of context.occupiedPositions) {
             if (otherCard.id === card.requirements) {
                 return true;
@@ -69,11 +78,13 @@ export const hasFlippableCards = (context) => {
 export const checkVictory = (context) => {
     let sosPosition = null;
     let beaconPosition = null;
+    let messagePosition = null;
     
     for (const [pos, card] of context.occupiedPositions) {
         if (card.type === 'front') {
             if (card.id === 'sos') sosPosition = pos.split(',').map(Number);
             else if (card.id === 'lit-beacon') beaconPosition = pos.split(',').map(Number);
+            else if (card.id === 'message') messagePosition = pos.split(',').map(Number);
         }
     }
     
@@ -83,7 +94,28 @@ export const checkVictory = (context) => {
     const sosVictory = sosPosition && shipRow === sosPosition[0];
     const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
     
-    return sosVictory || beaconVictory;
+    // Check message victory condition (поправить)
+    let messageVictory = false;
+    if (messagePosition) {
+        const [msgRow, msgCol] = messagePosition;
+        // Check if message card is not in a corner
+        const positions = Array.from(context.occupiedPositions.entries())
+            .filter(([_, card]) => card.type === 'back' || card.type === 'front')
+            .map(([pos]) => pos.split(',').map(Number));
+        const minRow = Math.min(...positions.map(pos => pos[0]));
+        const maxRow = Math.max(...positions.map(pos => pos[0]));
+        const minCol = Math.min(...positions.map(pos => pos[1]));
+        const maxCol = Math.max(...positions.map(pos => pos[1]));
+        
+        const isCorner = (msgRow === minRow || msgRow === maxRow) && (msgCol === minCol || msgCol === maxCol);
+        if (!isCorner) {
+            // Check if ship is adjacent to message card
+            const isAdjacent = Math.abs(shipRow - msgRow) + Math.abs(shipCol - msgCol) === 1;
+            messageVictory = isAdjacent;
+        }
+    }
+    
+    return sosVictory || beaconVictory || messageVictory;
 };
 
 // Helper function to check if adding a card would exceed row/column limits
