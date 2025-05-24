@@ -1,6 +1,6 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { hasFlippableCards, canFlipCard } from './gameRules';
+import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
 import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, increaseLives, placeCard, placeShip } from './gameActions';
 
 const logGameState = (context, phase) => {
@@ -135,7 +135,19 @@ export const createGameStateMachine = () => {
                         entry: [
                             assign(({ context }) => {
                                 try {
-                                    return moveShip(context);
+                                    const newSlice = moveShip(context);
+                                    const newContext = { ...context, ...newSlice };
+
+                                    // Check for victory after ship moves
+                                    if (checkVictory(newContext)) {
+                                        throw new Error('GAME_OVER_VICTORY');
+                                    }
+
+                                    if (newContext.shipCard.moves >= 5) {
+                                        throw new Error('GAME_OVER_SHIP_TOO_FAR');
+                                    }
+
+                                    return newContext;
                                 } catch (error) {
                                     if (error.message === 'GAME_OVER_SHIP_TOO_FAR') {
                                         // переход в конец игры

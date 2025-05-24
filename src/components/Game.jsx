@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { useActorRef, useSelector } from '@xstate/react';
 import Grid from './Grid';
 import Counters from './Counters';
-import GamePhase from './GamePhase';
 import GameOver from './GameOver';
 import { createGameStateMachine } from '../game/gameStateMachine';
 import { isValidPosition } from '../game/gameRules';
@@ -35,10 +34,8 @@ const Game = () => {
                 <Counters
                     lives={context.lives}
                     deckLength={context.deck.length}
-                />
-                <GamePhase
-                    phase={state.value}
-                    onSkipPhase={handleSkipPhase}
+                    state={state}
+                    handleSkipPhase={handleSkipPhase}
                 />
             </div>
             <Grid 

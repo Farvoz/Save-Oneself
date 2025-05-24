@@ -77,7 +77,7 @@ export const checkVictory = (context) => {
         }
     }
     
-    if (!context.shipCard.position || !context.shipCard.skipMove) return false;
+    if (!context.shipCard.position) return false;
     
     const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
     const sosVictory = sosPosition && shipRow === sosPosition[0];

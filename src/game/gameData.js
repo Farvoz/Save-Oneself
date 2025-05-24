@@ -9,6 +9,7 @@ export const INITIAL_DECK = [
     { lives: 0, direction: '', id: 'telescope', requirements: 'higher-ground', type: 'back', emoji: '🔭' },
     { lives: 0, direction: '', id: 'rocks', requirements: 'higher-ground', type: 'back', emoji: '🧱' },
     { lives: 0, direction: '', id: 'higher-ground', requirements: 'torch', type: 'back', emoji: '⛰️' },
+    { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back', emoji: '🎣' },
     { lives: 0, direction: '', id: 'bottle', requirements: '_ship-set-sail', type: 'back', emoji: '🍾' },
 ];
 

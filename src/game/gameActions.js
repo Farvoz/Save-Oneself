@@ -149,15 +149,6 @@ export const moveShip = (context) => {
     newOccupiedPositions.delete(context.shipCard.position); // Remove old position
     newOccupiedPositions.set(newPosition, newShipCard); // Add new position
 
-    // Check for game over conditions
-    if (newShipCard.moves >= 5) {
-        throw new Error('GAME_OVER_SHIP_TOO_FAR');
-    }
-
-    if (checkVictory({ ...context, shipCard: newShipCard })) {
-        throw new Error('GAME_OVER_VICTORY');
-    }
-
     return {
         shipCard: newShipCard,
         occupiedPositions: newOccupiedPositions
