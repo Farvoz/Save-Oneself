@@ -5,11 +5,14 @@ const Grid = ({
     playerPosition, 
     occupiedPositions, 
     currentPhase,
+    validMoves,
     children 
 }) => {
     const renderGridCell = (row, col) => {
         const isCoordinate = Math.abs(row) === 3 || Math.abs(col) === 3;
         const isCorner = Math.abs(row) === 3 && Math.abs(col) === 3;
+        const pos = `${row},${col}`;
+        const isValidMove = validMoves?.has(pos);
         
         let cellContent = '';
         if (isCoordinate) {
@@ -24,8 +27,8 @@ const Grid = ({
 
         return (
             <div 
-                key={`${row},${col}`}
-                className={`grid-cell ${isCoordinate ? 'coordinate' : ''}`}
+                key={pos}
+                className={`grid-cell ${isCoordinate ? 'coordinate' : ''} ${isValidMove ? 'valid-move' : ''}`}
                 onClick={() => onCellClick && onCellClick(row, col)}
             >
                 {cellContent}

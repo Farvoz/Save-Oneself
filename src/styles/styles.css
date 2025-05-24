@@ -36,11 +36,22 @@ body {
     font-size: 14px;
     color: #666;
     box-sizing: border-box;
+    transition: background-color 0.2s ease;
 }
 
 .grid-cell.coordinate {
     font-weight: bold;
     color: #333;
+}
+
+.grid-cell.valid-move {
+    background-color: rgba(76, 175, 80, 0.1);
+    cursor: pointer;
+    border: 2px solid #4CAF50;
+}
+
+.grid-cell.valid-move:hover {
+    background-color: rgba(76, 175, 80, 0.2);
 }
 
 /* Card styles */

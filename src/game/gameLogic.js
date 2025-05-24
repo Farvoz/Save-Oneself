@@ -1,5 +1,6 @@
 class GameLogic {
     constructor() {
+        // Карты
         this.deck = [
             { lives: 0, direction: 'NE', id: 'hook', requirements: 'water', type: 'back', emoji: '🎣' },
             { lives: 2, direction: '', id: 'water', requirements: 'telescope', type: 'back', emoji: '💧' },
@@ -26,57 +27,35 @@ class GameLogic {
             { lives: 0, backId: 'bottle', id: 'message', type: 'front', emoji: '📜' },
         ];
 
+        // Корабль
         this.shipCard = {
             type: 'ship',
             lives: 0,
             direction: undefined,
             id: 'ship',
-            requirements: '',
             position: undefined,
             skipMove: true,
-            moves: 0,
-            emoji: '⛵'
+            emoji: '⛵',
+            moves: 0
         };
 
-        // Game state
+        // Состояние игры
         this.lives = 16;
         this.occupiedPositions = new Map();
         this.playerPosition = null;
-        this.currentPhase = 1;
-        this.isPhaseTransitioning = false;
-        this.selectedPosition = null;
 
-        // Event emitter for game state changes
+        // Event emitter для изменений состояния игры
         this.events = new EventTarget();
     }
 
-    // Add a new method to start the game
     startGame() {
-        this.initializeGame();
-    }
-
-    initializeGame() {
         this.deck.sort(() => Math.random() - 0.5);
         this.placeCard(0, 0);
         this.playerPosition = '0,0';
-        this.currentPhase = 1;
-        this.isPhaseTransitioning = false;
         
-        // Emit initial state
-        const gameState = {
-            lives: this.lives,
-            deckLength: this.deck.length,
-            playerPosition: this.playerPosition,
-            currentPhase: this.currentPhase,
-            occupiedPositions: Array.from(this.occupiedPositions.entries())
-        };
-        
-        this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
-            detail: gameState
-        }));
+        this.emitGameState();
     }
 
-    // Card placement and movement
     placeCard(row, col) {
         if (this.currentPhase !== 1 || !this.isValidPosition(row, col)) {
             return false;
@@ -97,23 +76,11 @@ class GameLogic {
         }
 
         this.movePlayer(row, col);
-
-        // Emit state change
-        this.events.dispatchEvent(new CustomEvent('cardPlaced', {
-            detail: {
-                row,
-                col,
-                card: cardObj,
-                lives: this.lives,
-                deckLength: this.deck.length,
-                occupiedPositions: Array.from(this.occupiedPositions.entries())
-            }
-        }));
-
+        this.emitGameState();
         return true;
     }
 
-    // Ship management
+    // Размещение корабля происходит только если корабля ещё нет
     placeShip(direction) {
         if (this.shipCard.direction === direction) return;
 
@@ -134,135 +101,34 @@ class GameLogic {
         });
 
         switch(direction) {
-            case 'NW':
-                shipRow = minRow - 1;
-                shipCol = minCol - 1;
-                break;
-            case 'NE':
-                shipRow = minRow - 1;
-                shipCol = maxCol + 1;
-                break;
-            case 'SW':
-                shipRow = maxRow + 1;
-                shipCol = minCol - 1;
-                break;
-            case 'SE':
-                shipRow = maxRow + 1;
-                shipCol = maxCol + 1;
-                break;
+            case 'NW': shipRow = minRow - 1; shipCol = minCol - 1; break;
+            case 'NE': shipRow = minRow - 1; shipCol = maxCol + 1; break;
+            case 'SW': shipRow = maxRow + 1; shipCol = minCol - 1; break;
+            case 'SE': shipRow = maxRow + 1; shipCol = maxCol + 1; break;
+        }
+
+        // Удаляем старую позицию корабля, если она есть
+        if (this.shipCard.position) {
+            this.occupiedPositions.delete(this.shipCard.position);
         }
 
         this.shipCard.direction = direction;
         this.shipCard.position = `${shipRow},${shipCol}`;
-
-        // Emit ship placed event
-        this.events.dispatchEvent(new CustomEvent('shipPlaced', {
-            detail: {
-                row: shipRow,
-                col: shipCol,
-                shipCard: this.shipCard
-            }
-        }));
+        this.shipCard.moves = 0;  // Сбрасываем счетчик шагов
+        
+        // Добавляем корабль в occupiedPositions
+        this.occupiedPositions.set(this.shipCard.position, this.shipCard);
+        
+        this.emitGameState();
     }
 
-    // Game phase management
-    nextPhase() {
-        if (this.isPhaseTransitioning) return;
-        
-        this.isPhaseTransitioning = true;
-        this.currentPhase = this.currentPhase % 4 + 1;
-
-        const gameState = {
-            lives: this.lives,
-            deckLength: this.deck.length,
-            playerPosition: this.playerPosition,
-            currentPhase: this.currentPhase,
-            occupiedPositions: Array.from(this.occupiedPositions.entries())
-        };
-
-        // Emit phase change
-        this.events.dispatchEvent(new CustomEvent('phaseChanged', {
-            detail: {
-                phase: this.currentPhase,
-                isTransitioning: this.isPhaseTransitioning
+    hasFlippableCards() {
+        for (const [_, card] of this.occupiedPositions) {
+            if (card.type === 'back' && this.canFlipCard(card)) {
+                return true;
             }
-        }));
-
-        this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
-            detail: gameState
-        }));
-
-        if (this.currentPhase === 2) {
-            this.decreaseLives();
-            setTimeout(() => {
-                this.currentPhase = 3;
-                this.isPhaseTransitioning = false;
-                const newGameState = {
-                    lives: this.lives,
-                    deckLength: this.deck.length,
-                    playerPosition: this.playerPosition,
-                    currentPhase: this.currentPhase,
-                    occupiedPositions: Array.from(this.occupiedPositions.entries())
-                };
-                
-                this.events.dispatchEvent(new CustomEvent('phaseChanged', {
-                    detail: {
-                        phase: this.currentPhase,
-                        isTransitioning: this.isPhaseTransitioning
-                    }
-                }));
-                
-                this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
-                    detail: newGameState
-                }));
-            }, 500);
-        } else if (this.currentPhase === 4) {
-            this.tryMoveShip();
-            setTimeout(() => {
-                this.currentPhase = 1;
-                this.isPhaseTransitioning = false;
-                const newGameState = {
-                    lives: this.lives,
-                    deckLength: this.deck.length,
-                    playerPosition: this.playerPosition,
-                    currentPhase: this.currentPhase,
-                    occupiedPositions: Array.from(this.occupiedPositions.entries())
-                };
-                
-                this.events.dispatchEvent(new CustomEvent('phaseChanged', {
-                    detail: {
-                        phase: this.currentPhase,
-                        isTransitioning: this.isPhaseTransitioning
-                    }
-                }));
-                
-                this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
-                    detail: newGameState
-                }));
-            }, 1000);
-        } else {
-            this.isPhaseTransitioning = false;
         }
-    }
-
-    // Card flipping
-    canFlipCard(cardObj) {
-        if (cardObj.type === 'front') return false;
-        
-        if (cardObj.requirements) {
-            if (cardObj.requirements === '_ship-set-sail') {
-                return this.shipCard.direction !== undefined && this.shipCard.skipMove;
-            }
-            
-            for (const [_, card] of this.occupiedPositions) {
-                if (card.id === cardObj.requirements) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        return true;
+        return false;
     }
 
     tryFlipCard(row, col) {
@@ -283,63 +149,29 @@ class GameLogic {
         delete cardObj.requirements;
         delete cardObj.direction;
 
-        // Emit card flipped event
-        this.events.dispatchEvent(new CustomEvent('cardFlipped', {
-            detail: {
-                row,
-                col,
-                card: cardObj
-            }
-        }));
-
+        this.emitGameState();
         return true;
     }
 
-    // Victory and game end conditions
-    checkVictory() {
-        let sosPosition = null;
-        let beaconPosition = null;
+    canFlipCard(cardObj) {
+        if (cardObj.type === 'front') return false;
         
-        for (const [pos, card] of this.occupiedPositions) {
-            if (card.type === 'front') {
-                if (card.id === 'sos') {
-                    sosPosition = pos.split(',').map(Number);
-                } else if (card.id === 'lit-beacon') {
-                    beaconPosition = pos.split(',').map(Number);
+        if (cardObj.requirements) {
+            if (cardObj.requirements === '_ship-set-sail') {
+                return this.shipCard.direction !== undefined && this.shipCard.skipMove;
+            }
+            
+            for (const [_, card] of this.occupiedPositions) {
+                if (card.id === cardObj.requirements) {
+                    return true;
                 }
             }
+            return false;
         }
         
-        if (!this.shipCard.position || !this.shipCard.skipMove) return false;
-        
-        const [shipRow, shipCol] = this.shipCard.position.split(',').map(Number);
-        const sosVictory = sosPosition && shipRow === sosPosition[0];
-        const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
-        
-        if (sosVictory || beaconVictory) {
-            this.events.dispatchEvent(new CustomEvent('gameOver', {
-                detail: {
-                    message: 'Победа! Корабль заметил сигнал!',
-                    isVictory: true
-                }
-            }));
-            return true;
-        }
-        
-        if (this.lives <= 0) {
-            this.events.dispatchEvent(new CustomEvent('gameOver', {
-                detail: {
-                    message: 'Игра окончена! Закончились жизни.',
-                    isVictory: false
-                }
-            }));
-            return true;
-        }
-        
-        return false;
+        return true;
     }
 
-    // Utility functions
     isValidPosition(row, col) {
         if (row < -3 || row > 3 || col < -3 || col > 3) return false;
         if (Math.abs(row) === 3 && Math.abs(col) === 3) return false;
@@ -364,18 +196,10 @@ class GameLogic {
             });
 
             switch(this.shipCard.direction) {
-                case 'NE':
-                    if (row < minRow || col > maxCol) return false;
-                    break;
-                case 'SE':
-                    if (row > maxRow || col > maxCol) return false;
-                    break;
-                case 'SW':
-                    if (row > maxRow || col < minCol) return false;
-                    break;
-                case 'NW':
-                    if (row < minRow || col < minCol) return false;
-                    break;
+                case 'NE': if (row < minRow || col > maxCol) return false; break;
+                case 'SE': if (row > maxRow || col > maxCol) return false; break;
+                case 'SW': if (row > maxRow || col < minCol) return false; break;
+                case 'NW': if (row < minRow || col < minCol) return false; break;
             }
         }
         
@@ -394,32 +218,133 @@ class GameLogic {
         return uniqueRows.length <= 4 && uniqueCols.length <= 4;
     }
 
-    // Movement handling
     movePlayer(row, col) {
-        if (row < -3 || row > 3 || col < -3 || col > 3) {
-            return false;
-        }
-
-        if (this.playerPosition) {
-            const [currentRow, currentCol] = this.playerPosition.split(',').map(Number);
-            const isAdjacent = Math.abs(row - currentRow) + Math.abs(col - currentCol) === 1;
-            if (!isAdjacent) {
-                return false;
-            }
-        }
+        if (!this.isValidPosition(row, col)) return false;
         
         this.playerPosition = `${row},${col}`;
-        
-        // Emit player moved event
-        this.events.dispatchEvent(new CustomEvent('playerMoved', {
-            detail: {
-                row,
-                col,
-                playerPosition: this.playerPosition
-            }
-        }));
-        
+        this.emitGameState();
         return true;
+    }
+
+    decreaseLives() {
+        this.lives = Math.max(0, this.lives - 1);
+        this.emitGameState();
+        
+        if (this.lives <= 0) {
+            this.events.dispatchEvent(new CustomEvent('gameOver', {
+                detail: {
+                    message: 'Игра окончена! Закончились жизни.',
+                    isVictory: false
+                }
+            }));
+        }
+    }
+
+    tryMoveShip() {
+        if (!this.shipCard.position || !this.shipCard.direction) return;
+
+        const [shipRow, shipCol] = this.shipCard.position.split(',').map(Number);
+        let newRow = shipRow, newCol = shipCol;
+
+        switch(this.shipCard.direction) {
+            case 'NE': newRow++; break;
+            case 'SE': newCol--; break;
+            case 'SW': newRow--; break;
+            case 'NW': newCol++; break;
+        }
+
+        if (this.checkVictory()) return;
+
+        // Удаляем старую позицию корабля
+        this.occupiedPositions.delete(this.shipCard.position);
+        
+        // Обновляем позицию корабля
+        this.shipCard.position = `${newRow},${newCol}`;
+        
+        // Увеличиваем счетчик шагов
+        this.shipCard.moves++;
+        
+        // Проверяем условие проигрыша
+        if (this.shipCard.moves >= 5) {
+            this.events.dispatchEvent(new CustomEvent('gameOver', {
+                detail: {
+                    message: 'Игра окончена! Корабль уплыл слишком далеко.',
+                    isVictory: false
+                }
+            }));
+            return;
+        }
+        
+        // Добавляем корабль в новую позицию
+        this.occupiedPositions.set(this.shipCard.position, this.shipCard);
+        
+        this.emitGameState();
+    }
+
+    checkVictory() {
+        let sosPosition = null;
+        let beaconPosition = null;
+        
+        for (const [pos, card] of this.occupiedPositions) {
+            if (card.type === 'front') {
+                if (card.id === 'sos') sosPosition = pos.split(',').map(Number);
+                else if (card.id === 'lit-beacon') beaconPosition = pos.split(',').map(Number);
+            }
+        }
+        
+        if (!this.shipCard.position || !this.shipCard.skipMove) return false;
+        
+        const [shipRow, shipCol] = this.shipCard.position.split(',').map(Number);
+        const sosVictory = sosPosition && shipRow === sosPosition[0];
+        const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
+        
+        if (sosVictory || beaconVictory) {
+            this.events.dispatchEvent(new CustomEvent('gameOver', {
+                detail: {
+                    message: 'Победа! Корабль заметил сигнал!',
+                    isVictory: true
+                }
+            }));
+            return true;
+        }
+        
+        return false;
+    }
+
+    emitGameState() {
+        const gameState = {
+            lives: this.lives,
+            deckLength: this.deck.length,
+            playerPosition: this.playerPosition,
+            occupiedPositions: Array.from(this.occupiedPositions.entries())
+        };
+        
+        this.events.dispatchEvent(new CustomEvent('gameStateChanged', {
+            detail: gameState
+        }));
+    }
+
+    getValidMoves() {
+        if (!this.playerPosition || this.currentPhase !== 1) return new Set();
+        
+        const [currentRow, currentCol] = this.playerPosition.split(',').map(Number);
+        const validMoves = new Set();
+        
+        // Проверяем все соседние клетки
+        const directions = [
+            [currentRow - 1, currentCol], // вверх
+            [currentRow + 1, currentCol], // вниз
+            [currentRow, currentCol - 1], // влево
+            [currentRow, currentCol + 1]  // вправо
+        ];
+        
+        for (const [row, col] of directions) {
+            if (this.isValidPosition(row, col)) {
+                validMoves.add(`${row},${col}`);
+            }
+        }
+        
+        return validMoves;
     }
 }
 
