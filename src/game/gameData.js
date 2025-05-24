@@ -8,11 +8,11 @@ export const INITIAL_DECK = [
     { id: 'palm-trees', lives: 0, direction: 'SE', requirements: 'rocks', type: 'back', emoji: '🌴' },
     { id: 'sticks', lives: 0, direction: 'NW', requirements: 'flint', type: 'back', emoji: '🥢' },
     { id: 'bottle', lives: 0, direction: '', requirements: '_ship-set-sail', type: 'back', emoji: '🍾' },
-
-    // Реализованы частично:
     { id: 'higher-ground', lives: 0, direction: '', requirements: 'torch', type: 'back', emoji: '⛰️' },
     { id: 'telescope', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🔭' },
     { id: 'rocks', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🧱' },
+
+    // Реализованы частично:
     // 2 карты сокровищ
     // шторм
     // пираты/компас
@@ -56,7 +56,6 @@ export const INITIAL_SHIP = {
         };
         return `${this.emoji}${arrows[this.direction]}`;
     },
-    moves: 0,
     cornerCoordinates: {
         topLeft: [0, 0],
         topRight: [0, 0],

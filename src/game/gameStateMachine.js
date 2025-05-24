@@ -50,18 +50,23 @@ export const createGameStateMachine = () => {
                                         let newLives = context.lives;
                                         let newShipCard = context.shipCard;
 
-
                                         // если карта не существует, то placeCard
                                         if (!card) {
                                             const { occupiedPositions, deck, cardObj } = placeCard(context, row, col);
                                             newOccupiedPositions = occupiedPositions;
                                             newDeck = deck;
                                             card = cardObj;
+
+                                            // если карта с жизнями, то восстанавливается жизнь (только 1 раз)
+                                            if (card.lives > 0) {
+                                                const { lives } = increaseLives(context, card.lives);
+                                                newLives = lives;
+                                            }
                                         }
 
-                                        // если карта с жизнями, то восстанавливается жизнь
-                                        if (card && card.lives > 0) {
-                                            const { lives } = increaseLives(context, card.lives);
+                                        // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
+                                        if (card.lives < 0) {
+                                            const { lives } = decreaseLives(context, card.lives);
                                             newLives = lives;
                                         }
 
@@ -141,10 +146,6 @@ export const createGameStateMachine = () => {
                                     // Check for victory after ship moves
                                     if (checkVictory(newContext)) {
                                         throw new Error('GAME_OVER_VICTORY');
-                                    }
-
-                                    if (newContext.shipCard.moves >= 5) {
-                                        throw new Error('GAME_OVER_SHIP_TOO_FAR');
                                     }
 
                                     return newContext;

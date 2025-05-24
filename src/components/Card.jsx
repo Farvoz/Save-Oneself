@@ -77,7 +77,7 @@ const getRequirementsText = (requirements) => {
         return 'нужен корабль на паузе';
     }
     if (requirements === 'higher-ground') { 
-        return 'нужна быть на ⛰️';
+        return 'нужно быть на ⛰️';
     }
     // Find required card from both decks
     const requiredCard = [...INITIAL_DECK, ...INITIAL_FRONT_DECK].find(card => card.id === requirements);

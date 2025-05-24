@@ -98,7 +98,6 @@ export const placeShip = (occupiedPositions, direction) => {
         ...INITIAL_SHIP,
         direction,
         position: shipPosition,
-        moves: 0,
         type: 'ship',
         skipMove: true,
         cornerCoordinates // Add corner coordinates to ship card
@@ -168,6 +167,32 @@ export const moveShip = (context) => {
 
     const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
     let newRow = shipRow, newCol = shipCol;
+    let newDirection = context.shipCard.direction;
+
+    // Check if ship-sighted card exists
+    const hasShipSighted = Array.from(context.occupiedPositions.values())
+        .some(card => card.type === 'front' && card.id === 'ship-sighted');
+
+    // If ship-sighted exists, check if ship reached a corner
+    if (hasShipSighted && context.shipCard.cornerCoordinates) {
+        const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
+        const isAtCorner = (
+            (shipRow === topLeft[0] && shipCol === topLeft[1]) ||
+            (shipRow === topRight[0] && shipCol === topRight[1]) ||
+            (shipRow === bottomLeft[0] && shipCol === bottomLeft[1]) ||
+            (shipRow === bottomRight[0] && shipCol === bottomRight[1])
+        );
+
+        if (isAtCorner) {
+            // Change direction based on current direction
+            switch(context.shipCard.direction) {
+                case 'NE': newDirection = 'SE'; break;
+                case 'SE': newDirection = 'SW'; break;
+                case 'SW': newDirection = 'NW'; break;
+                case 'NW': newDirection = 'NE'; break;
+            }
+        }
+    }
 
     switch(context.shipCard.direction) {
         case 'NE': newRow++; break;
@@ -176,11 +201,26 @@ export const moveShip = (context) => {
         case 'NW': newCol++; break;
     }
 
+    // Check if ship has moved beyond corner boundaries
+    if (context.shipCard.cornerCoordinates) {
+        const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
+        const minRow = Math.min(topLeft[0], bottomLeft[0]);
+        const maxRow = Math.max(topRight[0], bottomRight[0]);
+        const minCol = Math.min(topLeft[1], topRight[1]);
+        const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
+
+        // TODO: доработать проверку на угловые клетки
+        if (newRow < minRow - 1 || newRow > maxRow + 1  || 
+            newCol < minCol - 1 || newCol > maxCol + 1 ) {
+            throw new Error('GAME_OVER_SHIP_TOO_FAR');
+        }
+    }
+
     const newPosition = `${newRow},${newCol}`;
     const newShipCard = {
         ...context.shipCard,
         position: newPosition,
-        moves: context.shipCard.moves + 1
+        direction: newDirection,
     };
 
     // Update occupied positions
@@ -195,8 +235,8 @@ export const moveShip = (context) => {
 };
 
 // Decrease lives
-export const decreaseLives = (context) => {
-    const newLives = Math.max(0, context.lives - 1);
+export const decreaseLives = (context, lives = 1) => {
+    const newLives = Math.max(0, context.lives - lives);
     
     if (newLives <= 0) {
         throw new Error('GAME_OVER_NO_LIVES');
