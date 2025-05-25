@@ -1,5 +1,5 @@
 import { INITIAL_SHIP } from './gameData';
-import { isShipOutOfBounds } from './gameRules';
+import { isCorner } from './gameRules';
 
 // Helper function to find a card on the board
 export const findCardOnBoard = (occupiedPositions, cardId) => {
@@ -26,14 +26,16 @@ export const movePlayer = (context, row, col) => {
         newLives = lives;
     }
 
+    // --- Эффекты при вскрытии карты ---
+
     // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
     if (card.lives < 0) {
         // Check if there's protection from negative effects
-        const isProtected = findCardOnBoard(context.occupiedPositions, 'spear') && card.id === 'pig' 
-            || findCardOnBoard(context.occupiedPositions, 'shelter') && card.id === 'storm';
+        const isProtected = findCardOnBoard(newOccupiedPositions, 'spear') && card.id === 'pig' 
+            || findCardOnBoard(newOccupiedPositions, 'shelter') && card.id === 'storm';
 
         if (!isProtected) {
-            const { lives } = decreaseLives(newLives, card.lives);
+            const { lives } = updateLives(newLives, card.lives);
             newLives = lives;
         }
     }
@@ -44,6 +46,8 @@ export const movePlayer = (context, row, col) => {
         newOccupiedPositions = occupiedPositions;
         newShipCard = shipCard;
     }
+
+    // --- Конец эффектов при вскрытии карты ---
     
     // Если карта есть, просто обновляем позицию игрока
     return {
@@ -73,7 +77,7 @@ export const placeCard = (context, row, col) => {
 
     // если карта с жизнями, то восстанавливается жизнь (только 1 раз при вскрытии)
     if (cardObj.lives > 0) {
-        const { lives } = increaseLives(context.lives, cardObj.lives);
+        const { lives } = updateLives(context.lives, cardObj.lives);
         newLives = lives;
     }
     
@@ -171,10 +175,10 @@ export const flipCard = (context, row, col) => {
     const newOccupiedPositions = new Map(context.occupiedPositions);
     const cardObj = newOccupiedPositions.get(`${row},${col}`);
     
-    if (!cardObj) return { occupiedPositions: newOccupiedPositions };
+    if (!cardObj) return { occupiedPositions: newOccupiedPositions, lives: context.lives };
     
     const frontCard = context.frontDeck.find(card => card.backId === cardObj.id);
-    if (!frontCard) return { occupiedPositions: newOccupiedPositions };
+    if (!frontCard) return { occupiedPositions: newOccupiedPositions, lives: context.lives };
     
     const flippedCard = {
         ...cardObj,
@@ -223,30 +227,23 @@ export const moveShip = (context) => {
     let newRow = shipRow, newCol = shipCol;
     let newDirection = context.shipCard.direction;
 
-    // Check if ship-sighted card exists
+    // Проверяем, существует ли карта "ship-sighted"
     const hasShipSighted = findCardOnBoard(context.occupiedPositions, 'ship-sighted');
 
-    // If ship-sighted exists and ship hasn't turned yet, check if ship reached a corner
-    if (hasShipSighted && context.shipCard.cornerCoordinates && !context.shipCard.hasTurned) {
-        const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
-        const isAtCorner = (
-            (shipRow === topLeft[0] && shipCol === topLeft[1]) ||
-            (shipRow === topRight[0] && shipCol === topRight[1]) ||
-            (shipRow === bottomLeft[0] && shipCol === bottomLeft[1]) ||
-            (shipRow === bottomRight[0] && shipCol === bottomRight[1])
-        );
-
-        if (isAtCorner) {
-            // Change direction based on current direction
-            switch(context.shipCard.direction) {
-                case 'NE': newDirection = 'SE'; break;
-                case 'SE': newDirection = 'SW'; break;
-                case 'SW': newDirection = 'NW'; break;
-                case 'NW': newDirection = 'NE'; break;
-            }
+    const isAtCorner = isCorner(context.shipCard.cornerCoordinates, shipRow, shipCol);
+    // Если карта "ship-sighted" существует и корабль ещё не повернулся, проверяем, достиг ли корабль угла
+    if (hasShipSighted && context.shipCard.cornerCoordinates && !context.shipCard.hasTurned && isAtCorner) {
+        // Меняем направление на следующее по часовой стрелке
+        switch(context.shipCard.direction) {
+            case 'NE': newDirection = 'SE'; break;
+            case 'SE': newDirection = 'SW'; break;
+            case 'SW': newDirection = 'NW'; break;
+            case 'NW': newDirection = 'NE'; break;
         }
+        
     }
 
+    // Смещаем корабль в новое положение
     switch(newDirection) {
         case 'NE': newRow++; break;
         case 'SE': newCol--; break;
@@ -254,12 +251,12 @@ export const moveShip = (context) => {
         case 'NW': newCol++; break;
     }
 
+    // Обновляем все значения
     const newPosition = `${newRow},${newCol}`;
     const newShipCard = {
         ...context.shipCard,
         position: newPosition,
         direction: newDirection,
-        // TODO: Ошибка isAtCorner
         hasTurned: context.shipCard.hasTurned || (hasShipSighted && isAtCorner)
     };
 
@@ -273,15 +270,11 @@ export const moveShip = (context) => {
         occupiedPositions: newOccupiedPositions
     };
 };
-
-// Decrease lives
-export const decreaseLives = (oldLives, lives = -1) => {
-    const newLives = Math.max(0, oldLives + lives);
+// Update lives (increase or decrease)
+export const updateLives = (oldLives, lives) => {
+    const newLives = lives < 0 
+        ? Math.max(0, oldLives + lives)  // Decrease lives but not below 0
+        : Math.min(16, oldLives + lives); // Increase lives but not above 16
     
     return { lives: newLives };
-};
-
-// Увеличивает жизни на Х
-export const increaseLives = (oldLives, lives) => {
-    return { lives: Math.min(16, oldLives + lives) };
 };

@@ -1,5 +1,15 @@
 // Game rules and validation functions
 
+// Функция для проверки, является ли позиция угловой
+export const isCorner = (cornerCoordinates, row, col) => {
+    const { topLeft, topRight, bottomLeft, bottomRight } = cornerCoordinates;
+
+    return (row === topLeft[0] && col === topLeft[1]) ||
+           (row === topRight[0] && col === topRight[1]) ||
+           (row === bottomLeft[0] && col === bottomLeft[1]) ||
+           (row === bottomRight[0] && col === bottomRight[1]);
+};
+
 // Check if a position is valid for card moving
 export const isValidPosition = (context, row, col) => {
     if (!context.playerPosition && row === 0 && col === 0) return true;
@@ -97,15 +107,9 @@ export const checkVictory = (context) => {
     let messageVictory = false;
     if (messagePosition) {
         const [msgRow, msgCol] = messagePosition;
-        const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
         
         // Check if message card is not in a corner
-        const isCorner = (
-            (msgRow === topLeft[0] && msgCol === topLeft[1]) ||
-            (msgRow === topRight[0] && msgCol === topRight[1]) ||
-            (msgRow === bottomLeft[0] && msgCol === bottomLeft[1]) ||
-            (msgRow === bottomRight[0] && msgCol === bottomRight[1])
-        );
+        const isCorner = isCorner(context.shipCard.cornerCoordinates, msgRow, msgCol);
         
         if (!isCorner) {
             // Check if ship is adjacent to message card

@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, placeCard, placeShip, findCardOnBoard } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives } from './gameActions';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -31,7 +31,7 @@ export const createGameStateMachine = () => {
                     },
                     decreasingLives: { 
                         entry: [
-                            assign(({ context }) => decreaseLives(context.lives))
+                            assign(({ context }) => updateLives(context.lives, -1))
                         ],
                         after: {
                             300: [
