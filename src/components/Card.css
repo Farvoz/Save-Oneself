@@ -118,6 +118,11 @@
     z-index: 3;
 }
 
+.card-lives.positive {
+    color: #2e7d32;
+    background-color: rgba(46, 125, 50, 0.1);
+}
+
 .card-name {
     font-size: 14px;
     margin-bottom: 2px;

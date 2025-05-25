@@ -21,7 +21,6 @@ export const isCornerShip = (shipCard, shipRow, shipCol) => {
         case 'NW': return topRight[1] + 1 === shipCol;
     }
 };
-
 // Check if a position is valid for card moving
 export const isValidPosition = (context, row, col) => {
     if (!context.playerPosition && row === 0 && col === 0) return true;
@@ -34,24 +33,11 @@ export const isValidPosition = (context, row, col) => {
         if (!isAdjacent) return false;
     }
     
-    if (context.shipCard.direction) {
-        let minRow = Infinity, maxRow = -Infinity, minCol = Infinity, maxCol = -Infinity;
+    // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
+    const { topLeft, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
 
-        context.occupiedPositions.forEach((card, pos) => {
-            if (card.type === 'ship') return;
-            const [cardRow, cardCol] = pos.split(',').map(Number);
-            minRow = Math.min(minRow, cardRow);
-            maxRow = Math.max(maxRow, cardRow);
-            minCol = Math.min(minCol, cardCol);
-            maxCol = Math.max(maxCol, cardCol);
-        });
-
-        switch(context.shipCard.direction) {
-            case 'NE': if (row < minRow || col > maxCol) return false; break;
-            case 'SE': if (row > maxRow || col > maxCol) return false; break;
-            case 'SW': if (row > maxRow || col < minCol) return false; break;
-            case 'NW': if (row < minRow || col < minCol) return false; break;
-        }
+    if (row < topLeft[0] || row > bottomLeft[0] || col < topLeft[1] || col > bottomRight[1]) {
+        return false;
     }
     
     return true;

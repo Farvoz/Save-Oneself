@@ -48,7 +48,9 @@ const Card = ({
             )}
             <div className="card-content">
                 {Math.abs(card.lives) > 0 && (
-                    <div className="card-lives">{card.lives}</div>
+                    <div className={"card-lives " + (card.lives > 0 ? "positive" : "")}>
+                        {card.lives}
+                    </div>
                 )}
                 {card.type === 'back' && card.requirements && (
                     <div className="card-requirements">
