@@ -1,12 +1,11 @@
 /* Grid styles */
 .grid {
     position: relative;
-    width: 700px;  /* 7 * 100px - step */
-    height: 700px; /* 7 * 100px - step */
-    margin: 20px;
+    width: 900px;  /* 9 * 100px - step */
+    height: 900px; /* 9 * 100px - step */
     display: grid;
-    grid-template-columns: repeat(7, 100px);
-    grid-template-rows: repeat(7, 100px);
+    grid-template-columns: repeat(9, 100px);
+    grid-template-rows: repeat(9, 100px);
 }
 
 .grid-cell {
@@ -20,12 +19,12 @@
     color: #666;
     box-sizing: border-box;
     transition: all 0.2s ease;
+    border-radius: 5px;
 }
 
 .grid-cell.valid-move {
     background-color: rgba(76, 175, 80, 0.1);
     cursor: pointer;
-    border: 2px solid #4CAF50;
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
 }
 
@@ -37,12 +36,10 @@
 
 .grid-cell.player-position {
     background-color: rgba(33, 150, 243, 0.1);
-    border: 2px solid #2196F3;
-    box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+    box-shadow: 0 0 10px #2196F3;
 }
 
 .grid-cell.player-position.valid-move {
     background-color: rgba(76, 175, 80, 0.15);
-    border: 2px solid #4CAF50;
     box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
 }

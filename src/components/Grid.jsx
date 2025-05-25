@@ -32,8 +32,8 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
 
     return (
         <div className="grid">
-            {Array.from({ length: 7 }, (_, i) => i - 3).map(row => 
-                Array.from({ length: 7 }, (_, i) => i - 3).map(col => 
+            {Array.from({ length: 9 }, (_, i) => i - 4).map(row => 
+                Array.from({ length: 9 }, (_, i) => i - 4).map(col => 
                     renderGridCell(row, col)
                 )
             )}

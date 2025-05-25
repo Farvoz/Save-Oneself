@@ -29,8 +29,8 @@ const Card = ({
         position: 'absolute',
         left: '1px',
         top: '1px',
-        width: '90px',
-        height: '90px',
+        width: '96px',
+        height: '96px',
         cursor: isClickable ? 'pointer' : 'default',
         backgroundColor: getCardBackground(card)
     };
@@ -47,7 +47,7 @@ const Card = ({
                 <div className="player-marker">Игрок</div>
             )}
             <div className="card-content">
-                {card.lives !== 0 && (
+                {Math.abs(card.lives) > 0 && (
                     <div className="card-lives">{card.lives}</div>
                 )}
                 {card.id && (
