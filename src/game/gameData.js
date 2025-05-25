@@ -24,21 +24,21 @@ export const INITIAL_DECK = [
 // Initial deck of cards (front side)
 export const INITIAL_FRONT_DECK = [
     { id: 'rum', lives: 1, backId: 'map-r', type: 'front', emoji: '🥃' },
-    { id: 'treasure', lives: 0, backId: 'map-c', type: 'front', emoji: '💎' },
+    { id: 'treasure', lives: 0, score: 10, backId: 'map-c', type: 'front', emoji: '💎' },
     { id: 'fish', lives: 3, backId: 'hook', type: 'front', emoji: '🐟' },
     { id: 'waterfall', lives: 2, backId: 'water', type: 'front', emoji: '🌊' },
     { id: 'coconuts', lives: 2, backId: 'palm-trees', type: 'front', emoji: '🥥' },
     { id: 'meat', lives: 3, backId: 'pig', type: 'front', emoji: '🍽️' },
-    { id: 'torch', lives: 0, backId: 'flint', type: 'front', emoji: '🕯️' },
+    { id: 'torch', lives: 0, score: 2, backId: 'flint', type: 'front', emoji: '🕯️' },
     { id: 'compass', lives: 0, backId: 'pirates', type: 'front', emoji: '🧭', description: 'Даёт дополнительный ход на выложенную карту' },
     { id: 'sea-serpent', lives: 0, backId: 'mirage', type: 'front', emoji: '🐍', description: 'Корабль перескочет соседнюю клетку' },
     { id: 'tornado', lives: -3, backId: 'storm', type: 'front', emoji: '🌪️', description: 'Уничтожает убежище и костер, а затем переворачивается обратно' },
-    { id: 'ship-sighted', lives: 0, backId: 'telescope', type: 'front', emoji: '🚢', description: 'Корабль после угла поплывет дальше, но только один раз' },
-    { id: 'shelter', lives: 2, backId: 'vines', type: 'front', emoji: '🏠', description: 'Защищает от шторма' },
-    { id: 'spear', lives: 0, backId: 'sticks', type: 'front', emoji: '🗡️', description: 'Защищает от кабана' },
-    { id: 'sos', lives: 0, backId: 'rocks', type: 'front', emoji: '🆘', description: 'Если корабль пересекает этот ряд, то вы выигрываете!' },
-    { id: 'lit-beacon', lives: 0, backId: 'higher-ground', type: 'front', emoji: '🔥', description: 'Если корабль пересекает этот колонку, то вы выигрываете!' },
-    { id: 'message', lives: 0, backId: 'bottle', type: 'front', emoji: '📜', description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то вы выигрываете!' },
+    { id: 'ship-sighted', lives: 0, score: 1, backId: 'telescope', type: 'front', emoji: '🚢', description: 'Корабль после угла поплывет дальше, но только один раз' },
+    { id: 'shelter', lives: 2, score: 2, backId: 'vines', type: 'front', emoji: '🏠', description: 'Защищает от шторма' },
+    { id: 'spear', lives: 0, score: 2, backId: 'sticks', type: 'front', emoji: '🗡️', description: 'Защищает от кабана' },
+    { id: 'sos', lives: 0, score: 5, backId: 'rocks', type: 'front', emoji: '🆘', description: 'Если корабль пересекает этот ряд, то вы выигрываете!' },
+    { id: 'lit-beacon', lives: 0, score: 7, backId: 'higher-ground', type: 'front', emoji: '🔥', description: 'Если корабль пересекает этот колонку, то вы выигрываете!' },
+    { id: 'message', lives: 0, score: 3, backId: 'bottle', type: 'front', emoji: '📜', description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то вы выигрываете!' },
 ];
 
 // Initial ship card

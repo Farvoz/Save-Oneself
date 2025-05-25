@@ -95,7 +95,7 @@ export const canFlipCard = (context, card) => {
             const mapCPosition = findCardPositionById(context.occupiedPositions, 'map-c');
 
             // Player must be at the intersection
-            return mapRPosition[0] === playerRow && mapCPosition[1] === playerCol;
+            return Number(mapRPosition[0]) === playerRow && Number(mapCPosition[1]) === playerCol;
         }
         
         for (const [_, otherCard] of context.occupiedPositions) {

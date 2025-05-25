@@ -55,6 +55,11 @@ const Card = ({
                         {card.lives}
                     </div>
                 )}
+                {card.score && (
+                    <div className="card-score">
+                        {card.score} ⭐
+                    </div>
+                )}
                 {card.type === 'back' && card.requirements && (
                     <div className="card-requirements">
                         {getRequirementsText(card.requirements)}
@@ -92,6 +97,10 @@ const getRequirementsText = (requirements) => {
 
     if (requirements === '_map') {
         return 'найти пересечение';
+    }
+
+    if (requirements === '_ship-sailing') {
+        return 'ждать отплытие';
     }
 
     // Find required card from both decks
