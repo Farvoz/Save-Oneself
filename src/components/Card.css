@@ -14,10 +14,10 @@
     z-index: 1;
 }
 
-.card.clickable:hover {
+/* .card.clickable:hover {
     transform: scale(1.05);
     z-index: 1;
-}
+} */
 
 .card[title] {
     position: relative;

@@ -37,8 +37,28 @@ export const createGameStateMachine = () => {
                                     target: '..gameOver',
                                     guard: ({ context }) => context.gameOverMessage,
                                 },
+                                {
+                                    target: 'checkingStorm',
+                                    guard: ({ context }) => context.shouldCheckStorm
+                                },
                                 { target: 'decreasingLives' }
                             ]
+                        }
+                    },
+                    // На 13 ходу проверяем, есть ли шторм на поле
+                    checkingStorm: {
+                        entry: [
+                            assign(({ context }) => {
+                                const stormPos = findCardOnBoard(context.occupiedPositions, 'storm');
+                                if (stormPos) {
+                                    const [row, col] = stormPos.split(',').map(Number);
+                                    return flipCard(context, row, col);
+                                }
+                                return context;
+                            })
+                        ],
+                        after: {
+                            0: { target: 'decreasingLives' }
                         }
                     },
                     decreasingLives: { 

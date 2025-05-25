@@ -7,6 +7,16 @@ export const findCardOnBoard = (occupiedPositions, cardId) => {
         .some(card => card.id === cardId);
 };
 
+// Helper function to find storm card position
+export const findStormCardPosition = (occupiedPositions) => {
+    for (const [pos, card] of occupiedPositions.entries()) {
+        if (card.id === 'storm') {
+            return pos;
+        }
+    }
+    return null;
+};
+
 // Move the player to a new position
 export const movePlayer = (context, row, col) => {
     const newPosition = `${row},${col}`;
@@ -14,6 +24,7 @@ export const movePlayer = (context, row, col) => {
     let newDeck = context.deck;
     let newLives = context.lives;
     let newShipCard = context.shipCard;
+    let shouldCheckStorm = false;
 
     let card = context.occupiedPositions.get(`${row},${col}`);
 
@@ -32,6 +43,13 @@ export const movePlayer = (context, row, col) => {
         newDeck = deck;
         card = cardObj;
         newLives = lives;
+        
+        // Проверяем, является ли это 13-й картой
+        const totalCards = Array.from(newOccupiedPositions.values())
+            .filter(card => card.type !== 'ship').length;
+        if (totalCards === 13) {
+            shouldCheckStorm = true;
+        }
     }
 
     // --- Эффекты при вскрытии карты ---
@@ -63,7 +81,8 @@ export const movePlayer = (context, row, col) => {
         occupiedPositions: newOccupiedPositions,
         deck: newDeck,
         lives: newLives,
-        shipCard: newShipCard
+        shipCard: newShipCard,
+        shouldCheckStorm
     };
 };
 
@@ -179,6 +198,7 @@ export const placeShip = (occupiedPositions, direction) => {
 };
 
 // Flip a card
+// TODO: добавить проверку на 13-ю карту
 export const flipCard = (context, row, col) => {
     const newOccupiedPositions = new Map(context.occupiedPositions);
     const cardObj = newOccupiedPositions.get(`${row},${col}`);

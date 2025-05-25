@@ -78,9 +78,15 @@ const getRequirementsText = (requirements) => {
     if (requirements === '_ship-set-sail') {
         return 'нужен корабль на паузе';
     }
+
     if (requirements === 'higher-ground') { 
         return 'нужно быть на ⛰️';
     }
+
+    if (requirements === '_13-turn') {
+        return '13 карта';
+    }
+
     // Find required card from both decks
     const requiredCard = [...INITIAL_DECK, ...INITIAL_FRONT_DECK].find(card => card.id === requirements);
     const emoji = requiredCard ? requiredCard.emoji : '❓';

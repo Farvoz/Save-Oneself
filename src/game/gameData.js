@@ -14,6 +14,9 @@ export const INITIAL_DECK = [
     { id: 'pig', lives: -2, direction: '', requirements: 'spear', type: 'back', emoji: '🐷', description: 'После добычи, даёт мясо' },
 
     // Реализованы частично:
+
+    // Как только переворачивается тринадцатая карта, то шторм переворачивается (даже если шторм сама является тринадцатой картой)
+    { id: 'storm', lives: -2, direction: '', requirements: '_13-turn', type: 'back', emoji: '🌧️', description: 'Можно защититься в убежище' },
     // 2 карты сокровищ
     // шторм
     // пираты/компас
@@ -23,6 +26,8 @@ export const INITIAL_DECK = [
 // Initial deck of cards (front side)
 export const INITIAL_FRONT_DECK = [
     // Реализованы частично:
+
+    { id: 'tornado', lives: -3, backId: 'storm', type: 'front', emoji: '🌪️', description: 'Уничтожает убежище и костер, а затем переворачивается обратно' },
 
     // Реализованы полностью:
     { id: 'fish', lives: 3, backId: 'hook', type: 'front', emoji: '🐟' },
@@ -57,11 +62,12 @@ export const INITIAL_SHIP = {
         };
         return `${this.emoji}${arrows[this.direction]}`;
     },
+    // Изначально поле максимальное
     cornerCoordinates: {
-        topLeft: [0, 0],
-        topRight: [0, 0],
-        bottomLeft: [0, 0],
-        bottomRight: [0, 0]
+        topLeft: [-3, -3],
+        topRight: [-3, 3],
+        bottomLeft: [3, -3],
+        bottomRight: [3, 3]
     }
 };
 
@@ -74,5 +80,6 @@ export const INITIAL_STATE = {
     occupiedPositions: new Map(),
     playerPosition: '0,0',
     gameOverMessage: null,
-    isVictory: false
+    isVictory: false,
+    shouldCheckStorm: false
 }; 
