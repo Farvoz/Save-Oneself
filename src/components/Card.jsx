@@ -90,6 +90,10 @@ const getRequirementsText = (requirements) => {
         return '13 карта';
     }
 
+    if (requirements === '_map') {
+        return 'найти пересечение';
+    }
+
     // Find required card from both decks
     const requiredCard = [...INITIAL_DECK, ...INITIAL_FRONT_DECK].find(card => card.id === requirements);
     const emoji = requiredCard ? requiredCard.emoji : '❓';

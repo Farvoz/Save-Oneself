@@ -1,5 +1,20 @@
 // Файл с игровыми предикатами
 
+// Helper function to find a card on the board
+export const findCardOnBoard = (occupiedPositions, cardId) => {
+    return Array.from(occupiedPositions.values())
+        .some(card => card.id === cardId);
+};
+
+export const findCardPositionById = (occupiedPositions, cardId) => {
+    for (const [pos, card] of occupiedPositions.entries()) {
+        if (card.id === cardId) {
+            return pos;
+        }
+    }
+    return null;
+};
+
 // Функция для проверки, является ли позиция угловой
 export const isCornerCard = (cornerCoordinates, row, col) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = cornerCoordinates;
@@ -64,6 +79,23 @@ export const canFlipCard = (context, card) => {
             if (!playerCard || playerCard.id !== 'higher-ground') {
                 return false;
             }
+        }
+
+        // Check map card requirements
+        if (card.requirements === '_map') {
+            // Both map cards must be on the board
+            const hasMapR = findCardOnBoard(context.occupiedPositions, 'map-r');
+            const hasMapC = findCardOnBoard(context.occupiedPositions, 'map-c');
+            if (!hasMapR || !hasMapC) return false;
+
+            // Player must be at the intersection of map-r row and map-c column
+            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
+            
+            const mapRPosition = findCardPositionById(context.occupiedPositions, 'map-r');
+            const mapCPosition = findCardPositionById(context.occupiedPositions, 'map-c');
+
+            // Player must be at the intersection
+            return mapRPosition[0] === playerRow && mapCPosition[1] === playerCol;
         }
         
         for (const [_, otherCard] of context.occupiedPositions) {

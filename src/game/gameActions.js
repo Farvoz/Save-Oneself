@@ -1,21 +1,7 @@
 import { INITIAL_DECK, INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
 import { gameLogger } from './gameLogger';
-import { isCornerShip } from './gameRules';
+import { isCornerShip, findCardOnBoard, findCardPositionById } from './gameRules';
 
-// Helper function to find a card on the board
-export const findCardOnBoard = (occupiedPositions, cardId) => {
-    return Array.from(occupiedPositions.values())
-        .some(card => card.id === cardId);
-};
-
-export const findCardPositionById = (occupiedPositions, cardId) => {
-    for (const [pos, card] of occupiedPositions.entries()) {
-        if (card.id === cardId) {
-            return pos;
-        }
-    }
-    return null;
-};
 
 // Helper function to count non-ship cards on the board
 export const countNonShipCards = (occupiedPositions) => {
@@ -78,7 +64,7 @@ export const movePlayer = (context, row, col) => {
     let hasPlacedCard = context.hasPlacedCard;
     let movesLeft = context.movesLeft;
 
-    let card = context.occupiedPositions.get(`${row},${col}`);
+    let card = newOccupiedPositions.get(`${row},${col}`);
 
     // если карта не существует, то placeCard
     if (!card) {
@@ -289,6 +275,15 @@ export const flipCard = (context, row, col) => {
         if (litBeaconPos) {
             newOccupiedPositions.set(litBeaconPos, INITIAL_DECK.find(card => card.id === 'higher-ground'));
         }
+    }
+
+    // Если это одна из карт сокровищ, переворачиваем обе
+    if (cardObj.id === 'map-r' || cardObj.id === 'map-c') {
+        // Находим и переворачиваем вторую карту сокровищ
+        const otherMapId = cardObj.id === 'map-r' ? 'map-c' : 'map-r';
+        const otherMapPos = findCardPositionById(newOccupiedPositions, otherMapId);
+        const otherFrontCard = INITIAL_FRONT_DECK.find(card => card.backId === otherMapId);
+        newOccupiedPositions.set(otherMapPos, otherFrontCard);
     }
     
     return {

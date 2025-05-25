@@ -1,6 +1,6 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds } from './gameRules';
+import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds, findCardOnBoard } from './gameRules';
 import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, findStormCardPosition, countNonShipCards } from './gameActions';
 import { gameLogger } from './gameLogger';
 
@@ -26,8 +26,7 @@ export const createGameStateMachine = () => {
                             assign({
                                 hasPlacedCard: false,
                                 movesLeft: ({ context }) => {
-                                    const hasCompass = Array.from(context.occupiedPositions.values())
-                                        .some(card => card.id === 'compass');
+                                    const hasCompass = findCardOnBoard(context.occupiedPositions, 'compass');
                                     return hasCompass ? 2 : 1;
                                 }
                             })
