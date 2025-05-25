@@ -1,10 +1,25 @@
-import { INITIAL_SHIP } from './gameData';
+import { INITIAL_DECK, INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
 import { isCornerShip } from './gameRules';
 
 // Helper function to find a card on the board
 export const findCardOnBoard = (occupiedPositions, cardId) => {
     return Array.from(occupiedPositions.values())
         .some(card => card.id === cardId);
+};
+
+export const findCardPositionById = (occupiedPositions, cardId) => {
+    for (const [pos, card] of occupiedPositions.entries()) {
+        if (card.id === cardId) {
+            return pos;
+        }
+    }
+    return null;
+};
+
+// Helper function to count non-ship cards on the board
+export const countNonShipCards = (occupiedPositions) => {
+    return Array.from(occupiedPositions.values())
+        .filter(card => card.type !== 'ship').length;
 };
 
 // Helper function to find storm card position
@@ -45,8 +60,7 @@ export const movePlayer = (context, row, col) => {
         newLives = lives;
         
         // Проверяем, является ли это 13-й картой
-        const totalCards = Array.from(newOccupiedPositions.values())
-            .filter(card => card.type !== 'ship').length;
+        const totalCards = countNonShipCards(newOccupiedPositions);
         if (totalCards === 13) {
             shouldCheckStorm = true;
         }
@@ -200,33 +214,34 @@ export const placeShip = (occupiedPositions, direction) => {
 // Flip a card
 // TODO: добавить проверку на 13-ю карту
 export const flipCard = (context, row, col) => {
+    const cardObj = context.occupiedPositions.get(`${row},${col}`);
+    const frontCard = INITIAL_FRONT_DECK.find(card => card.backId === cardObj.id);
+    
+    // Размещает перевернутую карту на поле
     const newOccupiedPositions = new Map(context.occupiedPositions);
-    const cardObj = newOccupiedPositions.get(`${row},${col}`);
+    newOccupiedPositions.set(`${row},${col}`, frontCard);
     
-    if (!cardObj) return { occupiedPositions: newOccupiedPositions, lives: context.lives };
-    
-    const frontCard = context.frontDeck.find(card => card.backId === cardObj.id);
-    if (!frontCard) return { occupiedPositions: newOccupiedPositions, lives: context.lives };
-    
-    const flippedCard = {
-        ...cardObj,
-        type: frontCard.type,
-        id: frontCard.id,
-        lives: frontCard.lives,
-        emoji: frontCard.emoji,
-        description: frontCard.description
-    };
-    delete flippedCard.requirements;
-    delete flippedCard.direction;
-    
-    newOccupiedPositions.set(`${row},${col}`, flippedCard);
-    
-    // Update lives
-    const newLives = Math.min(16, context.lives + frontCard.lives);
+    // Обновляет жизни
+    const { lives } = updateLives(context.lives, frontCard.lives);
+
+    // Если это tornado, то переворачиваем обратно
+    if (countNonShipCards(newOccupiedPositions) === 13 && frontCard.id === 'tornado') {
+        newOccupiedPositions.set(`${row},${col}`, cardObj);
+
+        // А также переворачивает обратно shelter и lit beacon
+        const shelterPos = findCardPositionById(newOccupiedPositions, 'shelter');
+        const litBeaconPos = findCardPositionById(newOccupiedPositions, 'lit-beacon');
+        if (shelterPos) {
+            newOccupiedPositions.set(shelterPos, INITIAL_DECK.find(card => card.id === 'vines'));
+        }
+        if (litBeaconPos) {
+            newOccupiedPositions.set(litBeaconPos, INITIAL_DECK.find(card => card.id === 'higher-ground'));
+        }
+    }
     
     return {
         occupiedPositions: newOccupiedPositions,
-        lives: newLives
+        lives: lives
     };
 };
 

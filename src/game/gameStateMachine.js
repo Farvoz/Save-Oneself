@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, findStormCardPosition } from './gameActions';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -49,7 +49,7 @@ export const createGameStateMachine = () => {
                     checkingStorm: {
                         entry: [
                             assign(({ context }) => {
-                                const stormPos = findCardOnBoard(context.occupiedPositions, 'storm');
+                                const stormPos = findStormCardPosition(context.occupiedPositions);
                                 if (stormPos) {
                                     const [row, col] = stormPos.split(',').map(Number);
                                     return flipCard(context, row, col);
