@@ -15,7 +15,7 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
         return (
             <div 
                 key={pos}
-                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} ${isPlayerPosition ? 'player-position' : ''}`}
+                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} `}
                 onClick={() => onCellClick(row, col)}
             >
                 {card && (

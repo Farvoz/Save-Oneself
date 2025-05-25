@@ -287,6 +287,59 @@ export const flipCard = (context, row, col) => {
     };
 };
 
+// Helper function to calculate new ship position based on direction
+const calculateNewShipPosition = (row, col, direction) => {
+    let newRow = row, newCol = col;
+    
+    switch(direction) {
+        case 'NE': newRow++; break;
+        case 'SE': newCol--; break;
+        case 'SW': newRow--; break;
+        case 'NW': newCol++; break;
+    }
+    
+    return { newRow, newCol };
+};
+
+// Helper function to handle sea serpent extra move
+const handleSeaSerpentExtraMove = (shipCard, occupiedPositions, row, col, direction) => {
+    const adjacentPositions = [
+        `${row + 1},${col}`,
+        `${row - 1},${col}`,
+        `${row},${col + 1}`,
+        `${row},${col - 1}`
+    ];
+
+    const hasSeaSerpent = adjacentPositions.some(pos => {
+        const card = occupiedPositions.get(pos);
+        return card && card.id === 'sea-serpent';
+    });
+
+    if (!hasSeaSerpent) {
+        return {
+            shipCard,
+            occupiedPositions
+        };
+    }
+
+    const { newRow: extraRow, newCol: extraCol } = calculateNewShipPosition(row, col, direction);
+    const extraPosition = `${extraRow},${extraCol}`;
+    const extraShipCard = {
+        ...shipCard,
+        position: extraPosition
+    };
+
+    // Update occupied positions
+    const newOccupiedPositions = new Map(occupiedPositions);
+    newOccupiedPositions.delete(shipCard.position); // Remove previous position
+    newOccupiedPositions.set(extraPosition, extraShipCard); // Add new position
+
+    return {
+        shipCard: extraShipCard,
+        occupiedPositions: newOccupiedPositions
+    };
+};
+
 // Move the ship
 export const moveShip = (context) => {
     if (!context.shipCard.position || !context.shipCard.direction) {
@@ -309,7 +362,6 @@ export const moveShip = (context) => {
     }
 
     const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
-    let newRow = shipRow, newCol = shipCol;
     let newDirection = context.shipCard.direction;
 
     // Проверяем, существует ли карта "ship-sighted"
@@ -325,16 +377,10 @@ export const moveShip = (context) => {
             case 'SW': newDirection = 'NW'; break;
             case 'NW': newDirection = 'NE'; break;
         }
-        
     }
 
     // Смещаем корабль в новое положение
-    switch(newDirection) {
-        case 'NE': newRow++; break;
-        case 'SE': newCol--; break;
-        case 'SW': newRow--; break;
-        case 'NW': newCol++; break;
-    }
+    const { newRow, newCol } = calculateNewShipPosition(shipRow, shipCol, newDirection);
 
     // Обновляем все значения
     const newPosition = `${newRow},${newCol}`;
@@ -350,10 +396,8 @@ export const moveShip = (context) => {
     newOccupiedPositions.delete(context.shipCard.position); // Remove old position
     newOccupiedPositions.set(newPosition, newShipCard); // Add new position
 
-    return {
-        shipCard: newShipCard,
-        occupiedPositions: newOccupiedPositions
-    };
+    // Проверяем эффект sea-serpent и делаем дополнительный ход если нужно
+    return handleSeaSerpentExtraMove(newShipCard, newOccupiedPositions, newRow, newCol, newDirection);
 };
 
 // Update lives (increase or decrease)
