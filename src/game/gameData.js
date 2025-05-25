@@ -1,17 +1,17 @@
 // Initial deck of cards (back side)
 export const INITIAL_DECK = [
     // Реализованы полностью:
-    { id: 'vines', lives: 0, direction: 'SW', requirements: 'palm-trees', type: 'back', emoji: '🌿' },
-    { id: 'hook', lives: 0, direction: 'NE', requirements: 'water', type: 'back', emoji: '🎣' },
-    { id: 'water', lives: 2, direction: '', requirements: 'telescope', type: 'back', emoji: '💧' },
-    { id: 'flint', lives: 0, direction: '', requirements: 'vines', type: 'back', emoji: '⚡' },
-    { id: 'palm-trees', lives: 0, direction: 'SE', requirements: 'rocks', type: 'back', emoji: '🌴' },
-    { id: 'sticks', lives: 0, direction: 'NW', requirements: 'flint', type: 'back', emoji: '🥢' },
-    { id: 'bottle', lives: 0, direction: '', requirements: '_ship-set-sail', type: 'back', emoji: '🍾' },
-    { id: 'higher-ground', lives: 0, direction: '', requirements: 'torch', type: 'back', emoji: '⛰️' },
-    { id: 'telescope', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🔭' },
-    { id: 'rocks', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🧱' },
-    { id: 'pig', lives: -2, direction: '', requirements: 'spear', type: 'back', emoji: '🐷' },
+    { id: 'vines', lives: 0, direction: 'SW', requirements: 'palm-trees', type: 'back', emoji: '🌿', description: 'Позволяет сделать убежище' },
+    { id: 'hook', lives: 0, direction: 'NE', requirements: 'water', type: 'back', emoji: '🎣', description: 'Позволяет добыть рыбу' },
+    { id: 'water', lives: 2, direction: '', requirements: 'telescope', type: 'back', emoji: '💧', description: 'Позволяет освежиться' },
+    { id: 'flint', lives: 0, direction: '', requirements: 'vines', type: 'back', emoji: '⚡', description: 'Позволяет сделать огонь' },
+    { id: 'palm-trees', lives: 0, direction: 'SE', requirements: 'rocks', type: 'back', emoji: '🌴', description: 'Позволяет добыть кокосы' },
+    { id: 'sticks', lives: 0, direction: 'NW', requirements: 'flint', type: 'back', emoji: '🥢', description: 'Позволяет сделать копье для охоты' },
+    { id: 'bottle', lives: 0, direction: '', requirements: '_ship-set-sail', type: 'back', emoji: '🍾', description: 'Позволяет отправить сообщение, если не угловая карта' },
+    { id: 'higher-ground', lives: 0, direction: '', requirements: 'torch', type: 'back', emoji: '⛰️', description: 'Здесь доступно много действий' },
+    { id: 'telescope', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🔭', description: 'Позволяет увидеть полное движение корабля' },
+    { id: 'rocks', lives: 0, direction: '', requirements: 'higher-ground', type: 'back', emoji: '🧱', description: 'Позволяет выложить SOS в ряд' },
+    { id: 'pig', lives: -2, direction: '', requirements: 'spear', type: 'back', emoji: '🐷', description: 'После добычи, даёт мясо' },
 
     // Реализованы частично:
     // 2 карты сокровищ

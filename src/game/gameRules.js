@@ -121,10 +121,7 @@ export const checkVictory = (context) => {
         const [msgRow, msgCol] = messagePosition;
         
         // Check if message card is not in a corner
-        const isCornerCard = isCornerCard(context.shipCard.cornerCoordinates, msgRow, msgCol);
-        
-        if (!isCornerCard) {
-            // Check if ship is adjacent to message card
+        if (!isCornerCard(context.shipCard.cornerCoordinates, msgRow, msgCol)) {
             const isAdjacent = Math.abs(shipRow - msgRow) + Math.abs(shipCol - msgCol) === 1;
             messageVictory = isAdjacent;
         }

@@ -50,16 +50,16 @@ const Card = ({
                 {Math.abs(card.lives) > 0 && (
                     <div className="card-lives">{card.lives}</div>
                 )}
-                {card.id && (
-                    <div className="card-name">{`${getEmoji()} ${card.id}`}</div>
-                )}
-                {card.direction && (
-                    <div className="card-direction">{card.direction}</div>
-                )}
                 {card.type === 'back' && card.requirements && (
                     <div className="card-requirements">
                         {getRequirementsText(card.requirements)}
                     </div>
+                )}
+                {card.id && (
+                    <div className="card-name">{`${getEmoji()} ${card.type === 'ship' ? '' : card.id}`}</div>
+                )}
+                {card.direction && (
+                    <div className="card-direction">{card.direction}</div>
                 )}
             </div>
         </div>
