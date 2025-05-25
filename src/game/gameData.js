@@ -15,10 +15,9 @@ export const INITIAL_DECK = [
 
     // Реализованы частично:
 
-    // Как только переворачивается тринадцатая карта, то шторм переворачивается (даже если шторм сама является тринадцатой картой)
+    // TODO: Если сразу выходит тринадцатой, то сразу перевернутая
     { id: 'storm', lives: -2, direction: '', requirements: '_13-turn', type: 'back', emoji: '🌧️', description: 'Можно защититься в убежище' },
     // 2 карты сокровищ
-    // шторм
     // пираты/компас
     // мираж
 ];
@@ -27,14 +26,13 @@ export const INITIAL_DECK = [
 export const INITIAL_FRONT_DECK = [
     // Реализованы частично:
 
-    { id: 'tornado', lives: -3, backId: 'storm', type: 'front', emoji: '🌪️', description: 'Уничтожает убежище и костер, а затем переворачивается обратно' },
-
     // Реализованы полностью:
     { id: 'fish', lives: 3, backId: 'hook', type: 'front', emoji: '🐟' },
     { id: 'waterfall', lives: 2, backId: 'water', type: 'front', emoji: '🌊' },
     { id: 'coconuts', lives: 2, backId: 'palm-trees', type: 'front', emoji: '🥥' },
     { id: 'meat', lives: 3, backId: 'pig', type: 'front', emoji: '🍽️' },
-    { id: 'torch', lives: 0, backId: 'flint', type: 'front', emoji: '🔥' },
+    { id: 'torch', lives: 0, backId: 'flint', type: 'front', emoji: '🕯️' },
+    { id: 'tornado', lives: -3, backId: 'storm', type: 'front', emoji: '🌪️', description: 'Уничтожает убежище и костер, а затем переворачивается обратно' },
     { id: 'ship-sighted', lives: 0, backId: 'telescope', type: 'front', emoji: '🚢', description: 'Корабль после угла поплывет дальше, но только один раз' },
     { id: 'shelter', lives: 2, backId: 'vines', type: 'front', emoji: '🏠', description: 'Защищает от шторма' },
     { id: 'spear', lives: 0, backId: 'sticks', type: 'front', emoji: '🗡️', description: 'Защищает от кабана' },

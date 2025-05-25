@@ -212,7 +212,6 @@ export const placeShip = (occupiedPositions, direction) => {
 };
 
 // Flip a card
-// TODO: добавить проверку на 13-ю карту
 export const flipCard = (context, row, col) => {
     const cardObj = context.occupiedPositions.get(`${row},${col}`);
     const frontCard = INITIAL_FRONT_DECK.find(card => card.backId === cardObj.id);
