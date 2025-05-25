@@ -17,6 +17,14 @@ export const movePlayer = (context, row, col) => {
 
     let card = context.occupiedPositions.get(`${row},${col}`);
 
+    // если колода пуста, то игра окончена
+    if (context.deck.length === 0) {
+        return {
+            gameOverMessage: 'Игра окончена! Колода пуста.',
+            isVictory: false
+        };
+    }
+
     // если карта не существует, то placeCard
     if (!card) {
         const { occupiedPositions, deck, cardObj, lives } = placeCard(context, row, col);

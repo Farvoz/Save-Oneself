@@ -23,10 +23,22 @@ export const createGameStateMachine = () => {
                         on: {
                             MOVE_PLAYER: {
                                 actions: [
-                                    assign(({ context, event }) =>  movePlayer(context, event.row, event.col)),
+                                    assign(({ context, event }) => movePlayer(context, event.row, event.col))
                                 ],
-                                target: 'decreasingLives'
+                                target: 'checkingMoveResult'
                             }
+                        }
+                    },
+                    // состояние для проверки результата хода
+                    checkingMoveResult: {
+                        after: {
+                            0: [
+                                {
+                                    target: '..gameOver',
+                                    guard: ({ context }) => context.gameOverMessage,
+                                },
+                                { target: 'decreasingLives' }
+                            ]
                         }
                     },
                     decreasingLives: { 
