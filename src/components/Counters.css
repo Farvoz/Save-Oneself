@@ -1,4 +1,4 @@
-#counters {
+.counters {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -8,7 +8,7 @@
 .game-stats {
     display: flex;
     gap: 20px;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     padding: 8px 16px;
     background: rgba(0, 0, 0, 0.1);
@@ -66,4 +66,84 @@
 .skip-phase-button:active {
     background-color: #b71c1c;
     transform: translateY(0);
+}
+
+.counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.counter-label {
+    color: #666;
+}
+
+.counter-value {
+    font-weight: bold;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+/* Animation for decreasing lives */
+@keyframes decreaseLives {
+    0% {
+        transform: scale(1);
+        color: #333;
+    }
+    50% {
+        transform: scale(1.2);
+        color: #f44336;
+    }
+    100% {
+        transform: scale(1);
+        color: #333;
+    }
+}
+
+/* Animation for increasing lives */
+@keyframes increaseLives {
+    0% {
+        transform: scale(1);
+        color: #333;
+    }
+    50% {
+        transform: scale(1.2);
+        color: #4CAF50;
+    }
+    100% {
+        transform: scale(1);
+        color: #333;
+    }
+}
+
+.lives-decrease {
+    animation: decreaseLives 0.5s ease;
+}
+
+.lives-increase {
+    animation: increaseLives 0.5s ease;
+}
+
+.skip-phase {
+    padding: 8px 16px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+}
+
+.skip-phase:hover {
+    background-color: #1976D2;
+}
+
+.skip-phase:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 } 

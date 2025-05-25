@@ -75,17 +75,16 @@ export const hasFlippableCards = (context) => {
 };
 
 // Check if the game is won
+// return boolean
 export const checkVictory = (context) => {
     let sosPosition = null;
     let beaconPosition = null;
     let messagePosition = null;
     
     for (const [pos, card] of context.occupiedPositions) {
-        if (card.type === 'front') {
-            if (card.id === 'sos') sosPosition = pos.split(',').map(Number);
-            else if (card.id === 'lit-beacon') beaconPosition = pos.split(',').map(Number);
-            else if (card.id === 'message') messagePosition = pos.split(',').map(Number);
-        }
+        if (card.id === 'sos') sosPosition = pos.split(',').map(Number);
+        else if (card.id === 'lit-beacon') beaconPosition = pos.split(',').map(Number);
+        else if (card.id === 'message') messagePosition = pos.split(',').map(Number);
     }
     
     if (!context.shipCard.position) return false;
@@ -129,4 +128,21 @@ const hasMaxRowsOrColumns = (context, row, col) => {
     const uniqueCols = [...new Set(positions.map(pos => pos[1]))];
     
     return uniqueRows.length <= 4 && uniqueCols.length <= 4;
+};
+
+export const isShipOutOfBounds = (context) => {
+    if (!context.shipCard?.position || !context.shipCard?.cornerCoordinates) {
+        return false;
+    }
+
+    const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
+    const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
+    
+    const minRow = Math.min(topLeft[0], bottomLeft[0]);
+    const maxRow = Math.max(topRight[0], bottomRight[0]);
+    const minCol = Math.min(topLeft[1], topRight[1]);
+    const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
+
+    return shipRow < minRow - 1 || shipRow > maxRow + 1 || 
+           shipCol < minCol - 1 || shipCol > maxCol + 1;
 }; 

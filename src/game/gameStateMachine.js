@@ -1,13 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, increaseLives, placeCard, placeShip, findCardOnBoard } from './gameActions';
-
-const logGameState = (context, phase) => {
-    console.log(`=== Phase: ${phase} ===`);
-    console.log('Occupied Positions:', Object.fromEntries(context.occupiedPositions));
-    console.log('==================');
-};
+import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds } from './gameRules';
+import { shuffleDeck, movePlayer, flipCard, moveShip, decreaseLives, placeCard, placeShip, findCardOnBoard } from './gameActions';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -22,76 +16,14 @@ export const createGameStateMachine = () => {
                     assign({
                         deck: ({ context }) => shuffleDeck(context).deck
                     }),
-                    assign({
-                        occupiedPositions: ({ context }) => {
-                            const newMap = new Map();
-                            const firstCard = context.deck.pop();
-                            newMap.set('0,0', firstCard);
-                            return newMap;
-                        },
-                        playerPosition: '0,0'
-                    }),
-                    // TODO: Добавить логику открытия карты и применения эффектов                
-                    ({ context }) => logGameState(context, 'initial')
+                    assign(({ context }) => movePlayer(context, 0, 0)),
                 ],
                 states: {
                     moving: {
-                        entry: ({ context }) => logGameState(context, 'moving'),
                         on: {
                             MOVE_PLAYER: {
                                 actions: [
-                                    assign(({ context, event }) => {
-                                        const { playerPosition } = movePlayer(context, event.row, event.col);
-                                        
-                                        // если место свободное, то placeCard
-                                        const [row, col] = playerPosition.split(',').map(Number);
-                                        let card = context.occupiedPositions.get(`${row},${col}`);
-                                        let newOccupiedPositions = context.occupiedPositions;
-                                        let newDeck = context.deck;
-                                        let newLives = context.lives;
-                                        let newShipCard = context.shipCard;
-
-                                        // если карта не существует, то placeCard
-                                        if (!card) {
-                                            const { occupiedPositions, deck, cardObj } = placeCard(context, row, col);
-                                            newOccupiedPositions = occupiedPositions;
-                                            newDeck = deck;
-                                            card = cardObj;
-
-                                            // если карта с жизнями, то восстанавливается жизнь (только 1 раз)
-                                            if (card.lives > 0) {
-                                                const { lives } = increaseLives(context, card.lives);
-                                                newLives = lives;
-                                            }
-                                        }
-
-                                        // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
-                                        if (card.lives < 0) {
-                                            // Check if there's protection from negative effects
-                                            const isProtected = findCardOnBoard(context.occupiedPositions, 'spear') && card.id === 'pig' 
-                                                || findCardOnBoard(context.occupiedPositions, 'shelter') && card.id === 'storm';
-
-                                            if (!isProtected) {
-                                                const { lives } = decreaseLives(context, card.lives);
-                                                newLives = lives;
-                                            }
-                                        }
-
-                                        // если карта с направлением и нет других кораблей, то размещается корабль
-                                        if (card.direction && !context.shipCard.direction) {
-                                            const { shipCard, occupiedPositions } = placeShip(newOccupiedPositions, card.direction);
-                                            newOccupiedPositions = occupiedPositions;
-                                            newShipCard = shipCard;
-                                        }
-
-                                        return {
-                                            playerPosition,
-                                            occupiedPositions: newOccupiedPositions,
-                                            deck: newDeck,
-                                            lives: newLives,
-                                            shipCard: newShipCard
-                                        }
-                                    }),
+                                    assign(({ context, event }) =>  movePlayer(context, event.row, event.col)),
                                 ],
                                 target: 'decreasingLives'
                             }
@@ -99,20 +31,18 @@ export const createGameStateMachine = () => {
                     },
                     decreasingLives: { 
                         entry: [
-                            assign(({ context }) => {
-                                try {
-                                    return decreaseLives(context);
-                                } catch (error) {
-                                    if (error.message === 'GAME_OVER_NO_LIVES') {
-                                        throw new Error('GAME_OVER_NO_LIVES');
-                                    }
-                                    return context;
-                                }
-                            }),
-                            ({ context }) => logGameState(context, 'decreasing_lives')
+                            assign(({ context }) => decreaseLives(context.lives))
                         ],
                         after: {
                             300: [
+                                {
+                                    target: '..gameOver',
+                                    guard: ({ context }) => context.lives <= 0,
+                                    actions: assign({
+                                        gameOverMessage: 'Игра окончена! Закончились жизни.',
+                                        isVictory: false
+                                    })
+                                },
                                 {
                                     target: 'checkingFlippable',
                                     guard: ({ context }) => hasFlippableCards(context)
@@ -122,7 +52,6 @@ export const createGameStateMachine = () => {
                         }
                     },
                     checkingFlippable: {
-                        entry: ({ context }) => logGameState(context, 'checking_flippable'),
                         on: {
                             FLIP_CARD: {
                                 guard: ({ context, event }) => {
@@ -132,68 +61,40 @@ export const createGameStateMachine = () => {
                                 actions: [
                                     assign(({ context, event }) => 
                                         flipCard(context, event.row, event.col)
-                                    ),
-                                    ({ context }) => logGameState(context, 'after_flip')
+                                    )
                                 ],
                                 target: 'shipMoving'
                             },
                             SKIP_PHASE: {
-                                actions: ({ context }) => logGameState(context, 'skip_flip_phase'),
                                 target: 'shipMoving'
                             }
                         }
                     },
                     shipMoving: {
                         entry: [
-                            assign(({ context }) => {
-                                try {
-                                    const newSlice = moveShip(context);
-                                    const newContext = { ...context, ...newSlice };
-
-                                    // Check for victory after ship moves
-                                    if (checkVictory(newContext)) {
-                                        throw new Error('GAME_OVER_VICTORY');
-                                    }
-
-                                    return newContext;
-                                } catch (error) {
-                                    if (error.message === 'GAME_OVER_SHIP_TOO_FAR') {
-                                        // переход в конец игры
-                                        return { gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.', isVictory: false };
-                                    } else if (error.message === 'GAME_OVER_VICTORY') {
-                                        // переход в конец игры
-                                        return { gameOverMessage: 'Победа! Корабль заметил сигнал!', isVictory: true };
-                                    }
-                                    return context;
-                                }
-                            })
+                            assign(({ context }) => moveShip(context))
                         ],
                         after: {
-                            500: 'moving'
-                        }
-                    }
-                },
-                on: {
-                    GAME_OVER: {
-                        target: 'gameOver',
-                        actions: [
-                            assign({
-                                gameOverMessage: (_, event) => {
-                                    switch (event.error) {
-                                        case 'GAME_OVER_NO_LIVES':
-                                            return 'Игра окончена! Закончились жизни.';
-                                        case 'GAME_OVER_SHIP_TOO_FAR':
-                                            return 'Игра окончена! Корабль уплыл слишком далеко.';
-                                        case 'GAME_OVER_VICTORY':
-                                            return 'Победа! Корабль заметил сигнал!';
-                                        default:
-                                            return event.message;
-                                    }
+                            500: [
+                                { 
+                                    target: '..gameOver', 
+                                    guard: ({ context }) => checkVictory(context), 
+                                    actions: assign({
+                                        gameOverMessage: 'Победа! Корабль заметил сигнал!',
+                                        isVictory: true
+                                    }) 
                                 },
-                                isVictory: (_, event) => event.error === 'GAME_OVER_VICTORY'
-                            }),
-                            ({ context }) => logGameState(context, 'game_over')
-                        ]
+                                {
+                                    target: '..gameOver',
+                                    guard: ({ context }) => isShipOutOfBounds(context),
+                                    actions: assign({
+                                        gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.',
+                                        isVictory: false
+                                    })
+                                },
+                                { target: 'moving' }
+                            ]
+                        }
                     }
                 }
             },

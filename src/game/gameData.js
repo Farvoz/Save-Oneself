@@ -45,6 +45,7 @@ export const INITIAL_SHIP = {
     id: 'ship',
     position: undefined,
     skipMove: true,
+    hasTurned: false,
     emoji: '⛵',
     getEmoji() {
         if (!this.direction) return this.emoji;
