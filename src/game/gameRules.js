@@ -1,4 +1,4 @@
-// Game rules and validation functions
+// Файл с игровыми предикатами
 
 // Функция для проверки, является ли позиция угловой
 export const isCornerCard = (cornerCoordinates, row, col) => {

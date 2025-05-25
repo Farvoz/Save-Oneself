@@ -7,10 +7,10 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
     const renderGridCell = (row, col) => {
         const pos = `${row},${col}`;
         const card = occupiedPositions.get(pos);
-        const isClickable = card && state.matches('playing.checkingFlippable') && 
-            card.type === 'back' && canFlipCard(context, card);
         const isAvailableMove = state.matches('playing.moving') && isValidPosition(context, row, col);
         const isPlayerPosition = pos === context.playerPosition;
+        const isFlippable = card && state.matches('playing.checkingFlippable') && 
+            card.type === 'back' && canFlipCard(context, card);
 
         return (
             <div 
@@ -23,8 +23,10 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
                         card={card}
                         row={row}
                         col={col}
-                        isClickable={isClickable || isAvailableMove}
+                        isAvailableMove={isAvailableMove}
                         onClick={() => onCellClick(row, col)}
+                        isPlayerPosition={isPlayerPosition}
+                        isFlippable={isFlippable}
                     />
                 )}
             </div>

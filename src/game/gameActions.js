@@ -32,6 +32,41 @@ export const findStormCardPosition = (occupiedPositions) => {
     return null;
 };
 
+// Helper function to find the farthest card position from a given position
+export const findFarthestCardPosition = (occupiedPositions, fromRow, fromCol) => {
+    let maxDistance = -1;
+    let farthestPosition = null;
+
+    for (const [pos, card] of occupiedPositions.entries()) {
+        if (card.type === 'ship') continue; // Skip ship card
+
+        const [row, col] = pos.split(',').map(Number);
+        const distance = Math.abs(row - fromRow) + Math.abs(col - fromCol);
+        
+        if (distance > maxDistance) {
+            maxDistance = distance;
+            farthestPosition = pos;
+        }
+    }
+
+    return farthestPosition;
+};
+
+// Helper function to handle negative card effects
+export const handleNegativeEffects = (card, occupiedPositions, lives) => {
+    if (card.lives < 0) {
+        // Check if there's protection from negative effects
+        const isProtected = findCardOnBoard(occupiedPositions, 'spear') && card.id === 'pig' 
+            || findCardOnBoard(occupiedPositions, 'shelter') && card.id === 'storm';
+
+        if (!isProtected) {
+            const { lives: newLives } = updateLives(lives, card.lives);
+            return newLives;
+        }
+    }
+    return lives;
+};
+
 // Move the player to a new position
 export const movePlayer = (context, row, col) => {
     const newPosition = `${row},${col}`;
@@ -43,51 +78,59 @@ export const movePlayer = (context, row, col) => {
 
     let card = context.occupiedPositions.get(`${row},${col}`);
 
-    // если колода пуста, то игра окончена
-    if (context.deck.length === 0) {
-        return {
-            gameOverMessage: 'Игра окончена! Колода пуста.',
-            isVictory: false
-        };
-    }
-
     // если карта не существует, то placeCard
     if (!card) {
+        // если колода пуста, то игра окончена
+        if (context.deck.length === 0) {
+            return {
+                gameOverMessage: 'Игра окончена! Колода пуста.',
+                isVictory: false
+            };
+        }
+
         const { occupiedPositions, deck, cardObj, lives } = placeCard(context, row, col);
         newOccupiedPositions = occupiedPositions;
         newDeck = deck;
         card = cardObj;
         newLives = lives;
+
+        // --- Эффекты при вскрытии карты ---
         
         // Проверяем, является ли это 13-й картой
         const totalCards = countNonShipCards(newOccupiedPositions);
         if (totalCards === 13) {
             shouldCheckStorm = true;
         }
-    }
 
-    // --- Эффекты при вскрытии карты ---
+        // Если выложена карта mirage, меняем её местами с самой дальней картой
+        // А также должен сработать эффект перемещённой карты
+        if (card.id === 'mirage') {
+            const farthestPos = findFarthestCardPosition(newOccupiedPositions, row, col);
+            const farthestCard = newOccupiedPositions.get(farthestPos);
+            if (farthestPos) {
+                // Меняем карты местами
+                newOccupiedPositions.set(newPosition, farthestCard);
+                // Переворачиваем mirage
+                const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'mirage');
+                newOccupiedPositions.set(farthestPos, frontCard);
+            }
 
-    // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
-    if (card.lives < 0) {
-        // Check if there's protection from negative effects
-        const isProtected = findCardOnBoard(newOccupiedPositions, 'spear') && card.id === 'pig' 
-            || findCardOnBoard(newOccupiedPositions, 'shelter') && card.id === 'storm';
+            // Применяем эффект перемещённой карты
+            newLives = handleNegativeEffects(farthestCard, newOccupiedPositions, newLives);
+        }
 
-        if (!isProtected) {
-            const { lives } = updateLives(newLives, card.lives);
-            newLives = lives;
+        // если карта с направлением и нет других кораблей, то размещается корабль
+        if (card.direction && !context.shipCard.direction) {
+            const { shipCard, occupiedPositions } = placeShip(newOccupiedPositions, card.direction);
+            newOccupiedPositions = occupiedPositions;
+            newShipCard = shipCard;
         }
     }
 
-    // если карта с направлением и нет других кораблей, то размещается корабль
-    if (card.direction && !context.shipCard.direction) {
-        const { shipCard, occupiedPositions } = placeShip(newOccupiedPositions, card.direction);
-        newOccupiedPositions = occupiedPositions;
-        newShipCard = shipCard;
-    }
+    // --- Эффекты при перемещении игрока ---
 
-    // --- Конец эффектов при вскрытии карты ---
+    // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
+    newLives = handleNegativeEffects(card, newOccupiedPositions, newLives);
     
     // Если карта есть, просто обновляем позицию игрока
     return {
@@ -312,6 +355,7 @@ export const moveShip = (context) => {
         occupiedPositions: newOccupiedPositions
     };
 };
+
 // Update lives (increase or decrease)
 export const updateLives = (oldLives, lives) => {
     const newLives = lives < 0 

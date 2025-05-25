@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useActorRef, useSelector } from '@xstate/react';
 import Grid from './Grid';
 import Counters from './Counters';
@@ -27,6 +27,19 @@ const Game = () => {
             gameService.send({ type: 'SKIP_PHASE' });
         }
     }, [state, gameService]);
+
+    // Add keyboard event listener for space key
+    useEffect(() => {
+        const handleKeyPress = (event) => {
+            if (event.code === 'Space') {
+                event.preventDefault(); // Prevent page scroll
+                handleSkipPhase();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [handleSkipPhase]);
 
     return (
         <div className="game-container">

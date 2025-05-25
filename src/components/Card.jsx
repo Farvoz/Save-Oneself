@@ -8,12 +8,12 @@ const Card = ({
     col, 
     isPlayerPosition, 
     onClick, 
-    isClickable,
     isFlipped,
-    isAvailableMove
+    isAvailableMove,
+    isFlippable
 }) => {
     const handleClick = () => {
-        if (isClickable && onClick) {
+        if (onClick) {
             onClick(row, col);
         }
     };
@@ -31,13 +31,13 @@ const Card = ({
         top: '1px',
         width: '96px',
         height: '96px',
-        cursor: isClickable ? 'pointer' : 'default',
+        cursor: isAvailableMove || isFlippable ? 'pointer' : 'default',
         backgroundColor: getCardBackground(card)
     };
 
     return (
         <div 
-            className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isClickable ? 'clickable' : ''} ${isAvailableMove ? 'available-move' : ''}`}
+            className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isAvailableMove ? 'available-move' : ''} ${isFlippable ? 'flippable' : ''}`}
             style={cardStyle}
             data-position={`${row},${col}`}
             onClick={handleClick}
@@ -45,6 +45,9 @@ const Card = ({
         >
             {isPlayerPosition && (
                 <div className="player-marker">Игрок</div>
+            )}
+            {isFlippable && (
+                <div className="flip-indicator">🔄</div>
             )}
             <div className="card-content">
                 {Math.abs(card.lives) > 0 && (

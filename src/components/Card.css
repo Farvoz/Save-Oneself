@@ -12,21 +12,17 @@
     font-weight: bold;
     color: black;
     z-index: 1;
+    user-select: none;
 }
-
-/* .card.clickable:hover {
-    transform: scale(1.05);
-    z-index: 1;
-} */
 
 .card[title] {
     position: relative;
 }
 
-.card[title]:hover::after {
+.card[title]:hover::before {
     content: attr(title);
     position: absolute;
-    bottom: 100%;
+    top: 110%;
     left: 50%;
     transform: translateX(-50%);
     padding: 8px 12px;
@@ -39,19 +35,6 @@
     margin-bottom: 8px;
     pointer-events: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.card[title]:hover::before {
-    content: '';
-    position: absolute;
-    bottom: calc(100% - 5px);
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
-    z-index: 1000;
-    pointer-events: none;
 }
 
 .card.player-position {
@@ -143,4 +126,20 @@
     text-align: center;
     margin-top: 1px;
     align-self: flex-end;
+}
+
+.flip-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.card.flippable:hover .flip-indicator {
+    opacity: 1;
 }
