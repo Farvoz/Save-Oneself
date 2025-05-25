@@ -1,13 +1,25 @@
 // Game rules and validation functions
 
 // Функция для проверки, является ли позиция угловой
-export const isCorner = (cornerCoordinates, row, col) => {
+export const isCornerCard = (cornerCoordinates, row, col) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = cornerCoordinates;
 
     return (row === topLeft[0] && col === topLeft[1]) ||
            (row === topRight[0] && col === topRight[1]) ||
            (row === bottomLeft[0] && col === bottomLeft[1]) ||
            (row === bottomRight[0] && col === bottomRight[1]);
+};
+
+// Для каждого направления смотрим свой угол
+export const isCornerShip = (shipCard, shipRow, shipCol) => {
+    const { topLeft, topRight, bottomLeft, bottomRight } = shipCard.cornerCoordinates;
+    
+    switch(shipCard.direction) {
+        case 'NE': return bottomRight[0] + 1 === shipRow;
+        case 'SE': return bottomLeft[1] - 1 === shipCol;
+        case 'SW': return topLeft[0] - 1 === shipRow;
+        case 'NW': return topRight[1] + 1 === shipCol;
+    }
 };
 
 // Check if a position is valid for card moving
@@ -109,9 +121,9 @@ export const checkVictory = (context) => {
         const [msgRow, msgCol] = messagePosition;
         
         // Check if message card is not in a corner
-        const isCorner = isCorner(context.shipCard.cornerCoordinates, msgRow, msgCol);
+        const isCornerCard = isCornerCard(context.shipCard.cornerCoordinates, msgRow, msgCol);
         
-        if (!isCorner) {
+        if (!isCornerCard) {
             // Check if ship is adjacent to message card
             const isAdjacent = Math.abs(shipRow - msgRow) + Math.abs(shipCol - msgCol) === 1;
             messageVictory = isAdjacent;

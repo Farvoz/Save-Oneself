@@ -1,5 +1,5 @@
 import { INITIAL_SHIP } from './gameData';
-import { isCorner } from './gameRules';
+import { isCornerShip } from './gameRules';
 
 // Helper function to find a card on the board
 export const findCardOnBoard = (occupiedPositions, cardId) => {
@@ -230,7 +230,7 @@ export const moveShip = (context) => {
     // Проверяем, существует ли карта "ship-sighted"
     const hasShipSighted = findCardOnBoard(context.occupiedPositions, 'ship-sighted');
 
-    const isAtCorner = isCorner(context.shipCard.cornerCoordinates, shipRow, shipCol);
+    const isAtCorner = isCornerShip(context.shipCard, shipRow, shipCol);
     // Если карта "ship-sighted" существует и корабль ещё не повернулся, проверяем, достиг ли корабль угла
     if (hasShipSighted && context.shipCard.cornerCoordinates && !context.shipCard.hasTurned && isAtCorner) {
         // Меняем направление на следующее по часовой стрелке
