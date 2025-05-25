@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, findStormCardPosition } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, findStormCardPosition, countNonShipCards } from './gameActions';
 import { gameLogger } from './gameLogger';
 
 export const createGameStateMachine = () => {
@@ -11,7 +11,7 @@ export const createGameStateMachine = () => {
         context: INITIAL_STATE,
         states: {
             playing: {
-                initial: 'moving',
+                initial: 'startOfRound',
                 entry: [
                     assign({
                         deck: ({ context }) => shuffleDeck(context).deck
@@ -20,6 +20,22 @@ export const createGameStateMachine = () => {
                     () => gameLogger.info('Колода перемешана и игрок перемещён на стартовую позицию'),
                 ],
                 states: {
+                    // В начале раунда обновляем количество ходов
+                    startOfRound: {
+                        entry: [
+                            assign({
+                                hasPlacedCard: false,
+                                movesLeft: ({ context }) => {
+                                    const hasCompass = Array.from(context.occupiedPositions.values())
+                                        .some(card => card.id === 'compass');
+                                    return hasCompass ? 2 : 1;
+                                }
+                            })
+                        ],
+                        after: {
+                            0: { target: 'moving' }
+                        }
+                    },
                     moving: {
                         on: {
                             MOVE_PLAYER: {
@@ -44,9 +60,16 @@ export const createGameStateMachine = () => {
                                 },
                                 {
                                     target: 'checkingStorm',
-                                    guard: ({ context }) => context.shouldCheckStorm,
+                                    guard: ({ context }) => countNonShipCards(context.occupiedPositions) === 13,
                                     actions: () => {
                                         gameLogger.info('Проверяем, есть ли шторм на поле, так как вышла 13 карта');
+                                    }
+                                },
+                                {
+                                    target: 'moving',
+                                    guard: ({ context }) => context.movesLeft > 0,
+                                    actions: () => {
+                                        gameLogger.info('У игрока остались ходы');
                                     }
                                 },
                                 { target: 'decreasingLives' }
@@ -68,7 +91,18 @@ export const createGameStateMachine = () => {
                             })
                         ],
                         after: {
-                            0: { target: 'decreasingLives' }
+                            0: [
+                                {
+                                    target: 'moving',
+                                    guard: ({ context }) => context.movesLeft > 0,
+                                    actions: () => {
+                                        gameLogger.info('У игрока остались ходы');
+                                    }
+                                },
+                                { 
+                                    target: 'decreasingLives' 
+                                }
+                            ]
                         }
                     },
                     decreasingLives: { 
@@ -145,7 +179,7 @@ export const createGameStateMachine = () => {
                                         isVictory: false
                                     })
                                 },
-                                { target: 'moving' }
+                                { target: 'startOfRound' }
                             ]
                         }
                     }

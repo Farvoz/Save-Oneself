@@ -39,6 +39,11 @@ export const isValidPosition = (context, row, col) => {
     if (row < topLeft[0] || row > bottomLeft[0] || col < topLeft[1] || col > bottomRight[1]) {
         return false;
     }
+
+    // Проверяем, не пытаемся ли мы выложить карту, когда уже выложили карту в этом раунде
+    if (!context.occupiedPositions.has(`${row},${col}`) && context.hasPlacedCard) {
+        return false;
+    }
     
     return true;
 };

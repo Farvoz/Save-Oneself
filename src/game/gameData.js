@@ -81,5 +81,6 @@ export const INITIAL_STATE = {
     playerPosition: '0,0',
     gameOverMessage: null,
     isVictory: false,
-    shouldCheckStorm: false
+    hasPlacedCard: false,
+    movesLeft: 1
 }; 

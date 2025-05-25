@@ -75,7 +75,8 @@ export const movePlayer = (context, row, col) => {
     let newDeck = context.deck;
     let newLives = context.lives;
     let newShipCard = context.shipCard;
-    let shouldCheckStorm = false;
+    let hasPlacedCard = context.hasPlacedCard;
+    let movesLeft = context.movesLeft;
 
     let card = context.occupiedPositions.get(`${row},${col}`);
 
@@ -94,14 +95,9 @@ export const movePlayer = (context, row, col) => {
         newDeck = deck;
         card = cardObj;
         newLives = lives;
+        hasPlacedCard = true;
 
         // --- Эффекты при вскрытии карты ---
-        
-        // Проверяем, является ли это 13-й картой
-        const totalCards = countNonShipCards(newOccupiedPositions);
-        if (totalCards === 13) {
-            shouldCheckStorm = true;
-        }
 
         // Если выложена карта mirage, меняем её местами с самой дальней картой
         // А также должен сработать эффект перемещённой карты
@@ -143,7 +139,10 @@ export const movePlayer = (context, row, col) => {
         const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
         newOccupiedPositions.set(newPosition, frontCard);
     }
-    
+
+    // Уменьшаем количество оставшихся ходов
+    movesLeft--;
+
     // Если карта есть, просто обновляем позицию игрока
     return {
         playerPosition: newPosition,
@@ -151,7 +150,8 @@ export const movePlayer = (context, row, col) => {
         deck: newDeck,
         lives: newLives,
         shipCard: newShipCard,
-        shouldCheckStorm
+        hasPlacedCard,
+        movesLeft
     };
 };
 
