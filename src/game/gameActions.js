@@ -1,4 +1,5 @@
 import { INITIAL_DECK, INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
+import { gameLogger } from './gameLogger';
 import { isCornerShip } from './gameRules';
 
 // Helper function to find a card on the board
@@ -132,6 +133,17 @@ export const movePlayer = (context, row, col) => {
     // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
     newLives = handleNegativeEffects(card, newOccupiedPositions, newLives);
     
+    // Проверяем эффект пиратов
+    if (card.id === 'pirates' && !context.shipCard.skipMove) {
+        // Удаляем корабль из игры
+        newOccupiedPositions.delete(context.shipCard.position);
+        newShipCard = { ...INITIAL_SHIP };
+        
+        // Переворачиваем карту пиратов
+        const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
+        newOccupiedPositions.set(newPosition, frontCard);
+    }
+    
     // Если карта есть, просто обновляем позицию игрока
     return {
         playerPosition: newPosition,
@@ -239,8 +251,6 @@ export const placeShip = (occupiedPositions, direction) => {
         ...INITIAL_SHIP,
         direction,
         position: shipPosition,
-        type: 'ship',
-        skipMove: true,
         cornerCoordinates // Add corner coordinates to ship card
     };
 
@@ -358,6 +368,23 @@ export const moveShip = (context) => {
         return {
             shipCard: newShipCard,
             occupiedPositions: context.occupiedPositions
+        };
+    }
+
+    // Проверяем эффект пиратов: если на поле уже есть карта пиратов, то корабль уходит из игры и карта пиратов переворачивается
+    if (findCardOnBoard(context.occupiedPositions, 'pirates')) {
+        gameLogger.info('Это пираты! Ждем другой корабль');
+
+        const newOccupiedPositions = new Map(context.occupiedPositions);
+        newOccupiedPositions.delete(context.shipCard.position);
+        const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
+
+        const piratesPos = findCardPositionById(newOccupiedPositions, 'pirates');
+        newOccupiedPositions.set(piratesPos, frontCard);
+
+        return {
+            shipCard: INITIAL_SHIP,
+            occupiedPositions: newOccupiedPositions
         };
     }
 
