@@ -22,7 +22,7 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
                         card={card}
                         row={row}
                         col={col}
-                        isClickable={isClickable}
+                        isClickable={isClickable || isAvailableMove}
                         onClick={() => onCellClick(row, col)}
                     />
                 )}

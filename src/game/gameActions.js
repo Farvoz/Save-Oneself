@@ -259,6 +259,7 @@ export const moveShip = (context) => {
         ...context.shipCard,
         position: newPosition,
         direction: newDirection,
+        // TODO: Ошибка isAtCorner
         hasTurned: context.shipCard.hasTurned || (hasShipSighted && isAtCorner)
     };
 
