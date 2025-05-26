@@ -4,7 +4,7 @@ import Grid from './Grid';
 import Counters from './Counters';
 import GameOver from './GameOver';
 import { createGameStateMachine } from '../game/gameStateMachine';
-import { isValidPosition } from '../game/gameRules';
+import { isValidPosition, calculateScore } from '../game/gameRules';
 
 const machine = createGameStateMachine();
 
@@ -28,6 +28,12 @@ const Game = () => {
         }
     }, [state, gameService]);
 
+    const handleSkipMoves = useCallback(() => {
+        if (state.matches('playing.moving') && context.hasMoved) {
+            gameService.send({ type: 'SKIP_MOVES' });
+        }
+    }, [state, context, gameService]);
+
     // Add keyboard event listener for space key
     useEffect(() => {
         const handleKeyPress = (event) => {
@@ -49,6 +55,7 @@ const Game = () => {
                     deckLength={context.deck.length}
                     state={state}
                     handleSkipPhase={handleSkipPhase}
+                    handleSkipMoves={handleSkipMoves}
                 />
             </div>
             <Grid 
@@ -60,6 +67,7 @@ const Game = () => {
             <GameOver
                 message={context.gameOverMessage}
                 isVictory={context.isVictory}
+                score={calculateScore(context)}
             />
         </div>
     );

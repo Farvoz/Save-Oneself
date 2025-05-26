@@ -12,10 +12,30 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
         const isFlippable = card && state.matches('playing.checkingFlippable') && 
             card.type === 'back' && canFlipCard(context, card);
 
+        // Add coastline logic
+        let isCoastline = false;
+        if (context.shipCard?.direction) {
+            const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
+            switch (context.shipCard.direction) {
+                case 'NE':
+                    isCoastline = col === shipCol;
+                    break;
+                case 'SW':
+                    isCoastline = col === shipCol;
+                    break;
+                case 'NW':
+                    isCoastline = row === shipRow;
+                    break;
+                case 'SE':
+                    isCoastline = row === shipRow;
+                    break;
+            }
+        }
+
         return (
             <div 
                 key={pos}
-                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} `}
+                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} ${isCoastline ? 'coastline' : ''}`}
                 onClick={() => onCellClick(row, col)}
             >
                 {card && (

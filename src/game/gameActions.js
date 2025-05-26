@@ -137,7 +137,8 @@ export const movePlayer = (context, row, col) => {
         lives: newLives,
         shipCard: newShipCard,
         hasPlacedCard,
-        movesLeft
+        movesLeft,
+        hasMoved: true
     };
 };
 
@@ -261,6 +262,7 @@ export const flipCard = (context, row, col) => {
     
     // Обновляет жизни
     const { lives } = updateLives(context.lives, frontCard.lives);
+    let newLives = lives;
 
     // Если это tornado, то переворачиваем обратно
     if (countNonShipCards(newOccupiedPositions) === 13 && frontCard.id === 'tornado') {
@@ -284,11 +286,15 @@ export const flipCard = (context, row, col) => {
         const otherMapPos = findCardPositionById(newOccupiedPositions, otherMapId);
         const otherFrontCard = INITIAL_FRONT_DECK.find(card => card.backId === otherMapId);
         newOccupiedPositions.set(otherMapPos, otherFrontCard);
+
+        // Увеличиваем количество жизней на 1
+        const { lives } = updateLives(newLives, 1);
+        newLives = lives
     }
     
     return {
         occupiedPositions: newOccupiedPositions,
-        lives: lives
+        lives: newLives
     };
 };
 

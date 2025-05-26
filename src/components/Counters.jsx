@@ -9,7 +9,7 @@ const PHASE_MESSAGES = {
     gameOver: 'Игра окончена'
 };
 
-const Counters = ({ lives, deckLength, state, handleSkipPhase }) => {
+const Counters = ({ lives, deckLength, state, handleSkipPhase, handleSkipMoves }) => {
     const [livesAnimation, setLivesAnimation] = useState('');
     const [prevLives, setPrevLives] = useState(lives);
 
@@ -30,6 +30,7 @@ const Counters = ({ lives, deckLength, state, handleSkipPhase }) => {
     const currentPhase = typeof state.value === 'object' ? state.value.playing : state.value;
     const message = PHASE_MESSAGES[currentPhase] || 'Неизвестная фаза';
     const showSkipButton = currentPhase === 'checkingFlippable';
+    const showSkipMovesButton = currentPhase === 'moving' && state.context.hasMoved;
 
     return (
         <div className="counters">
@@ -50,6 +51,14 @@ const Counters = ({ lives, deckLength, state, handleSkipPhase }) => {
                             onClick={handleSkipPhase}
                         >
                             Пропустить
+                        </button>
+                    )}
+                    {showSkipMovesButton && (
+                        <button
+                            className="skip-phase-button"
+                            onClick={handleSkipMoves}
+                        >
+                            Остаться здесь
                         </button>
                     )}
                 </div>

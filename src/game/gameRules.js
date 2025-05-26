@@ -84,18 +84,16 @@ export const canFlipCard = (context, card) => {
         // Check map card requirements
         if (card.requirements === '_map') {
             // Both map cards must be on the board
-            const hasMapR = findCardOnBoard(context.occupiedPositions, 'map-r');
-            const hasMapC = findCardOnBoard(context.occupiedPositions, 'map-c');
-            if (!hasMapR || !hasMapC) return false;
-
-            // Player must be at the intersection of map-r row and map-c column
-            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
-            
             const mapRPosition = findCardPositionById(context.occupiedPositions, 'map-r');
             const mapCPosition = findCardPositionById(context.occupiedPositions, 'map-c');
 
+            if (!mapRPosition || !mapCPosition) return false;
+
+            // Player must be at the intersection of map-r row and map-c column
+            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
+
             // Player must be at the intersection
-            return Number(mapRPosition[0]) === playerRow && Number(mapCPosition[1]) === playerCol;
+            return Number(mapRPosition.split(',')[0]) === playerRow && Number(mapCPosition.split(',')[1]) === playerCol;
         }
         
         for (const [_, otherCard] of context.occupiedPositions) {
@@ -181,4 +179,26 @@ export const isShipOutOfBounds = (context) => {
 
     return shipRow < minRow - 1 || shipRow > maxRow + 1 || 
            shipCol < minCol - 1 || shipCol > maxCol + 1;
+};
+
+// Calculate final score
+export const calculateScore = (context) => {
+    let score = 0;
+    
+    // Add scores from flipped cards
+    for (const [_, card] of context.occupiedPositions) {
+        if (card.type === 'front' && card.score) {
+            score += card.score;
+        }
+    }
+    
+    // Add remaining lives
+    score += context.lives;
+    
+    // Add bonus points for every 4 placed cards
+    const placedCardsCount = Array.from(context.occupiedPositions.values())
+        .filter(card => card.type !== 'ship').length;
+    score += Math.floor(placedCardsCount / 4);
+    
+    return score;
 }; 

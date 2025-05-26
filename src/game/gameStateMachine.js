@@ -4,26 +4,6 @@ import { hasFlippableCards, canFlipCard, checkVictory, isShipOutOfBounds, findCa
 import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, findStormCardPosition, countNonShipCards } from './gameActions';
 import { gameLogger } from './gameLogger';
 
-const calculateScore = (context) => {
-    let score = 0;
-    
-    // Add scores from flipped cards
-    for (const [_, card] of context.occupiedPositions) {
-        if (card.type === 'front' && card.score) {
-            score += card.score;
-        }
-    }
-    
-    // Add remaining lives
-    score += context.lives;
-    
-    // Add bonus points for every 4 placed cards
-    const placedCardsCount = countNonShipCards(context.occupiedPositions);
-    score += Math.floor(placedCardsCount / 4);
-    
-    return score;
-};
-
 export const createGameStateMachine = () => {
     return createMachine({
         id: 'game',
@@ -45,6 +25,7 @@ export const createGameStateMachine = () => {
                         entry: [
                             assign({
                                 hasPlacedCard: false,
+                                hasMoved: false,
                                 movesLeft: ({ context }) => {
                                     const hasCompass = findCardOnBoard(context.occupiedPositions, 'compass');
                                     return hasCompass ? 2 : 1;
@@ -63,6 +44,13 @@ export const createGameStateMachine = () => {
                                     ({ context: { playerPosition } }) => gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.split(',')[0], col: playerPosition.split(',')[1] })
                                 ],
                                 target: 'checkingMoveResult'
+                            },
+                            SKIP_MOVES: {
+                                guard: ({ context }) => context.hasMoved,
+                                target: 'decreasingLives',
+                                actions: () => {
+                                    gameLogger.info('Remaining moves skipped');
+                                }
                             }
                         }
                     },
@@ -73,7 +61,7 @@ export const createGameStateMachine = () => {
                                 {
                                     target: '..gameOver',
                                     guard: ({ context }) => context.gameOverMessage,
-                                    actions: () => {
+                                    actions: ({ context }) => {
                                         gameLogger.info('Game over condition met', { message: context.gameOverMessage });
                                     }
                                 },
@@ -205,15 +193,7 @@ export const createGameStateMachine = () => {
                 }
             },
             gameOver: {
-                type: 'final',
-                entry: ({ context }) => {
-                    const finalScore = calculateScore(context);
-                    gameLogger.info('Game over', { 
-                        message: context.gameOverMessage,
-                        isVictory: context.isVictory,
-                        finalScore
-                    });
-                }
+                type: 'final'
             }
         }
     });

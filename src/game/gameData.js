@@ -80,5 +80,6 @@ export const INITIAL_STATE = {
     gameOverMessage: null,
     isVictory: false,
     hasPlacedCard: false,
-    movesLeft: 1
+    movesLeft: 1,
+    hasMoved: false
 }; 
