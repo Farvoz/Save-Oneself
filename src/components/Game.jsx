@@ -5,6 +5,7 @@ import Counters from './Counters';
 import GameOver from './GameOver';
 import { createGameStateMachine } from '../game/gameStateMachine';
 import { isValidPosition, calculateScore } from '../game/gameRules';
+import { Position } from '../game/positionSystem';
 
 const machine = createGameStateMachine();
 
@@ -15,7 +16,7 @@ const Game = () => {
     const context = useSelector(gameService, (state) => state.context);
 
     const handleCellClick = useCallback((row, col) => {
-        if (state.matches('playing.moving') && isValidPosition(context, row, col)) {
+        if (state.matches('playing.moving') && isValidPosition(context, new Position(row, col))) {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'FLIP_CARD', row, col });
@@ -60,7 +61,7 @@ const Game = () => {
             </div>
             <Grid 
                 onCellClick={handleCellClick} 
-                occupiedPositions={context.occupiedPositions} 
+                positionSystem={context.positionSystem} 
                 state={state}
                 context={context}
             />

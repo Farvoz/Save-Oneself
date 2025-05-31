@@ -31,6 +31,9 @@ export class Position {
 }
 
 export class PositionSystem {
+    MAX_COLUMNS = 4;
+    MAX_ROWS = 4;
+    
     constructor() {
         this.occupiedPositions = new Map();
     }
@@ -58,6 +61,7 @@ export class PositionSystem {
         this.setPosition(pos2, value1);
     }
 
+    // Вычисляет границы поля, состоящего из карт и корабля
     getBounds() {
         let minRow = Infinity, maxRow = -Infinity;
         let minCol = Infinity, maxCol = -Infinity;
@@ -90,6 +94,16 @@ export class PositionSystem {
             }
         }
         return null;
+    }
+
+    findAllBy(func) {
+        const result = [];
+        for (const [posStr, card] of this.occupiedPositions.entries()) {
+            if (func(card)) {
+                result.push({ position: Position.fromString(posStr), card });
+            }   
+        }
+        return result;
     }
 
     findFarthestPosition(fromPos) {
@@ -128,11 +142,23 @@ export class PositionSystem {
         return adjacent;
     }
 
-    isOutOfBounds(pos, margin = 0) {
-        const bounds = this.getBounds();
-        return pos.row < bounds.minRow - margin ||
-               pos.row > bounds.maxRow + margin ||
-               pos.col < bounds.minCol - margin ||
-               pos.col > bounds.maxCol + margin;
+    isAdjacent(pos1, pos2) {
+        return pos1.distanceTo(pos2) === 1;
+    }
+
+    // TODO: дописать и границу
+    hasMaxRowsOrColumns(pos) {
+        const positions = Array.from(this.occupiedPositions.keys())
+            .map(posStr => Position.fromString(posStr));
+        positions.push(pos);
+        
+        const uniqueRows = [...new Set(positions.map(pos => pos.row))];
+        const uniqueCols = [...new Set(positions.map(pos => pos.col))];
+        
+        return uniqueRows.length <= 4 && uniqueCols.length <= 4;
+    }
+
+    countNonShipCards() {
+        return this.findAllBy(card => card.type !== 'ship').length;
     }
 } 

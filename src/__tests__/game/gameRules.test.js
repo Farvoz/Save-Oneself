@@ -1,8 +1,8 @@
 import { 
   isCornerShip, 
-  findCardOnBoard, 
-  findCardPositionById 
+  isValidPosition
 } from '../../game/gameRules';
+import { Position, PositionSystem } from '../../game/positionSystem';
 
 describe('Game Rules', () => {
   describe('isCornerShip', () => {
@@ -18,8 +18,8 @@ describe('Game Rules', () => {
       };
 
       // Для направления NW, корабль должен быть справа от topRight
-      expect(isCornerShip(shipCard, 0, 4)).toBe(true);
-      expect(isCornerShip(shipCard, 0, 3)).toBe(false);
+      expect(isCornerShip(shipCard, new Position(0, 4))).toBe(true);
+      expect(isCornerShip(shipCard, new Position(0, 3))).toBe(false);
     });
 
     test('should handle different ship directions', () => {
@@ -54,53 +54,96 @@ describe('Game Rules', () => {
       };
 
       // Для NE, корабль должен быть под bottomRight
-      expect(isCornerShip(shipCardNE, 4, 3)).toBe(true);
+      expect(isCornerShip(shipCardNE, new Position(4, 3))).toBe(true);
       // Для SE, корабль должен быть слева от bottomLeft
-      expect(isCornerShip(shipCardSE, 3, -1)).toBe(true);
+      expect(isCornerShip(shipCardSE, new Position(3, -1))).toBe(true);
       // Для SW, корабль должен быть над topLeft
-      expect(isCornerShip(shipCardSW, -1, 0)).toBe(true);
+      expect(isCornerShip(shipCardSW, new Position(-1, 0))).toBe(true);
     });
   });
 
-  describe('findCardOnBoard', () => {
-    test('should find card by id', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('1,1', { id: 'target' });
-      occupiedPositions.set('2,2', { id: 'card3' });
+  describe('isValidPosition', () => {
+    test('should return true for valid positions', () => {
+      const context = {
+        playerPosition: '0,0',
+        positionSystem: new PositionSystem(),
+        shipCard: {
+          direction: 'NW',
+          cornerCoordinates: {
+            topLeft: [0, 0],
+            topRight: [0, 3],
+            bottomLeft: [3, 0],
+            bottomRight: [3, 3]
+          }
+        }
+      };
 
-      const result = findCardOnBoard(occupiedPositions, 'target');
-      expect(result).toBe(true);
-    });
+      expect(isValidPosition(context, new Position(0, 0))).toBe(false);
+      expect(isValidPosition(context, new Position(0, 1))).toBe(true);
+      expect(isValidPosition(context, new Position(1, 0))).toBe(true);
+      expect(isValidPosition(context, new Position(-1, 0))).toBe(false);
+      expect(isValidPosition(context, new Position(0, -1))).toBe(false);
 
-    test('should return false when card not found', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('1,1', { id: 'card2' });
+      const context2 = {
+        playerPosition: '0,0',
+        positionSystem: new PositionSystem(),
+        shipCard: {
+          direction: 'NE',
+          cornerCoordinates: {
+            topLeft: [0, -3],
+            topRight: [0, 0],
+            bottomLeft: [3, -3],
+            bottomRight: [3, 0]
+          }
+        }
+      };
 
-      const result = findCardOnBoard(occupiedPositions, 'nonexistent');
-      expect(result).toBe(false);
-    });
-  });
+      expect(isValidPosition(context2, new Position(0, 0))).toBe(false);
+      expect(isValidPosition(context2, new Position(0, 1))).toBe(false);
+      expect(isValidPosition(context2, new Position(1, 0))).toBe(true);
+      expect(isValidPosition(context2, new Position(-1, 0))).toBe(false);
+      expect(isValidPosition(context2, new Position(0, -1))).toBe(true);
 
-  describe('findCardPositionById', () => {
-    test('should find card position by id', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('1,1', { id: 'target' });
-      occupiedPositions.set('2,2', { id: 'card3' });
+      const context3 = {
+        playerPosition: '0,0',
+        positionSystem: new PositionSystem(),
+        shipCard: {
+          direction: 'SE',
+          cornerCoordinates: {
+            topLeft: [-3, -3],
+            topRight: [0, -3],
+            bottomLeft: [0, -3],
+            bottomRight: [0, 0]
+          }
+        }
+      };
 
-      const result = findCardPositionById(occupiedPositions, 'target');
-      expect(result).toBe('1,1');
-    });
+      expect(isValidPosition(context3, new Position(0, 0))).toBe(false);
+      expect(isValidPosition(context3, new Position(0, 1))).toBe(false);
+      expect(isValidPosition(context3, new Position(1, 0))).toBe(false);
+      expect(isValidPosition(context3, new Position(-1, 0))).toBe(true);
+      expect(isValidPosition(context3, new Position(0, -1))).toBe(true);
 
-    test('should return null when card not found', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('1,1', { id: 'card2' });
+      
+      const context4 = {
+        playerPosition: '0,0',
+        positionSystem: new PositionSystem(),
+        shipCard: {
+          direction: 'SW',
+          cornerCoordinates: {
+            topLeft: [-3, 0],
+            topRight: [-3, 3],
+            bottomLeft: [0, 0],
+            bottomRight: [0, 3]
+          }
+        }
+      };
 
-      const result = findCardPositionById(occupiedPositions, 'nonexistent');
-      expect(result).toBe(null);
+      expect(isValidPosition(context4, new Position(0, 0))).toBe(false);
+      expect(isValidPosition(context4, new Position(0, 1))).toBe(true);
+      expect(isValidPosition(context4, new Position(1, 0))).toBe(false);
+      expect(isValidPosition(context4, new Position(-1, 0))).toBe(true);
+      expect(isValidPosition(context4, new Position(0, -1))).toBe(false);
     });
   });
 }); 

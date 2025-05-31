@@ -1,3 +1,5 @@
+import { PositionSystem } from './positionSystem';
+
 // Initial deck of cards (back side)
 export const INITIAL_DECK = [
     // Реализованы полностью:
@@ -75,7 +77,7 @@ export const INITIAL_STATE = {
     deck: [...INITIAL_DECK],
     frontDeck: [...INITIAL_FRONT_DECK],
     shipCard: { ...INITIAL_SHIP },
-    occupiedPositions: new Map(),
+    positionSystem: new PositionSystem(),
     playerPosition: '0,0',
     gameOverMessage: null,
     isVictory: false,

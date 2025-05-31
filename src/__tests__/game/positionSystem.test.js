@@ -134,13 +134,4 @@ describe('PositionSystem', () => {
     expect(adjacent).toContainEqual(new Position(1, 0));
     expect(adjacent).toContainEqual(new Position(1, 2));
   });
-
-  test('should check if position is out of bounds', () => {
-    positionSystem.setPosition(new Position(1, 1), { id: 'center' });
-    positionSystem.setPosition(new Position(2, 2), { id: 'corner' });
-
-    expect(positionSystem.isOutOfBounds(new Position(0, 0))).toBe(true);
-    expect(positionSystem.isOutOfBounds(new Position(1, 1))).toBe(false);
-    expect(positionSystem.isOutOfBounds(new Position(3, 3))).toBe(true);
-  });
 }); 

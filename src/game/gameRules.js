@@ -1,62 +1,49 @@
 // Файл с игровыми предикатами
-
-// Helper function to find a card on the board
-export const findCardOnBoard = (occupiedPositions, cardId) => {
-    return Array.from(occupiedPositions.values())
-        .some(card => card.id === cardId);
-};
-
-export const findCardPositionById = (occupiedPositions, cardId) => {
-    for (const [pos, card] of occupiedPositions.entries()) {
-        if (card.id === cardId) {
-            return pos;
-        }
-    }
-    return null;
-};
+import { Position } from './positionSystem';
 
 // Функция для проверки, является ли позиция угловой
-export const isCornerCard = (cornerCoordinates, row, col) => {
+export const isCornerCard = (cornerCoordinates, pos) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = cornerCoordinates;
 
-    return (row === topLeft[0] && col === topLeft[1]) ||
-           (row === topRight[0] && col === topRight[1]) ||
-           (row === bottomLeft[0] && col === bottomLeft[1]) ||
-           (row === bottomRight[0] && col === bottomRight[1]);
+    return pos.equals(new Position(topLeft[0], topLeft[1])) ||
+           pos.equals(new Position(topRight[0], topRight[1])) ||
+           pos.equals(new Position(bottomLeft[0], bottomLeft[1])) ||
+           pos.equals(new Position(bottomRight[0], bottomRight[1]));
 };
 
 // Для каждого направления смотрим свой угол
-export const isCornerShip = (shipCard, shipRow, shipCol) => {
+export const isCornerShip = (shipCard, pos) => {
     const { topLeft, topRight, bottomLeft, bottomRight } = shipCard.cornerCoordinates;
     
     switch(shipCard.direction) {
-        case 'NE': return bottomRight[0] + 1 === shipRow;
-        case 'SE': return bottomLeft[1] - 1 === shipCol;
-        case 'SW': return topLeft[0] - 1 === shipRow;
-        case 'NW': return topRight[1] + 1 === shipCol;
+        case 'NE': return bottomRight[0] + 1 === pos.row;
+        case 'SE': return bottomLeft[1] - 1 === pos.col;
+        case 'SW': return topLeft[0] - 1 === pos.row;
+        case 'NW': return topRight[1] + 1 === pos.col;
     }
 };
+
 // Check if a position is valid for card moving
-export const isValidPosition = (context, row, col) => {
-    if (!context.playerPosition && row === 0 && col === 0) return true;
+export const isValidPosition = (context, pos) => {
+    if (!context.playerPosition && pos.row === 0 && pos.col === 0) return true;
     
-    if (!hasMaxRowsOrColumns(context, row, col)) return false;
+    if (!context.positionSystem.hasMaxRowsOrColumns(pos)) return false;
 
     if (context.playerPosition) {
-        const [currentRow, currentCol] = context.playerPosition.split(',').map(Number);
-        const isAdjacent = Math.abs(row - currentRow) + Math.abs(col - currentCol) === 1;
+        const currentPos = Position.fromString(context.playerPosition);
+        const isAdjacent = context.positionSystem.isAdjacent(currentPos, pos);
         if (!isAdjacent) return false;
     }
     
     // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
     const { topLeft, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
 
-    if (row < topLeft[0] || row > bottomLeft[0] || col < topLeft[1] || col > bottomRight[1]) {
+    if (pos.row < topLeft[0] || pos.row > bottomLeft[0] || pos.col < topLeft[1] || pos.col > bottomRight[1]) {
         return false;
     }
 
     // Проверяем, не пытаемся ли мы выложить карту, когда уже выложили карту в этом раунде
-    if (!context.occupiedPositions.has(`${row},${col}`) && context.hasPlacedCard) {
+    if (!context.positionSystem.hasPosition(pos) && context.hasPlacedCard) {
         return false;
     }
     
@@ -74,8 +61,8 @@ export const canFlipCard = (context, card) => {
         
         // Check if player is on higher-ground when required
         if (card.requirements === 'higher-ground' || card.id === 'higher-ground') {
-            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
-            const playerCard = context.occupiedPositions.get(`${playerRow},${playerCol}`);
+            const playerPos = Position.fromString(context.playerPosition);
+            const playerCard = context.positionSystem.getPosition(playerPos);
             if (!playerCard || playerCard.id !== 'higher-ground') {
                 return false;
             }
@@ -84,24 +71,19 @@ export const canFlipCard = (context, card) => {
         // Check map card requirements
         if (card.requirements === '_map') {
             // Both map cards must be on the board
-            const mapRPosition = findCardPositionById(context.occupiedPositions, 'map-r');
-            const mapCPosition = findCardPositionById(context.occupiedPositions, 'map-c');
+            const mapRResult = context.positionSystem.findCardById('map-r');
+            const mapCResult = context.positionSystem.findCardById('map-c');
 
-            if (!mapRPosition || !mapCPosition) return false;
+            if (!mapRResult || !mapCResult) return false;
 
             // Player must be at the intersection of map-r row and map-c column
-            const [playerRow, playerCol] = context.playerPosition.split(',').map(Number);
+            const playerPos = Position.fromString(context.playerPosition);
 
             // Player must be at the intersection
-            return Number(mapRPosition.split(',')[0]) === playerRow && Number(mapCPosition.split(',')[1]) === playerCol;
+            return mapRResult.position.row === playerPos.row && mapCResult.position.col === playerPos.col;
         }
         
-        for (const [_, otherCard] of context.occupiedPositions) {
-            if (otherCard.id === card.requirements) {
-                return true;
-            }
-        }
-        return false;
+        return context.positionSystem.findCardById(card.requirements) !== null;
     }
     
     return true;
@@ -109,7 +91,7 @@ export const canFlipCard = (context, card) => {
 
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context) => {
-    for (const [_, card] of context.occupiedPositions) {
+    for (const [_, card] of context.positionSystem.occupiedPositions) {
         if (card.type === 'back' && canFlipCard(context, card)) {
             return true;
         }
@@ -120,30 +102,24 @@ export const hasFlippableCards = (context) => {
 // Check if the game is won
 // return boolean
 export const checkVictory = (context) => {
-    let sosPosition = null;
-    let beaconPosition = null;
-    let messagePosition = null;
-    
-    for (const [pos, card] of context.occupiedPositions) {
-        if (card.id === 'sos') sosPosition = pos.split(',').map(Number);
-        else if (card.id === 'lit-beacon') beaconPosition = pos.split(',').map(Number);
-        else if (card.id === 'message') messagePosition = pos.split(',').map(Number);
-    }
+    const sosResult = context.positionSystem.findCardById('sos');
+    const beaconResult = context.positionSystem.findCardById('lit-beacon');
+    const messageResult = context.positionSystem.findCardById('message');
     
     if (!context.shipCard.position) return false;
     
-    const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
-    const sosVictory = sosPosition && shipRow === sosPosition[0];
-    const beaconVictory = beaconPosition && shipCol === beaconPosition[1];
+    const shipPos = Position.fromString(context.shipCard.position);
+    const sosVictory = sosResult && shipPos.row === sosResult.position.row;
+    const beaconVictory = beaconResult && shipPos.col === beaconResult.position.col;
     
     // Check message victory condition
     let messageVictory = false;
-    if (messagePosition) {
-        const [msgRow, msgCol] = messagePosition;
+    if (messageResult) {
+        const msgPos = messageResult.position;
         
         // Check if message card is not in a corner
-        if (!isCornerCard(context.shipCard.cornerCoordinates, msgRow, msgCol)) {
-            const isAdjacent = Math.abs(shipRow - msgRow) + Math.abs(shipCol - msgCol) === 1;
+        if (!isCornerCard(context.shipCard.cornerCoordinates, msgPos)) {
+            const isAdjacent = context.positionSystem.isAdjacent(shipPos, msgPos);
             messageVictory = isAdjacent;
         }
     }
@@ -151,18 +127,6 @@ export const checkVictory = (context) => {
     return sosVictory || beaconVictory || messageVictory;
 };
 
-// Helper function to check if adding a card would exceed row/column limits
-const hasMaxRowsOrColumns = (context, row, col) => {
-    const positions = Array.from(context.occupiedPositions.entries())
-        .filter(([_, card]) => card.type !== 'ship')
-        .map(([pos]) => pos.split(',').map(Number));
-    positions.push([row, col]);
-    
-    const uniqueRows = [...new Set(positions.map(pos => pos[0]))];
-    const uniqueCols = [...new Set(positions.map(pos => pos[1]))];
-    
-    return uniqueRows.length <= 4 && uniqueCols.length <= 4;
-};
 
 export const isShipOutOfBounds = (context) => {
     if (!context.shipCard?.position || !context.shipCard?.cornerCoordinates) {
@@ -186,18 +150,14 @@ export const calculateScore = (context) => {
     let score = 0;
     
     // Add scores from flipped cards
-    for (const [_, card] of context.occupiedPositions) {
-        if (card.type === 'front' && card.score) {
-            score += card.score;
-        }
-    }
+    const scoreCards = context.positionSystem.findAllBy(card => card.type === 'front' && card.score);
+    score += scoreCards.reduce((acc, card) => acc + card.score, 0);
     
     // Add remaining lives
     score += context.lives;
     
     // Add bonus points for every 4 placed cards
-    const placedCardsCount = Array.from(context.occupiedPositions.values())
-        .filter(card => card.type !== 'ship').length;
+    const placedCardsCount = context.positionSystem.countNonShipCards();
     score += Math.floor(placedCardsCount / 4);
     
     return score;

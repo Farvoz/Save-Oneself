@@ -3,19 +3,17 @@ import {
   shuffleDeck, 
   placeCard, 
   placeShip,
-  handleNegativeEffects,
-  findFarthestCardPosition,
-  findStormCardPosition,
-  countNonShipCards
+  handleNegativeEffects
 } from '../../game/gameActions';
 import { INITIAL_DECK, INITIAL_FRONT_DECK, INITIAL_SHIP } from '../../game/gameData';
+import { PositionSystem, Position } from '../../game/positionSystem';
 
 describe('Game Actions', () => {
   let mockContext;
 
   beforeEach(() => {
     mockContext = {
-      occupiedPositions: new Map(),
+      positionSystem: new PositionSystem(),
       deck: [...INITIAL_DECK],
       lives: 3,
       shipCard: { ...INITIAL_SHIP },
@@ -26,8 +24,8 @@ describe('Game Actions', () => {
 
   describe('movePlayer', () => {
     test('should place card when moving to empty position', () => {
-      const result = movePlayer(mockContext, 0, 0);
-      expect(result.occupiedPositions.size).toBe(1);
+      const result = movePlayer(mockContext, new Position(0, 0));
+      expect(result.positionSystem.countNonShipCards()).toBe(1);
       
       // TODO: вынести из movePlayer вызов placeCard
       expect(result.deck.length).toBe(INITIAL_DECK.length - 1);
@@ -48,27 +46,27 @@ describe('Game Actions', () => {
       const card2 = { id: 'card2' };
       mockContext.deck = [mirageCard];
 
-      mockContext.occupiedPositions.set('0,0', card1);
-      mockContext.occupiedPositions.set('0,1', card2);
+      mockContext.positionSystem.setPosition(new Position(0, 0), card1);
+      mockContext.positionSystem.setPosition(new Position(0, 1), card2);
 
-      const result = movePlayer(mockContext, 0, 2);
-      expect(result.occupiedPositions.size).toBe(3);
-      expect(result.occupiedPositions.get('0,0')).toBe(INITIAL_FRONT_DECK.find(card => card.backId === 'mirage'));
-      expect(result.occupiedPositions.get('0,1')).toBe(card2);
-      expect(result.occupiedPositions.get('0,2')).toBe(card1);
+      const result = movePlayer(mockContext, new Position(0, 2));
+      expect(result.positionSystem.countNonShipCards()).toBe(3);
+      expect(result.positionSystem.getPosition(new Position(0, 0))).toBe(INITIAL_FRONT_DECK.find(card => card.backId === 'mirage'));
+      expect(result.positionSystem.getPosition(new Position(0, 1))).toBe(card2);
+      expect(result.positionSystem.getPosition(new Position(0, 2))).toBe(card1);
     });
 
     test('should handle negative card effects', () => {
       const negativeCard = { id: 'pig', lives: -1 };
-      mockContext.occupiedPositions.set('0,0', negativeCard);
-      const result = movePlayer(mockContext, 0, 0);
+      mockContext.positionSystem.setPosition(new Position(0, 0), negativeCard);
+      const result = movePlayer(mockContext, new Position(0, 0));
       expect(result.lives).toBe(2);
     });
 
     test('should handle pirates card effect', () => {
       const piratesCard = { id: 'pirates' };
-      mockContext.occupiedPositions.set('0,0', piratesCard);
-      const result = movePlayer(mockContext, 0, 0);
+      mockContext.positionSystem.setPosition(new Position(0, 0), piratesCard);
+      const result = movePlayer(mockContext, new Position(0, 0));
       expect(result.shipCard).toEqual(INITIAL_SHIP);
     });
   });
@@ -86,8 +84,8 @@ describe('Game Actions', () => {
   // Эта функция вызывается только внутри movePlayer
   describe('placeCard', () => {
     test('should place card and remove from deck', () => {
-      const result = placeCard(mockContext, 0, 0);
-      expect(result.occupiedPositions.size).toBe(1);
+      const result = placeCard(mockContext, new Position(0, 0));
+      expect(result.positionSystem.countNonShipCards()).toBe(1);
       expect(result.deck.length).toBe(INITIAL_DECK.length - 1);
       expect(result.cardObj).toBeDefined();
     });
@@ -102,13 +100,13 @@ describe('Game Actions', () => {
 
   describe('placeShip', () => {
     test('should place ship in correct position based on direction', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('0,1', { id: 'card2' });
+      const positionSystem = new PositionSystem();
+      positionSystem.setPosition(new Position(0, 0), { id: 'card1' });
+      positionSystem.setPosition(new Position(0, 1), { id: 'card2' });
       
-      const result = placeShip(occupiedPositions, 'NW');
+      const result = placeShip(positionSystem, 'NW');
       expect(result.shipCard.position).toBeDefined();
-      expect(result.occupiedPositions.size).toBe(3); // 2 cards + ship
+      expect(result.positionSystem.countNonShipCards()).toBe(2); // 2 cards + ship
       expect(result.shipCard.position).toBe('-1,-1');
     });
   });
@@ -116,45 +114,16 @@ describe('Game Actions', () => {
   describe('Helper Functions', () => {
     test('handleNegativeEffects should reduce lives', () => {
       const card = { id: 'pig', lives: -1 };
-      const result = handleNegativeEffects(card, new Map(), 3);
+      const result = handleNegativeEffects(card, new PositionSystem(), 3);
       expect(result).toBe(2);
     });
 
     test('handleNegativeEffects should not reduce lives if card is protected by spear', () => {
       const card = { id: 'pig', lives: -1 };
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'spear' });
-      const result = handleNegativeEffects(card, occupiedPositions, 3);
+      const positionSystem = new PositionSystem();
+      positionSystem.setPosition(new Position(0, 0), { id: 'spear' });
+      const result = handleNegativeEffects(card, positionSystem, 3);
       expect(result).toBe(3);
-    });
-
-    test('findFarthestCardPosition should find correct position', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1' });
-      occupiedPositions.set('3,3', { id: 'card2' });
-      occupiedPositions.set('3,2', { id: 'card3' });
-      
-      const result = findFarthestCardPosition(occupiedPositions, 0, 0);
-      expect(result).toBe('3,3');
-    });
-
-    test('findStormCardPosition should find storm card', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'storm' });
-      occupiedPositions.set('1,1', { id: 'other' });
-      
-      const result = findStormCardPosition(occupiedPositions);
-      expect(result).toBe('0,0');
-    });
-
-    test('countNonShipCards should count correctly', () => {
-      const occupiedPositions = new Map();
-      occupiedPositions.set('0,0', { id: 'card1', type: 'ship' });
-      occupiedPositions.set('1,1', { id: 'card2', type: 'other' });
-      occupiedPositions.set('2,2', { id: 'card3', type: 'other' });
-      
-      const result = countNonShipCards(occupiedPositions);
-      expect(result).toBe(2);
     });
   });
 });

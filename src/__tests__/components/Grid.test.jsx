@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import Grid from '../../components/Grid';
+import { PositionSystem, Position } from '../../game/positionSystem';
 
 describe('Grid Component', () => {
   const mockProps = {
-    occupiedPositions: new Map(),
+    positionSystem: new PositionSystem(),
     onCellClick: jest.fn(),
     state: {
       matches: jest.fn().mockReturnValue(false)
@@ -44,10 +45,11 @@ describe('Grid Component', () => {
   });
 
   test('renders cards in occupied positions', () => {
-    const occupiedPositions = new Map();
-    occupiedPositions.set('0,0', { id: 'card1', type: 'card' });
+    const positionSystem = new PositionSystem();
+
+    positionSystem.setPosition(new Position(0, 0), { id: 'card1', type: 'card' });
     
-    render(<Grid {...mockProps} occupiedPositions={occupiedPositions} />);
+    render(<Grid {...mockProps} positionSystem={positionSystem} />);
     const card = screen.getByTestId('card-card1');
     expect(card).toBeInTheDocument();
   });
