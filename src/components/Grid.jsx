@@ -35,7 +35,8 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
         return (
             <div 
                 key={pos}
-                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} ${isCoastline ? 'coastline' : ''}`}
+                data-testid={`grid-cell-${row}-${col}`}
+                className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} ${isCoastline ? 'coastline' : ''} ${isPlayerPosition ? 'player' : ''}`}
                 onClick={() => onCellClick(row, col)}
             >
                 {card && (
@@ -54,7 +55,7 @@ const Grid = ({ onCellClick, occupiedPositions, state, context }) => {
     };
 
     return (
-        <div className="grid">
+        <div className="grid" data-testid="grid">
             {Array.from({ length: 9 }, (_, i) => i - 4).map(row => 
                 Array.from({ length: 9 }, (_, i) => i - 4).map(col => 
                     renderGridCell(row, col)

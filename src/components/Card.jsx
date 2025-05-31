@@ -40,6 +40,7 @@ const Card = ({
             className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isAvailableMove ? 'available-move' : ''} ${isFlippable ? 'flippable' : ''}`}
             style={cardStyle}
             data-position={`${row},${col}`}
+            data-testid={`card-${card.id}`}
             onClick={handleClick}
             title={card.description}
         >

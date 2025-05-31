@@ -20,6 +20,7 @@ export class Position {
         return this.row === other.row && this.col === other.col;
     }
 
+    // Возвращает количество клеток, если игрок перемещается
     distanceTo(other) {
         return Math.abs(this.row - other.row) + Math.abs(this.col - other.col);
     }
