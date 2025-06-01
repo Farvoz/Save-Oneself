@@ -13,9 +13,11 @@ export const isPlayerValidPosition = (context, pos) => {
         if (!isAdjacent) return false;
     }
     
-    // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
-    if (!context.shipCard.cornerManager.isPlayerValidPosition(pos)) {
-        return false;
+    if (context.shipCard.cornerManager) {
+        // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
+        if (!context.shipCard.cornerManager.isPlayerValidPosition(pos)) {
+            return false;
+        }
     }
 
     // Проверяем, не пытаемся ли мы выложить карту, когда уже выложили карту в этом раунде
@@ -103,31 +105,13 @@ export const checkVictory = (context) => {
     return sosVictory || beaconVictory || messageVictory;
 };
 
-
-export const isShipOutOfBounds = (context) => {
-    if (!context.shipCard?.position || !context.shipCard?.cornerManager) {
-        return false;
-    }
-
-    const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
-    const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerManager.cornerCoordinates;
-    
-    const minRow = Math.min(topLeft[0], bottomLeft[0]);
-    const maxRow = Math.max(topRight[0], bottomRight[0]);
-    const minCol = Math.min(topLeft[1], topRight[1]);
-    const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
-
-    return shipRow < minRow - 1 || shipRow > maxRow + 1 || 
-           shipCol < minCol - 1 || shipCol > maxCol + 1;
-};
-
 // Calculate final score
 export const calculateScore = (context) => {
     let score = 0;
     
     // Add scores from flipped cards
-    const scoreCards = context.positionSystem.findAllBy(card => card.type === 'front' && card.score);
-    score += scoreCards.reduce((acc, card) => acc + card.score, 0);
+    const scoreCards = context.positionSystem.findAllBy(card => card.score).map(card => card.card);
+    score += scoreCards.reduce((acc, card) => acc + Number(card.score), 0);
     
     // Add remaining lives
     score += context.lives;

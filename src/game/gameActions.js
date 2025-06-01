@@ -1,4 +1,4 @@
-import { INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
+import { INITIAL_FRONT_DECK, INITIAL_SHIP, INITIAL_DECK } from './gameData';
 import { gameLogger } from './gameLogger';
 import { Position, PositionSystem } from './positionSystem';
 import { ShipCornerManager } from './ShipCornerManager';
@@ -155,16 +155,11 @@ export const placeShip = (positionSystem, direction) => {
         cornerManager
     };
 
-    // Add ship to occupied positions
-    const newPositionSystem = new PositionSystem();
-    positionSystem.occupiedPositions.forEach((value, key) => {
-        newPositionSystem.occupiedPositions.set(key, value);
-    });
-    newPositionSystem.setPosition(shipPosition, newShipCard);
+    positionSystem.setPosition(shipPosition, newShipCard);
 
     return {
         shipCard: newShipCard,
-        positionSystem: newPositionSystem
+        positionSystem: positionSystem
     };
 };
 
@@ -214,20 +209,6 @@ export const flipCard = (context, pos) => {
     };
 };
 
-// Helper function to calculate new ship position based on direction
-const calculateNewShipPosition = (pos, direction) => {
-    let newRow = pos.row, newCol = pos.col;
-    
-    switch(direction) {
-        case 'NE': newRow++; break;
-        case 'SE': newCol--; break;
-        case 'SW': newRow--; break;
-        case 'NW': newCol++; break;
-    }
-    
-    return new Position(newRow, newCol);
-};
-
 // Helper function to handle sea serpent extra move
 const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => {
     const adjacentPositions = positionSystem.getAdjacentPositions(pos);
@@ -244,7 +225,7 @@ const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => 
         };
     }
 
-    const extraPosition = calculateNewShipPosition(pos, direction);
+    const extraPosition = shipCard.cornerManager.getNextShipPosition(pos, direction);
     const extraShipCard = {
         ...shipCard,
         position: extraPosition.toString()
@@ -322,7 +303,7 @@ export const moveShip = (context) => {
     }
 
     // Смещаем корабль в новое положение
-    const newPosition = calculateNewShipPosition(shipPos, newDirection);
+    const newPosition = context.shipCard.cornerManager.getNextShipPosition(shipPos, newDirection);
 
     // Обновляем все значения
     const newShipCard = {

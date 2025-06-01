@@ -1,5 +1,6 @@
 import { Position } from './positionSystem';
 
+// Является частью ShipCard
 export class ShipCornerManager {
     constructor(direction, bounds) {
         this.direction = direction;
@@ -89,5 +90,34 @@ export class ShipCornerManager {
             case 'SW': return new Position(maxRow + 1, minCol - 1);
             case 'SE': return new Position(maxRow + 1, maxCol + 1);
         }
+    }
+
+    // Helper function to calculate new ship position based on direction
+    getNextShipPosition = (pos, direction) => {
+        let newRow = pos.row, newCol = pos.col;
+        
+        switch(direction) {
+            case 'NE': newRow++; break;
+            case 'SE': newCol--; break;
+            case 'SW': newRow--; break;
+            case 'NW': newCol++; break;
+        }
+        
+        return new Position(newRow, newCol);
+    };
+
+    isShipOutOfBounds(shipPosition) {
+        if (!shipPosition) return false;
+
+        const [shipRow, shipCol] = shipPosition.split(',').map(Number);
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
+        
+        const minRow = Math.min(topLeft[0], bottomLeft[0]);
+        const maxRow = Math.max(topRight[0], bottomRight[0]);
+        const minCol = Math.min(topLeft[1], topRight[1]);
+        const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
+
+        return shipRow < minRow - 1 || shipRow > maxRow + 1 || 
+               shipCol < minCol - 1 || shipCol > maxCol + 1;
     }
 } 

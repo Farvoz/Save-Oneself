@@ -41,12 +41,13 @@ const Game = () => {
             if (event.code === 'Space') {
                 event.preventDefault(); // Prevent page scroll
                 handleSkipPhase();
+                handleSkipMoves();
             }
         };
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [handleSkipPhase]);
+    }, [handleSkipPhase, handleSkipMoves]);
 
     return (
         <div className="game-container">

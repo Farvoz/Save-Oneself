@@ -1,4 +1,4 @@
-// Position Management System
+// Position System
 // This system handles all position-related operations
 
 export class Position {
