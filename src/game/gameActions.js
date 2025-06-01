@@ -5,6 +5,7 @@ import { ShipCornerManager } from './ShipCornerManager';
 
 
 // Helper function to handle negative card effects
+// TODO: вынести
 export const handleNegativeEffects = (card, positionSystem, lives) => {
     if (card.lives < 0) {
         // Check if there's protection from negative effects
@@ -40,54 +41,6 @@ export const movePlayer = (context, newPosition) => {
             };
         }
 
-        const { positionSystem, deck, cardObj, lives } = placeCard(context, newPosition);
-        newPositionSystem = positionSystem;
-        newDeck = deck;
-        card = cardObj;
-        newLives = lives;
-        hasPlacedCard = true;
-
-        // --- Эффекты при вскрытии карты ---
-
-        // Если выложена карта mirage, меняем её местами с самой дальней картой
-        // А также должен сработать эффект перемещённой карты
-        if (card.id === 'mirage') {
-            const farthestPos = newPositionSystem.findFarthestPosition(newPosition);
-            const farthestCard = newPositionSystem.getPosition(farthestPos);
-            if (farthestPos) {
-                // Меняем карты местами
-                newPositionSystem.swapPositions(newPosition, farthestPos);
-                // Переворачиваем mirage
-                const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'mirage');
-                newPositionSystem.setPosition(farthestPos, frontCard);
-            }
-
-            // Применяем эффект перемещённой карты
-            newLives = handleNegativeEffects(farthestCard, newPositionSystem, newLives);
-        }
-
-        // если карта с направлением и нет других кораблей, то размещается корабль
-        if (card.direction && !context.shipCard.direction) {
-            const { shipCard, positionSystem } = placeShip(newPositionSystem, card.direction);
-            newPositionSystem = positionSystem;
-            newShipCard = shipCard;
-        }
-    }
-
-    // --- Эффекты при перемещении игрока ---
-
-    // если карта с отрицательными жизнями, то уменьшается жизнь (каждый раз)
-    newLives = handleNegativeEffects(card, newPositionSystem, newLives);
-    
-    // Проверяем эффект пиратов
-    if (card.id === 'pirates' && !context.shipCard.skipMove) {
-        // Удаляем корабль из игры
-        newPositionSystem.removePosition(Position.fromString(context.shipCard.position));
-        newShipCard = { ...INITIAL_SHIP };
-        
-        // Переворачиваем карту пиратов
-        const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
-        newPositionSystem.setPosition(newPosition, frontCard);
     }
 
     // Уменьшаем количество оставшихся ходов
@@ -164,6 +117,7 @@ export const placeShip = (positionSystem, direction) => {
 };
 
 // Flip a card
+// TODO: вынести эффекты карты
 export const flipCard = (context, pos) => {
     const cardObj = context.positionSystem.getPosition(pos);
     const frontCard = INITIAL_FRONT_DECK.find(card => card.backId === cardObj.id);
@@ -210,6 +164,7 @@ export const flipCard = (context, pos) => {
 };
 
 // Helper function to handle sea serpent extra move
+// TODO: вынести эффекты карты
 const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => {
     const adjacentPositions = positionSystem.getAdjacentPositions(pos);
 

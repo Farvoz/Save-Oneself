@@ -3,7 +3,9 @@ import { Position } from './positionSystem';
 
 // Check if a position is valid for card moving
 export const isPlayerValidPosition = (context, pos) => {
-    if (!context.playerPosition && pos.row === 0 && pos.col === 0) return true;
+    if (!context.playerPosition) {
+        return pos.row === 0 && pos.col === 0;
+    }
     
     if (context.positionSystem.isOutOfBounds(pos)) return false;
 

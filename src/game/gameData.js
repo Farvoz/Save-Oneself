@@ -72,10 +72,10 @@ export const INITIAL_STATE = {
     frontDeck: [...INITIAL_FRONT_DECK],
     shipCard: { ...INITIAL_SHIP },
     positionSystem: new PositionSystem(),
-    playerPosition: '0,0',
+    playerPosition: null,
     gameOverMessage: null,
     isVictory: false,
     hasPlacedCard: false,
-    movesLeft: 1,
+    movesLeft: 0,
     hasMoved: false
 }; 

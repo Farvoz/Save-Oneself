@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
-import { INITIAL_STATE } from './gameData';
+import { INITIAL_STATE, INITIAL_FRONT_DECK } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, handleNegativeEffects, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './positionSystem';
 
@@ -18,8 +18,7 @@ export const createGameStateMachine = () => {
                     assign({
                         deck: ({ context }) => shuffleDeck(context).deck
                     }),
-                    assign(({ context }) => movePlayer(context, new Position(0, 0))),
-                    () => gameLogger.info('Колода перемешана и игрок перемещён на стартовую позицию'),
+                    () => gameLogger.info('Колода перемешана'),
                 ],
                 states: {
                     // В начале раунда обновляем количество ходов
@@ -43,7 +42,7 @@ export const createGameStateMachine = () => {
                                     assign(({ context, event }) => movePlayer(context, new Position(event.row, event.col))),
                                     ({ context: { playerPosition } }) => gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.split(',')[0], col: playerPosition.split(',')[1] })
                                 ],
-                                target: 'checkingMoveResult'
+                                target: 'checkingCardPlacement'
                             },
                             SKIP_MOVES: {
                                 guard: ({ context }) => context.hasMoved,
@@ -54,12 +53,113 @@ export const createGameStateMachine = () => {
                             }
                         }
                     },
+                    // Проверяем, нужно ли размещать карту
+                    checkingCardPlacement: {
+                        after: {
+                            0: [
+                                {
+                                    target: 'gameOver',
+                                    guard: ({ context }) => context.gameOverMessage,
+                                    actions: ({ context }) => {
+                                        gameLogger.info('Game over condition met', { message: context.gameOverMessage });
+                                    }
+                                },
+                                {
+                                    target: 'placingCardAndShip',
+                                    guard: ({ context }) => !context.hasPlacedCard,
+                                    actions: () => {
+                                        gameLogger.info('Нужно разместить карту');
+                                    }
+                                },
+                                { target: 'checkingCardEffects' }
+                            ]
+                        }
+                    },
+                    // Размещаем карту и проверяем необходимость размещения корабля
+                    placingCardAndShip: {
+                        entry: [
+                            assign(({ context }) => {
+                                let newContext = { ...context };
+                                
+                                // Размещаем карту
+                                const { positionSystem, deck, cardObj, lives } = placeCard(context, new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1]));
+                                newContext = {
+                                    ...newContext,
+                                    positionSystem,
+                                    deck,
+                                    lives,
+                                    hasPlacedCard: true
+                                };
+
+                                // Проверяем необходимость размещения корабля
+                                if (cardObj.direction && !context.shipCard.direction) {
+                                    const { shipCard, positionSystem: newPositionSystem } = placeShip(positionSystem, cardObj.direction);
+                                    newContext = {
+                                        ...newContext,
+                                        shipCard,
+                                        positionSystem: newPositionSystem
+                                    };
+                                }
+
+                                return newContext;
+                            })
+                        ],
+                        after: {
+                            0: { target: 'checkingCardEffects' }
+                        }
+                    },
+                    // Проверяем все эффекты карт
+                    checkingCardEffects: {
+                        entry: [
+                            assign(({ context }) => {
+                                const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1])
+                                const card = context.positionSystem.getPosition(newPosition);
+                                let newContext = { ...context };
+
+                                // Обработка эффекта mirage
+                                if (card.id === 'mirage') {
+                                    const farthestPos = context.positionSystem.findFarthestPosition(newPosition);
+                                    const farthestCard = context.positionSystem.getPosition(farthestPos);
+                                    if (farthestPos) {
+                                        context.positionSystem.swapPositions(newPosition, farthestPos);
+                                        const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'mirage');
+                                        context.positionSystem.setPosition(farthestPos, frontCard);
+                                    }
+                                    newContext = {
+                                        ...newContext,
+                                        positionSystem: context.positionSystem,
+                                        lives: handleNegativeEffects(farthestCard, context.positionSystem, context.lives)
+                                    };
+                                }
+
+                                // Обработка отрицательных эффектов
+                                newContext.lives = handleNegativeEffects(card, context.positionSystem, newContext.lives);
+
+                                // Обработка эффекта пиратов
+                                if (card.id === 'pirates' && !context.shipCard.skipMove) {
+                                    context.positionSystem.removePosition(Position.fromString(context.shipCard.position));
+                                    const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
+                                    context.positionSystem.setPosition(newPosition, frontCard);
+                                    newContext = {
+                                        ...newContext,
+                                        positionSystem: context.positionSystem,
+                                        shipCard: { ...INITIAL_SHIP }
+                                    };
+                                }
+
+                                return newContext;
+                            })
+                        ],
+                        after: {
+                            0: { target: 'checkingMoveResult' }
+                        }
+                    },
                     // состояние для проверки результата хода
                     checkingMoveResult: {
                         after: {
                             0: [
                                 {
-                                    target: '..gameOver',
+                                    target: 'gameOver',
                                     guard: ({ context }) => context.gameOverMessage,
                                     actions: ({ context }) => {
                                         gameLogger.info('Game over condition met', { message: context.gameOverMessage });
@@ -119,7 +219,7 @@ export const createGameStateMachine = () => {
                         after: {
                             300: [
                                 {
-                                    target: '..gameOver',
+                                    target: 'gameOver',
                                     guard: ({ context }) => context.lives <= 0,
                                     actions: assign({
                                         gameOverMessage: 'Игра окончена! Закончились жизни.',
@@ -169,16 +269,16 @@ export const createGameStateMachine = () => {
                         ],
                         after: {
                             500: [
-                                { 
-                                    target: '..gameOver', 
+                                {   
+                                    target: 'gameOver', 
                                     guard: ({ context }) => checkVictory(context), 
                                     actions: assign({
                                         gameOverMessage: 'Победа! Корабль заметил сигнал!',
                                         isVictory: true
                                     }) 
                                 },
-                                {
-                                    target: '..gameOver',
+                                {             
+                                    target: 'gameOver',
                                     guard: ({ context }) => context.shipCard.cornerManager 
                                         ? context.shipCard.cornerManager.isShipOutOfBounds(context.shipCard.position) 
                                         : false,
@@ -190,11 +290,11 @@ export const createGameStateMachine = () => {
                                 { target: 'startOfRound' }
                             ]
                         }
+                    },
+                    gameOver: {
+                        type: 'final'
                     }
                 }
-            },
-            gameOver: {
-                type: 'final'
             }
         }
     });
