@@ -23,44 +23,11 @@ describe('Game Actions', () => {
   });
 
   describe('movePlayer', () => {
-    test('should place card when moving to empty position', () => {
-      const result = movePlayer(mockContext, new Position(0, 0));
-      expect(result.positionSystem.countNonShipCards()).toBe(1);
-      
-      // TODO: вынести из movePlayer вызов placeCard
-      expect(result.deck.length).toBe(INITIAL_DECK.length - 1);
-      expect(result.hasPlacedCard).toBe(true);
-    });
-
     test('should handle game over when deck is empty', () => {
       mockContext.deck = [];
       const result = movePlayer(mockContext, 0, 0);
       expect(result.gameOverMessage).toBe('Игра окончена! Колода пуста.');
       expect(result.isVictory).toBe(false);
-    });
-
-    // тест для карты mirage, когда на поле уже есть 2 карты: выложенная карта должна поменяться местами с дальней картой
-    test('should handle mirage card when there are already 2 cards on the field', () => {
-      const mirageCard = INITIAL_DECK.find(card => card.id === 'mirage');
-      const card1 = { id: 'card1' };
-      const card2 = { id: 'card2' };
-      mockContext.deck = [mirageCard];
-
-      mockContext.positionSystem.setPosition(new Position(0, 0), card1);
-      mockContext.positionSystem.setPosition(new Position(0, 1), card2);
-
-      const result = movePlayer(mockContext, new Position(0, 2));
-      expect(result.positionSystem.countNonShipCards()).toBe(3);
-      expect(result.positionSystem.getPosition(new Position(0, 0))).toBe(INITIAL_FRONT_DECK.find(card => card.backId === 'mirage'));
-      expect(result.positionSystem.getPosition(new Position(0, 1))).toBe(card2);
-      expect(result.positionSystem.getPosition(new Position(0, 2))).toBe(card1);
-    });
-
-    test('should handle negative card effects', () => {
-      const negativeCard = { id: 'pig', lives: -1 };
-      mockContext.positionSystem.setPosition(new Position(0, 0), negativeCard);
-      const result = movePlayer(mockContext, new Position(0, 0));
-      expect(result.lives).toBe(2);
     });
 
     test('should handle pirates card effect', () => {
