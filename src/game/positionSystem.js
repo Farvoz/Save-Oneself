@@ -146,14 +146,14 @@ export class PositionSystem {
         return pos1.distanceTo(pos2) === 1;
     }
 
-    hasMaxRowsOrColumns(pos) {
+    isOutOfBounds(pos) {
         const positions = this.findAllBy(card => card.type !== 'ship').map(card => card.position);
         positions.push(pos);
         
         const uniqueRows = [...new Set(positions.map(pos => pos.row))];
         const uniqueCols = [...new Set(positions.map(pos => pos.col))];
         
-        return uniqueRows.length <= 4 && uniqueCols.length <= 4;
+        return uniqueRows.length > 4 || uniqueCols.length > 4;
     }
 
     countNonShipCards() {

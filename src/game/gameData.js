@@ -52,6 +52,7 @@ export const INITIAL_SHIP = {
     skipMove: true,
     hasTurned: false,
     emoji: '⛵',
+    cornerManager: undefined,
     getEmoji() {
         if (!this.direction) return this.emoji;
         const arrows = {
@@ -61,13 +62,6 @@ export const INITIAL_SHIP = {
             'NW': '➡️'
         };
         return `${this.emoji}${arrows[this.direction]}`;
-    },
-    // Изначально поле максимальное
-    cornerCoordinates: {
-        topLeft: [-3, -3],
-        topRight: [-3, 3],
-        bottomLeft: [3, -3],
-        bottomRight: [3, 3]
     }
 };
 

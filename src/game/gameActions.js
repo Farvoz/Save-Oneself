@@ -1,7 +1,7 @@
 import { INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
 import { gameLogger } from './gameLogger';
-import { isCornerShip } from './gameRules';
 import { Position, PositionSystem } from './positionSystem';
+import { ShipCornerManager } from './ShipCornerManager';
 
 
 // Helper function to handle negative card effects
@@ -143,59 +143,16 @@ export const placeCard = (context, pos) => {
 // Place the ship on the board
 export const placeShip = (positionSystem, direction) => {
     const bounds = positionSystem.getBounds();
-    let shipRow, shipCol;
 
-    // Set corner coordinates based on direction
-    let cornerCoordinates;
-    switch(direction) {
-        case 'NW': 
-            shipRow = bounds.minRow - 1; 
-            shipCol = bounds.minCol - 1;
-            cornerCoordinates = {
-                topLeft: [bounds.minRow, bounds.minCol],
-                topRight: [bounds.minRow, bounds.minCol + 3],
-                bottomLeft: [bounds.minRow + 3, bounds.minCol],
-                bottomRight: [bounds.minRow + 3, bounds.minCol + 3]
-            };
-            break;
-        case 'NE': 
-            shipRow = bounds.minRow - 1; 
-            shipCol = bounds.maxCol + 1;
-            cornerCoordinates = {
-                topLeft: [bounds.minRow, bounds.maxCol - 3],
-                topRight: [bounds.minRow, bounds.maxCol],
-                bottomLeft: [bounds.minRow + 3, bounds.maxCol - 3],
-                bottomRight: [bounds.minRow + 3, bounds.maxCol]
-            };
-            break;
-        case 'SW': 
-            shipRow = bounds.maxRow + 1; 
-            shipCol = bounds.minCol - 1;
-            cornerCoordinates = {
-                topLeft: [bounds.maxRow - 3, bounds.minCol],
-                topRight: [bounds.maxRow - 3, bounds.minCol + 3],
-                bottomLeft: [bounds.maxRow, bounds.minCol],
-                bottomRight: [bounds.maxRow, bounds.minCol + 3]
-            };
-            break;
-        case 'SE': 
-            shipRow = bounds.maxRow + 1; 
-            shipCol = bounds.maxCol + 1;
-            cornerCoordinates = {
-                topLeft: [bounds.maxRow - 3, bounds.maxCol - 3],
-                topRight: [bounds.maxRow - 3, bounds.maxCol],
-                bottomLeft: [bounds.maxRow, bounds.maxCol - 3],
-                bottomRight: [bounds.maxRow, bounds.maxCol]
-            };
-            break;
-    }
+    // Create corner manager to calculate coordinates
+    const cornerManager = new ShipCornerManager(direction, bounds);
+    const shipPosition = cornerManager.getStartShipPosition();
 
-    const shipPosition = new Position(shipRow, shipCol);
     const newShipCard = {
         ...INITIAL_SHIP,
         direction,
         position: shipPosition.toString(),
-        cornerCoordinates
+        cornerManager
     };
 
     // Add ship to occupied positions
@@ -357,16 +314,11 @@ export const moveShip = (context) => {
     // Проверяем, существует ли карта "ship-sighted"
     const hasShipSighted = context.positionSystem.findCardById('ship-sighted');
 
-    const isAtCorner = isCornerShip(context.shipCard, shipPos.row, shipPos.col);
+    const isAtCorner = context.shipCard.cornerManager.isFinalCornerShipPosition(shipPos);
     // Если карта "ship-sighted" существует и корабль ещё не повернулся, проверяем, достиг ли корабль угла
-    if (hasShipSighted && context.shipCard.cornerCoordinates && !context.shipCard.hasTurned && isAtCorner) {
+    if (hasShipSighted && !context.shipCard.hasTurned && isAtCorner) {
         // Меняем направление на следующее по часовой стрелке
-        switch(context.shipCard.direction) {
-            case 'NE': newDirection = 'SE'; break;
-            case 'SE': newDirection = 'SW'; break;
-            case 'SW': newDirection = 'NW'; break;
-            case 'NW': newDirection = 'NE'; break;
-        }
+        newDirection = context.shipCard.cornerManager.getNextDirection();
     }
 
     // Смещаем корабль в новое положение

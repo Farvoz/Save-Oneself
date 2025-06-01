@@ -1,33 +1,11 @@
 // Файл с игровыми предикатами
 import { Position } from './positionSystem';
 
-// Функция для проверки, является ли позиция угловой
-export const isCornerCard = (cornerCoordinates, pos) => {
-    const { topLeft, topRight, bottomLeft, bottomRight } = cornerCoordinates;
-
-    return pos.equals(new Position(topLeft[0], topLeft[1])) ||
-           pos.equals(new Position(topRight[0], topRight[1])) ||
-           pos.equals(new Position(bottomLeft[0], bottomLeft[1])) ||
-           pos.equals(new Position(bottomRight[0], bottomRight[1]));
-};
-
-// Для каждого направления смотрим свой угол
-export const isCornerShip = (shipCard, pos) => {
-    const { topLeft, topRight, bottomLeft, bottomRight } = shipCard.cornerCoordinates;
-    
-    switch(shipCard.direction) {
-        case 'NE': return bottomRight[0] + 1 === pos.row;
-        case 'SE': return bottomLeft[1] - 1 === pos.col;
-        case 'SW': return topLeft[0] - 1 === pos.row;
-        case 'NW': return topRight[1] + 1 === pos.col;
-    }
-};
-
 // Check if a position is valid for card moving
-export const isValidPosition = (context, pos) => {
+export const isPlayerValidPosition = (context, pos) => {
     if (!context.playerPosition && pos.row === 0 && pos.col === 0) return true;
     
-    if (!context.positionSystem.hasMaxRowsOrColumns(pos)) return false;
+    if (context.positionSystem.isOutOfBounds(pos)) return false;
 
     if (context.playerPosition) {
         const currentPos = Position.fromString(context.playerPosition);
@@ -36,9 +14,7 @@ export const isValidPosition = (context, pos) => {
     }
     
     // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
-    const { topLeft, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
-
-    if (pos.row < topLeft[0] || pos.row > bottomLeft[0] || pos.col < topLeft[1] || pos.col > bottomRight[1]) {
+    if (!context.shipCard.cornerManager.isPlayerValidPosition(pos)) {
         return false;
     }
 
@@ -118,7 +94,7 @@ export const checkVictory = (context) => {
         const msgPos = messageResult.position;
         
         // Check if message card is not in a corner
-        if (!isCornerCard(context.shipCard.cornerCoordinates, msgPos)) {
+        if (!context.shipCard.cornerManager.isCornerCard(msgPos)) {
             const isAdjacent = context.positionSystem.isAdjacent(shipPos, msgPos);
             messageVictory = isAdjacent;
         }
@@ -129,12 +105,12 @@ export const checkVictory = (context) => {
 
 
 export const isShipOutOfBounds = (context) => {
-    if (!context.shipCard?.position || !context.shipCard?.cornerCoordinates) {
+    if (!context.shipCard?.position || !context.shipCard?.cornerManager) {
         return false;
     }
 
-    const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerCoordinates;
     const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
+    const { topLeft, topRight, bottomLeft, bottomRight } = context.shipCard.cornerManager.cornerCoordinates;
     
     const minRow = Math.min(topLeft[0], bottomLeft[0]);
     const maxRow = Math.max(topRight[0], bottomRight[0]);

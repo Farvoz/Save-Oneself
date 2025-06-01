@@ -1,14 +1,14 @@
 import React from 'react';
 import Card from './Card';
 import './Grid.css';
-import { isValidPosition, canFlipCard } from '../game/gameRules';
+import { isPlayerValidPosition, canFlipCard } from '../game/gameRules';
 import { Position } from '../game/positionSystem';
 
 const Grid = ({ onCellClick, positionSystem, state, context }) => {
     const renderGridCell = (row, col) => {
         const pos = `${row},${col}`;
         const card = positionSystem.getPosition(new Position(row, col));
-        const isAvailableMove = state.matches('playing.moving') && isValidPosition(context, new Position(row, col));
+        const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, new Position(row, col));
         const isPlayerPosition = pos === context.playerPosition;
         const isFlippable = card && state.matches('playing.checkingFlippable') && 
             card.type === 'back' && canFlipCard(context, card);
