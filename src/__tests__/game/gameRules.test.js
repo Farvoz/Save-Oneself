@@ -1,3 +1,4 @@
+import { INITIAL_SHIP } from '../../game/gameData';
 import { 
   isCornerShip, 
   isValidPosition
@@ -63,7 +64,7 @@ describe('Game Rules', () => {
   });
 
   describe('isValidPosition', () => {
-    test('should return true for valid positions', () => {
+    test('should return true for valid positions by ship card', () => {
       const context = {
         playerPosition: '0,0',
         positionSystem: new PositionSystem(),
@@ -144,6 +145,31 @@ describe('Game Rules', () => {
       expect(isValidPosition(context4, new Position(1, 0))).toBe(false);
       expect(isValidPosition(context4, new Position(-1, 0))).toBe(true);
       expect(isValidPosition(context4, new Position(0, -1))).toBe(false);
+    });
+
+    test('should return true for valid positions by out of bounds', () => {
+      const context = {
+        playerPosition: '0,0',
+        positionSystem: new PositionSystem(),
+        shipCard: INITIAL_SHIP
+      };
+
+      // Add 3 cards in a row
+      context.positionSystem.setPosition(new Position(0, 0), { type: 'back' });
+      context.positionSystem.setPosition(new Position(0, 1), { type: 'back' });
+      context.positionSystem.setPosition(new Position(0, 2), { type: 'back' });
+
+      // Add 4 cards in column
+      context.positionSystem.setPosition(new Position(0, 0), { type: 'back' });
+      context.positionSystem.setPosition(new Position(1, 0), { type: 'back' });
+      context.positionSystem.setPosition(new Position(2, 0), { type: 'back' });
+      context.positionSystem.setPosition(new Position(3, 0), { type: 'back' });
+
+      expect(isValidPosition(context, new Position(0, -1))).toBe(true);
+      expect(isValidPosition(context, new Position(0, 1))).toBe(true);
+
+      expect(isValidPosition(context, new Position(-1, 0))).toBe(false);
+      expect(isValidPosition(context, new Position(1, 0))).toBe(true);
     });
   });
 }); 

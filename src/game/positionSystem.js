@@ -146,10 +146,8 @@ export class PositionSystem {
         return pos1.distanceTo(pos2) === 1;
     }
 
-    // TODO: дописать и границу
     hasMaxRowsOrColumns(pos) {
-        const positions = Array.from(this.occupiedPositions.keys())
-            .map(posStr => Position.fromString(posStr));
+        const positions = this.findAllBy(card => card.type !== 'ship').map(card => card.position);
         positions.push(pos);
         
         const uniqueRows = [...new Set(positions.map(pos => pos.row))];
