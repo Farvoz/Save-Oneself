@@ -1,7 +1,7 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE, INITIAL_FRONT_DECK } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
-import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, handleNegativeEffects, placeCard, placeShip } from './gameActions';
+import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './positionSystem';
 
@@ -66,7 +66,10 @@ export const createGameStateMachine = () => {
                                 },
                                 {
                                     target: 'placingCardAndShip',
-                                    guard: ({ context }) => !context.hasPlacedCard,
+                                    guard: ({ context }) => { 
+                                        const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1]);
+                                        return !context.positionSystem.getPosition(newPosition) && !context.hasPlacedCard 
+                                    },
                                     actions: () => {
                                         gameLogger.info('Нужно разместить карту');
                                     }
@@ -127,13 +130,9 @@ export const createGameStateMachine = () => {
                                     }
                                     newContext = {
                                         ...newContext,
-                                        positionSystem: context.positionSystem,
-                                        lives: handleNegativeEffects(farthestCard, context.positionSystem, context.lives)
+                                        positionSystem: context.positionSystem
                                     };
                                 }
-
-                                // Обработка отрицательных эффектов
-                                newContext.lives = handleNegativeEffects(card, context.positionSystem, newContext.lives);
 
                                 // Обработка эффекта пиратов
                                 if (card.id === 'pirates' && !context.shipCard.skipMove) {
@@ -148,6 +147,29 @@ export const createGameStateMachine = () => {
                                 }
 
                                 return newContext;
+                            })
+                        ],
+                        after: {
+                            0: { target: 'checkingNegativeEffects' }
+                        }
+                    },
+                    // Проверяем отрицательные эффекты
+                    checkingNegativeEffects: {
+                        entry: [
+                            assign(({ context }) => {
+                                const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1])
+                                const card = context.positionSystem.getPosition(newPosition);
+                                if (card.lives < 0) {
+                                    // Check if there's protection from negative effects
+                                    const isProtected = context.positionSystem.findCardById('spear') && card.id === 'pig' 
+                                        || context.positionSystem.findCardById('shelter') && card.id === 'storm';
+
+                                    if (!isProtected) {
+                                        const { lives } = updateLives(context.lives, card.lives);
+                                        return { lives };
+                                    }
+                                }
+                                return context;
                             })
                         ],
                         after: {

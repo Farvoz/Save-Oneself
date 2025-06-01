@@ -3,23 +3,6 @@ import { gameLogger } from './gameLogger';
 import { Position, PositionSystem } from './positionSystem';
 import { ShipCornerManager } from './ShipCornerManager';
 
-
-// Helper function to handle negative card effects
-// TODO: вынести
-export const handleNegativeEffects = (card, positionSystem, lives) => {
-    if (card.lives < 0) {
-        // Check if there's protection from negative effects
-        const isProtected = positionSystem.findCardById('spear') && card.id === 'pig' 
-            || positionSystem.findCardById('shelter') && card.id === 'storm';
-
-        if (!isProtected) {
-            const { lives: newLives } = updateLives(lives, card.lives);
-            return newLives;
-        }
-    }
-    return lives;
-};
-
 // Move the player to a new position
 export const movePlayer = (context, newPosition) => {
     let newPositionSystem = context.positionSystem;
@@ -226,21 +209,17 @@ export const moveShip = (context) => {
     if (context.positionSystem.findCardById('pirates')) {
         gameLogger.info('Это пираты! Ждем другой корабль');
 
-        const newPositionSystem = new PositionSystem();
-        context.positionSystem.occupiedPositions.forEach((value, key) => {
-            newPositionSystem.occupiedPositions.set(key, value);
-        });
-        newPositionSystem.removePosition(Position.fromString(context.shipCard.position));
+        context.positionSystem.removePosition(Position.fromString(context.shipCard.position));
         const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
 
-        const piratesResult = newPositionSystem.findCardById('pirates');
+        const piratesResult = context.positionSystem.findCardById('pirates');
         if (piratesResult) {
-            newPositionSystem.setPosition(piratesResult.position, frontCard);
+            context.positionSystem.setPosition(piratesResult.position, frontCard);
         }
 
         return {
             shipCard: INITIAL_SHIP,
-            positionSystem: newPositionSystem
+            positionSystem: context.positionSystem
         };
     }
 
@@ -268,16 +247,10 @@ export const moveShip = (context) => {
         hasTurned: context.shipCard.hasTurned || (hasShipSighted && isAtCorner)
     };
 
-    // Update occupied positions
-    const newPositionSystem = new PositionSystem();
-    context.positionSystem.occupiedPositions.forEach((value, key) => {
-        newPositionSystem.occupiedPositions.set(key, value);
-    });
-    newPositionSystem.removePosition(shipPos);
-    newPositionSystem.setPosition(newPosition, newShipCard);
+    context.positionSystem.swapPositions(shipPos, newPosition);
 
     // Проверяем эффект sea-serpent и делаем дополнительный ход если нужно
-    return handleSeaSerpentExtraMove(newShipCard, newPositionSystem, newPosition, newDirection);
+    return handleSeaSerpentExtraMove(newShipCard, context.positionSystem, newPosition, newDirection);
 };
 
 // Update lives (increase or decrease)

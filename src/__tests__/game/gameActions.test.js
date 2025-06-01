@@ -77,20 +77,4 @@ describe('Game Actions', () => {
       expect(result.shipCard.position).toBe('-1,-1');
     });
   });
-
-  describe('Helper Functions', () => {
-    test('handleNegativeEffects should reduce lives', () => {
-      const card = { id: 'pig', lives: -1 };
-      const result = handleNegativeEffects(card, new PositionSystem(), 3);
-      expect(result).toBe(2);
-    });
-
-    test('handleNegativeEffects should not reduce lives if card is protected by spear', () => {
-      const card = { id: 'pig', lives: -1 };
-      const positionSystem = new PositionSystem();
-      positionSystem.setPosition(new Position(0, 0), { id: 'spear' });
-      const result = handleNegativeEffects(card, positionSystem, 3);
-      expect(result).toBe(3);
-    });
-  });
 });
