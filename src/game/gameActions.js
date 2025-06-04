@@ -51,16 +51,11 @@ export const shuffleDeck = (context) => {
 
 // Place a card on the board
 export const placeCard = (context, pos) => {
-    const newPositionSystem = new PositionSystem();
-    context.positionSystem.occupiedPositions.forEach((value, key) => {
-        newPositionSystem.occupiedPositions.set(key, value);
-    });
-
     const cardObj = context.deck[context.deck.length - 1];
     const newDeck = context.deck.slice(0, -1);
     let newLives = context.lives;
 
-    newPositionSystem.setPosition(pos, cardObj);
+    context.positionSystem.setPosition(pos, cardObj);
 
     // если карта с жизнями, то восстанавливается жизнь (только 1 раз при вскрытии)
     if (cardObj.lives > 0) {
@@ -69,7 +64,7 @@ export const placeCard = (context, pos) => {
     }
     
     return {
-        positionSystem: newPositionSystem,
+        positionSystem: context.positionSystem,
         deck: newDeck,
         cardObj: cardObj,
         lives: newLives
@@ -169,17 +164,11 @@ const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => 
         position: extraPosition.toString()
     };
 
-    // Update occupied positions
-    const newPositionSystem = new PositionSystem();
-    positionSystem.occupiedPositions.forEach((value, key) => {
-        newPositionSystem.occupiedPositions.set(key, value);
-    });
-    newPositionSystem.removePosition(Position.fromString(shipCard.position));
-    newPositionSystem.setPosition(extraPosition, extraShipCard);
+    positionSystem.swapPositions(Position.fromString(shipCard.position), extraPosition);
 
     return {
         shipCard: extraShipCard,
-        positionSystem: newPositionSystem
+        positionSystem: positionSystem
     };
 };
 

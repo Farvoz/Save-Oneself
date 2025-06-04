@@ -39,6 +39,10 @@ export class PositionSystem {
     }
 
     setPosition(pos, value) {
+        if (this.getPosition(pos)) {
+            throw new Error('Position already occupied');
+        }
+
         this.occupiedPositions.set(pos.toString(), value);
     }
 

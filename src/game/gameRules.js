@@ -112,7 +112,7 @@ export const calculateScore = (context) => {
     let score = 0;
     
     // Add scores from flipped cards
-    const scoreCards = context.positionSystem.findAllBy(card => card.score).map(card => card.card);
+    const scoreCards = context.positionSystem.findAllBy(card => card.score).map(result => result.card);
     score += scoreCards.reduce((acc, card) => acc + Number(card.score), 0);
     
     // Add remaining lives
