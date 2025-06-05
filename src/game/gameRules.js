@@ -1,5 +1,4 @@
 // Файл с игровыми предикатами
-import { Position } from './positionSystem';
 
 // Check if a position is valid for card moving
 export const isPlayerValidPosition = (context, pos) => {
@@ -67,7 +66,7 @@ export const canFlipCard = (context, card) => {
 
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context) => {
-    for (const [_, card] of context.positionSystem.occupiedPositions) {
+    for (const [, card] of context.positionSystem.occupiedPositions) {
         if (card.type === 'back' && canFlipCard(context, card)) {
             return true;
         }

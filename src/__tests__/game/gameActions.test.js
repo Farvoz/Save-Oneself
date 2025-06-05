@@ -3,9 +3,8 @@ import {
   shuffleDeck, 
   placeCard, 
   placeShip,
-  handleNegativeEffects
 } from '../../game/gameActions';
-import { INITIAL_DECK, INITIAL_FRONT_DECK, INITIAL_SHIP } from '../../game/gameData';
+import { INITIAL_DECK, INITIAL_SHIP } from '../../game/gameData';
 import { PositionSystem, Position } from '../../game/positionSystem';
 
 describe('Game Actions', () => {
@@ -74,7 +73,7 @@ describe('Game Actions', () => {
       const result = placeShip(positionSystem, 'NW');
       expect(result.shipCard.position).toBeDefined();
       expect(result.positionSystem.countNonShipCards()).toBe(2); // 2 cards + ship
-      expect(result.shipCard.position).toBe('-1,-1');
+      expect(result.shipCard.position).toEqual(new Position(-1, -1));
     });
   });
 });

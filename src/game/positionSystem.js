@@ -64,12 +64,14 @@ export class PositionSystem {
 
         if (value1 !== undefined) {
             this.setPosition(pos2, value1);
-            this.removePosition(pos1);
+        } else {
+            this.removePosition(pos2);
         }
 
         if (value2 !== undefined) {
             this.setPosition(pos1, value2);
-            this.removePosition(pos2);
+        } else {
+            this.removePosition(pos1);
         }
     }
 

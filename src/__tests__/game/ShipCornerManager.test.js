@@ -151,26 +151,26 @@ describe('ShipCornerManager', () => {
 
         test('should detect when ship is out of bounds for NW direction', () => {
             const manager = new ShipCornerManager('NW', bounds);
-            expect(manager.isShipOutOfBounds('0,6')).toBe(true);
-            expect(manager.isShipOutOfBounds('0,0')).toBe(false);
+            expect(manager.isShipOutOfBounds(new Position(0, 6))).toBe(true);
+            expect(manager.isShipOutOfBounds(new Position(0, 0))).toBe(false);
         });
 
         test('should detect when ship is out of bounds for NE direction', () => {
             const manager = new ShipCornerManager('NE', bounds);
-            expect(manager.isShipOutOfBounds('5,6')).toBe(true);
-            expect(manager.isShipOutOfBounds('5,3')).toBe(false);
+            expect(manager.isShipOutOfBounds(new Position(5, 6))).toBe(true);
+            expect(manager.isShipOutOfBounds(new Position(5, 3))).toBe(false);
         });
 
         test('should detect when ship is out of bounds for SW direction', () => {
             const manager = new ShipCornerManager('SW', bounds);
-            expect(manager.isShipOutOfBounds('-3,0')).toBe(true);
-            expect(manager.isShipOutOfBounds('3,0')).toBe(false);
+            expect(manager.isShipOutOfBounds(new Position(-3, 0))).toBe(true);
+            expect(manager.isShipOutOfBounds(new Position(3, 0))).toBe(false);
         });
 
         test('should detect when ship is out of bounds for SE direction', () => {
             const manager = new ShipCornerManager('SE', bounds);
-            expect(manager.isShipOutOfBounds('5,-1')).toBe(true);
-            expect(manager.isShipOutOfBounds('3,3')).toBe(false);
+            expect(manager.isShipOutOfBounds(new Position(5, -1))).toBe(true);
+            expect(manager.isShipOutOfBounds(new Position(3, 3))).toBe(false);
         });
     });
 }); 

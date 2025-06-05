@@ -1,6 +1,5 @@
 import { INITIAL_FRONT_DECK, INITIAL_SHIP, INITIAL_DECK } from './gameData';
 import { gameLogger } from './gameLogger';
-import { Position, PositionSystem } from './positionSystem';
 import { ShipCornerManager } from './ShipCornerManager';
 
 // Move the player to a new position

@@ -15,13 +15,13 @@ const Game = () => {
     const state = useSelector(gameService, (state) => state);
     const context = useSelector(gameService, (state) => state.context);
 
-    const handleCellClick = useCallback((row, col) => {
+    const handleCellClick = (row, col) => {
         if (state.matches('playing.moving') && isPlayerValidPosition(context, new Position(row, col))) {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'FLIP_CARD', row, col });
         }
-    }, [state, gameService]);
+    }
 
     const handleSkipPhase = useCallback(() => {
         if (state.matches('playing.checkingFlippable')) {
