@@ -1,5 +1,5 @@
 import { createMachine, assign } from 'xstate';
-import { INITIAL_STATE, INITIAL_FRONT_DECK } from './gameData';
+import { INITIAL_STATE, INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
 import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
 import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
@@ -40,7 +40,7 @@ export const createGameStateMachine = () => {
                             MOVE_PLAYER: {
                                 actions: [
                                     assign(({ context, event }) => movePlayer(context, new Position(event.row, event.col))),
-                                    ({ context: { playerPosition } }) => gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.split(',')[0], col: playerPosition.split(',')[1] })
+                                    ({ context: { playerPosition } }) => gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.row, col: playerPosition.col })
                                 ],
                                 target: 'checkingCardPlacement'
                             },
@@ -67,8 +67,7 @@ export const createGameStateMachine = () => {
                                 {
                                     target: 'placingCardAndShip',
                                     guard: ({ context }) => { 
-                                        const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1]);
-                                        return !context.positionSystem.getPosition(newPosition) && !context.hasPlacedCard 
+                                        return !context.positionSystem.getPosition(context.playerPosition) && !context.hasPlacedCard 
                                     },
                                     actions: () => {
                                         gameLogger.info('Нужно разместить карту');
@@ -85,7 +84,7 @@ export const createGameStateMachine = () => {
                                 let newContext = { ...context };
                                 
                                 // Размещаем карту
-                                const { positionSystem, deck, cardObj, lives } = placeCard(context, new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1]));
+                                const { positionSystem, deck, cardObj, lives } = placeCard(context, context.playerPosition);
                                 newContext = {
                                     ...newContext,
                                     positionSystem,
@@ -115,16 +114,16 @@ export const createGameStateMachine = () => {
                     checkingCardEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1])
-                                const card = context.positionSystem.getPosition(newPosition);
+                                const card = context.positionSystem.getPosition(context.playerPosition);
                                 let newContext = { ...context };
 
                                 // Обработка эффекта mirage
                                 if (card.id === 'mirage') {
-                                    const farthestPos = context.positionSystem.findFarthestPosition(newPosition);
-                                    const farthestCard = context.positionSystem.getPosition(farthestPos);
+                                    const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition);
+
                                     if (farthestPos) {
-                                        context.positionSystem.swapPositions(newPosition, farthestPos);
+                                        context.positionSystem.swapPositions(context.playerPosition, farthestPos);
+
                                         const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'mirage');
                                         context.positionSystem.setPosition(farthestPos, frontCard);
                                     }
@@ -136,9 +135,9 @@ export const createGameStateMachine = () => {
 
                                 // Обработка эффекта пиратов
                                 if (card.id === 'pirates' && !context.shipCard.skipMove) {
-                                    context.positionSystem.removePosition(Position.fromString(context.shipCard.position));
+                                    context.positionSystem.removePosition(context.shipCard.position);
                                     const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
-                                    context.positionSystem.setPosition(newPosition, frontCard);
+                                    context.positionSystem.setPosition(context.playerPosition, frontCard);
                                     newContext = {
                                         ...newContext,
                                         positionSystem: context.positionSystem,
@@ -157,8 +156,7 @@ export const createGameStateMachine = () => {
                     checkingNegativeEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const newPosition = new Position(context.playerPosition.split(',')[0], context.playerPosition.split(',')[1])
-                                const card = context.positionSystem.getPosition(newPosition);
+                                const card = context.positionSystem.getPosition(context.playerPosition);
                                 if (card.lives < 0) {
                                     // Check if there's protection from negative effects
                                     const isProtected = context.positionSystem.findCardById('spear') && card.id === 'pig' 

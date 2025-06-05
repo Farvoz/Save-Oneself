@@ -109,7 +109,6 @@ export class ShipCornerManager {
     isShipOutOfBounds(shipPosition) {
         if (!shipPosition) return false;
 
-        const [shipRow, shipCol] = shipPosition.split(',').map(Number);
         const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
         
         const minRow = Math.min(topLeft[0], bottomLeft[0]);
@@ -117,7 +116,7 @@ export class ShipCornerManager {
         const minCol = Math.min(topLeft[1], topRight[1]);
         const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
 
-        return shipRow < minRow - 1 || shipRow > maxRow + 1 || 
-               shipCol < minCol - 1 || shipCol > maxCol + 1;
+        return shipPosition.row < minRow - 1 || shipPosition.row > maxRow + 1 || 
+               shipPosition.col < minCol - 1 || shipPosition.col > maxCol + 1;
     }
 } 

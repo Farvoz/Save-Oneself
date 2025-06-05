@@ -10,8 +10,11 @@ describe('Grid Component', () => {
       matches: jest.fn().mockReturnValue(false)
     },
     context: {
-      playerPosition: '0,0',
-      shipCard: { position: '1,1' }
+      playerPosition: new Position(0, 0),
+      shipCard: { 
+        position: new Position(1, 1),
+        direction: 'NW'
+      }
     }
   };
 
@@ -46,8 +49,8 @@ describe('Grid Component', () => {
 
   test('renders cards in occupied positions', () => {
     const positionSystem = new PositionSystem();
-
-    positionSystem.setPosition(new Position(0, 0), { id: 'card1', type: 'card' });
+    const pos = new Position(0, 0);
+    positionSystem.setPosition(pos, { id: 'card1', type: 'card' });
     
     render(<Grid {...mockProps} positionSystem={positionSystem} />);
     const card = screen.getByTestId('card-card1');

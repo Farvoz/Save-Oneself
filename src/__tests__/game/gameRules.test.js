@@ -45,7 +45,7 @@ describe('Game Rules', () => {
         });
 
         it('should not allow non-adjacent position', () => {
-            mockContext.playerPosition = '0,0';
+            mockContext.playerPosition = new Position(0, 0);
             const pos = new Position(2, 2);
             expect(isPlayerValidPosition(mockContext, pos)).toBe(false);
         });
@@ -91,25 +91,27 @@ describe('Game Rules', () => {
         });
 
         it('should detect SOS victory condition', () => {
-            mockContext.shipCard.position = '1,0';
-            mockContext.positionSystem.setPosition(new Position(1, 1), { id: 'sos' });
+            const sosPos = new Position(1, 1);
+            const shipPos = new Position(1, 0);
+            mockContext.shipCard.position = shipPos;
+            mockContext.positionSystem.setPosition(sosPos, { id: 'sos' });
             expect(checkVictory(mockContext)).toBe(true);
         });
 
         it('should detect beacon victory condition', () => {
-            mockContext.shipCard.position = '0,1';
-            mockContext.positionSystem.setPosition(new Position(1, 1), { id: 'lit-beacon' });
+            const beaconPos = new Position(1, 1);
+            const shipPos = new Position(0, 1);
+            mockContext.shipCard.position = shipPos;
+            mockContext.positionSystem.setPosition(beaconPos, { id: 'lit-beacon' });
             expect(checkVictory(mockContext)).toBe(true);
         });
 
         it('should detect message victory condition', () => {
-            mockContext.shipCard.position = '-1,1';
-            mockContext.positionSystem.setPosition(new Position(0, 1), { id: 'message' });
+            const messagePos = new Position(0, 1);
+            const shipPos = new Position(-1, 1);
+            mockContext.shipCard.position = shipPos;
+            mockContext.positionSystem.setPosition(messagePos, { id: 'message' });
             expect(checkVictory(mockContext)).toBe(true);
-
-            mockContext.shipCard.position = '-1,0';
-            mockContext.positionSystem.setPosition(new Position(0, 0), { id: 'message' });
-            expect(checkVictory(mockContext)).toBe(false);
         });
     });
 

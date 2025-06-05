@@ -6,36 +6,36 @@ import { Position } from '../game/positionSystem';
 
 const Grid = ({ onCellClick, positionSystem, state, context }) => {
     const renderGridCell = (row, col) => {
-        const pos = `${row},${col}`;
-        const card = positionSystem.getPosition(new Position(row, col));
-        const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, new Position(row, col));
-        const isPlayerPosition = pos === context.playerPosition;
+        const pos = new Position(row, col);
+        const card = positionSystem.getPosition(pos);
+        const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, pos);
+        const isPlayerPosition = context.playerPosition && context.playerPosition.equals(pos);
         const isFlippable = card && state.matches('playing.checkingFlippable') && 
             card.type === 'back' && canFlipCard(context, card);
 
         // Add coastline logic
         let isCoastline = false;
         if (context.shipCard?.direction) {
-            const [shipRow, shipCol] = context.shipCard.position.split(',').map(Number);
+            const shipPos = context.shipCard.position;
             switch (context.shipCard.direction) {
                 case 'NE':
-                    isCoastline = col === shipCol;
+                    isCoastline = col === shipPos.col;
                     break;
                 case 'SW':
-                    isCoastline = col === shipCol;
+                    isCoastline = col === shipPos.col;
                     break;
                 case 'NW':
-                    isCoastline = row === shipRow;
+                    isCoastline = row === shipPos.row;
                     break;
                 case 'SE':
-                    isCoastline = row === shipRow;
+                    isCoastline = row === shipPos.row;
                     break;
             }
         }
 
         return (
             <div 
-                key={pos}
+                key={pos.toString()}
                 data-testid={`grid-cell-${row}-${col}`}
                 className={`grid-cell ${isAvailableMove ? 'valid-move' : ''} ${isCoastline ? 'coastline' : ''} ${isPlayerPosition ? 'player' : ''}`}
                 onClick={() => onCellClick(row, col)}

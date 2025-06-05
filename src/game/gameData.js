@@ -48,7 +48,7 @@ export const INITIAL_SHIP = {
     type: 'ship',
     direction: undefined,
     id: 'ship',
-    position: undefined,
+    position: null,
     skipMove: true,
     hasTurned: false,
     emoji: '⛵',

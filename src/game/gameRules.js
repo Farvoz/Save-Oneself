@@ -10,8 +10,7 @@ export const isPlayerValidPosition = (context, pos) => {
     if (context.positionSystem.isOutOfBounds(pos)) return false;
 
     if (context.playerPosition) {
-        const currentPos = Position.fromString(context.playerPosition);
-        const isAdjacent = context.positionSystem.isAdjacent(currentPos, pos);
+        const isAdjacent = context.positionSystem.isAdjacent(context.playerPosition, pos);
         if (!isAdjacent) return false;
     }
     
@@ -41,8 +40,7 @@ export const canFlipCard = (context, card) => {
         
         // Check if player is on higher-ground when required
         if (card.requirements === 'higher-ground' || card.id === 'higher-ground') {
-            const playerPos = Position.fromString(context.playerPosition);
-            const playerCard = context.positionSystem.getPosition(playerPos);
+            const playerCard = context.positionSystem.getPosition(context.playerPosition);
             if (!playerCard || playerCard.id !== 'higher-ground') {
                 return false;
             }
@@ -57,10 +55,8 @@ export const canFlipCard = (context, card) => {
             if (!mapRResult || !mapCResult) return false;
 
             // Player must be at the intersection of map-r row and map-c column
-            const playerPos = Position.fromString(context.playerPosition);
-
-            // Player must be at the intersection
-            return mapRResult.position.row === playerPos.row && mapCResult.position.col === playerPos.col;
+            return mapRResult.position.row === context.playerPosition.row && 
+                   mapCResult.position.col === context.playerPosition.col;
         }
         
         return context.positionSystem.findCardById(card.requirements) !== null;
@@ -88,7 +84,7 @@ export const checkVictory = (context) => {
     
     if (!context.shipCard.position) return false;
     
-    const shipPos = Position.fromString(context.shipCard.position);
+    const shipPos = context.shipCard.position;
     const sosVictory = sosResult && shipPos.row === sosResult.position.row;
     const beaconVictory = beaconResult && shipPos.col === beaconResult.position.col;
     

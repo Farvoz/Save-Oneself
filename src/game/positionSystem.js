@@ -39,10 +39,10 @@ export class PositionSystem {
     }
 
     setPosition(pos, value) {
-        if (this.getPosition(pos)) {
-            throw new Error('Position already occupied');
+        if (value === undefined) {
+            throw new Error('Value is undefined');
         }
-
+        
         this.occupiedPositions.set(pos.toString(), value);
     }
 
@@ -61,8 +61,16 @@ export class PositionSystem {
     swapPositions(pos1, pos2) {
         const value1 = this.getPosition(pos1);
         const value2 = this.getPosition(pos2);
-        this.setPosition(pos1, value2);
-        this.setPosition(pos2, value1);
+
+        if (value1 !== undefined) {
+            this.setPosition(pos2, value1);
+            this.removePosition(pos1);
+        }
+
+        if (value2 !== undefined) {
+            this.setPosition(pos1, value2);
+            this.removePosition(pos2);
+        }
     }
 
     // Вычисляет границы поля, состоящего из карт и корабля

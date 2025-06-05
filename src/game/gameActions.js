@@ -31,7 +31,7 @@ export const movePlayer = (context, newPosition) => {
 
     // Если карта есть, просто обновляем позицию игрока
     return {
-        playerPosition: newPosition.toString(),
+        playerPosition: newPosition,
         positionSystem: newPositionSystem,
         deck: newDeck,
         lives: newLives,
@@ -82,7 +82,7 @@ export const placeShip = (positionSystem, direction) => {
     const newShipCard = {
         ...INITIAL_SHIP,
         direction,
-        position: shipPosition.toString(),
+        position: shipPosition,
         cornerManager
     };
 
@@ -161,10 +161,10 @@ const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => 
     const extraPosition = shipCard.cornerManager.getNextShipPosition(pos, direction);
     const extraShipCard = {
         ...shipCard,
-        position: extraPosition.toString()
+        position: extraPosition
     };
 
-    positionSystem.swapPositions(Position.fromString(shipCard.position), extraPosition);
+    positionSystem.swapPositions(shipCard.position, extraPosition);
 
     return {
         shipCard: extraShipCard,
@@ -198,7 +198,7 @@ export const moveShip = (context) => {
     if (context.positionSystem.findCardById('pirates')) {
         gameLogger.info('Это пираты! Ждем другой корабль');
 
-        context.positionSystem.removePosition(Position.fromString(context.shipCard.position));
+        context.positionSystem.removePosition(context.shipCard.position);
         const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
 
         const piratesResult = context.positionSystem.findCardById('pirates');
@@ -212,7 +212,7 @@ export const moveShip = (context) => {
         };
     }
 
-    const shipPos = Position.fromString(context.shipCard.position);
+    const shipPos = context.shipCard.position;
     let newDirection = context.shipCard.direction;
 
     // Проверяем, существует ли карта "ship-sighted"
@@ -231,7 +231,7 @@ export const moveShip = (context) => {
     // Обновляем все значения
     const newShipCard = {
         ...context.shipCard,
-        position: newPosition.toString(),
+        position: newPosition,
         direction: newDirection,
         hasTurned: context.shipCard.hasTurned || (hasShipSighted && isAtCorner)
     };
