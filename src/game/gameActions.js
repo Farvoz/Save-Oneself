@@ -1,5 +1,4 @@
-import { INITIAL_FRONT_DECK, INITIAL_SHIP, INITIAL_DECK } from './gameData';
-import { gameLogger } from './gameLogger';
+import { INITIAL_FRONT_DECK, INITIAL_SHIP } from './gameData';
 import { ShipCornerManager } from './ShipCornerManager';
 
 // Move the player to a new position
@@ -22,7 +21,6 @@ export const movePlayer = (context, newPosition) => {
                 isVictory: false
             };
         }
-
     }
 
     // Уменьшаем количество оставшихся ходов
@@ -55,12 +53,6 @@ export const placeCard = (context, pos) => {
     let newLives = context.lives;
 
     context.positionSystem.setPosition(pos, cardObj);
-
-    // если карта с жизнями, то восстанавливается жизнь (только 1 раз при вскрытии)
-    if (cardObj.lives > 0) {
-        const { lives } = updateLives(context.lives, cardObj.lives);
-        newLives = lives;
-    }
     
     return {
         positionSystem: context.positionSystem,
@@ -94,7 +86,6 @@ export const placeShip = (positionSystem, direction) => {
 };
 
 // Flip a card
-// TODO: вынести эффекты карты
 export const flipCard = (context, pos) => {
     const cardObj = context.positionSystem.getPosition(pos);
     const frontCard = INITIAL_FRONT_DECK.find(card => card.backId === cardObj.id);
@@ -102,75 +93,11 @@ export const flipCard = (context, pos) => {
     // Размещает перевернутую карту на поле
     context.positionSystem.setPosition(pos, frontCard);
     
-    // Обновляет жизни
-    const { lives } = updateLives(context.lives, frontCard.lives);
-    let newLives = lives;
-
-    // Если это tornado, то переворачиваем обратно
-    if (context.positionSystem.countNonShipCards() === 13 && frontCard.id === 'tornado') {
-        context.positionSystem.setPosition(pos, cardObj);
-
-        // А также переворачивает обратно shelter и lit beacon
-        const shelterResult = context.positionSystem.findCardById('shelter');
-        const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
-        if (shelterResult) {
-            context.positionSystem.setPosition(shelterResult.position, INITIAL_DECK.find(card => card.id === 'vines'));
-        }
-        if (litBeaconResult) {
-            context.positionSystem.setPosition(litBeaconResult.position, INITIAL_DECK.find(card => card.id === 'higher-ground'));
-        }
-    }
-
-    // Если это одна из карт сокровищ, переворачиваем обе
-    if (cardObj.id === 'map-r' || cardObj.id === 'map-c') {
-        // Находим и переворачиваем вторую карту сокровищ
-        const otherMapId = cardObj.id === 'map-r' ? 'map-c' : 'map-r';
-        const otherMapResult = context.positionSystem.findCardById(otherMapId);
-        const otherFrontCard = INITIAL_FRONT_DECK.find(card => card.backId === otherMapId);
-        context.positionSystem.setPosition(otherMapResult.position, otherFrontCard);
-
-        // Увеличиваем количество жизней на 1 - эффект rum
-        const { lives } = updateLives(newLives, 1);
-        newLives = lives
-    }
-    
     return {
         positionSystem: context.positionSystem,
-        lives: newLives
+        lives: context.lives
     };
 };
-
-// Helper function to handle sea serpent extra move
-// TODO: вынести эффекты карты
-const handleSeaSerpentExtraMove = (shipCard, positionSystem, pos, direction) => {
-    const adjacentPositions = positionSystem.getAdjacentPositions(pos);
-
-    const hasSeaSerpent = adjacentPositions.some(adjPos => {
-        const card = positionSystem.getPosition(adjPos);
-        return card && card.id === 'sea-serpent';
-    });
-
-    if (!hasSeaSerpent) {
-        return {
-            shipCard,
-            positionSystem
-        };
-    }
-
-    const extraPosition = shipCard.cornerManager.getNextShipPosition(pos, direction);
-    const extraShipCard = {
-        ...shipCard,
-        position: extraPosition
-    };
-
-    positionSystem.swapPositions(shipCard.position, extraPosition);
-
-    return {
-        shipCard: extraShipCard,
-        positionSystem: positionSystem
-    };
-};
-
 
 // Move the ship
 export const moveShip = (context) => {
@@ -189,24 +116,6 @@ export const moveShip = (context) => {
         };
         return {
             shipCard: newShipCard,
-            positionSystem: context.positionSystem
-        };
-    }
-
-    // Проверяем эффект пиратов: если на поле уже есть карта пиратов, то корабль уходит из игры и карта пиратов переворачивается
-    if (context.positionSystem.findCardById('pirates')) {
-        gameLogger.info('Это пираты! Ждем другой корабль');
-
-        context.positionSystem.removePosition(context.shipCard.position);
-        const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
-
-        const piratesResult = context.positionSystem.findCardById('pirates');
-        if (piratesResult) {
-            context.positionSystem.setPosition(piratesResult.position, frontCard);
-        }
-
-        return {
-            shipCard: INITIAL_SHIP,
             positionSystem: context.positionSystem
         };
     }
@@ -237,8 +146,10 @@ export const moveShip = (context) => {
 
     context.positionSystem.swapPositions(shipPos, newPosition);
 
-    // Проверяем эффект sea-serpent и делаем дополнительный ход если нужно
-    return handleSeaSerpentExtraMove(newShipCard, context.positionSystem, newPosition, newDirection);
+    return {
+        shipCard: newShipCard,
+        positionSystem: context.positionSystem
+    };
 };
 
 // Update lives (increase or decrease)

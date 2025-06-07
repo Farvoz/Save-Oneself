@@ -77,13 +77,13 @@ export const hasFlippableCards = (context) => {
 // Check if the game is won
 // return boolean
 export const checkVictory = (context) => {
+    const shipPos = context.shipCard.position;
+    if (!shipPos) return false;
+    
     const sosResult = context.positionSystem.findCardById('sos');
     const beaconResult = context.positionSystem.findCardById('lit-beacon');
     const messageResult = context.positionSystem.findCardById('message');
     
-    if (!context.shipCard.position) return false;
-    
-    const shipPos = context.shipCard.position;
     const sosVictory = sosResult && shipPos.row === sosResult.position.row;
     const beaconVictory = beaconResult && shipPos.col === beaconResult.position.col;
     

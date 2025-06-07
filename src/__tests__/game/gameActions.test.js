@@ -55,13 +55,6 @@ describe('Game Actions', () => {
       expect(result.deck.length).toBe(INITIAL_DECK.length - 1);
       expect(result.cardObj).toBeDefined();
     });
-
-    test('should handle positive lives card', () => {
-      const positiveCard = { id: 'food', lives: 1 };
-      mockContext.deck = [positiveCard];
-      const result = placeCard(mockContext, 0, 0);
-      expect(result.lives).toBe(4);
-    });
   });
 
   describe('placeShip', () => {
