@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { GameState } from '../core/gameData';
 import './Counters.css';
 
-const PHASE_MESSAGES = {
+type GamePhase = 'moving' | 'decreasingLives' | 'checkingFlippable' | 'shipMoving' | 'gameOver';
+
+const PHASE_MESSAGES: Record<GamePhase, string> = {
     moving: 'Перемещение: выберите соседнюю клетку',
     decreasingLives: 'Уменьшение жизней...',
     checkingFlippable: 'Переворот карты или пропуск',
@@ -9,9 +12,17 @@ const PHASE_MESSAGES = {
     gameOver: 'Игра окончена'
 };
 
-const Counters = ({ lives, deckLength, state, handleSkipPhase, handleSkipMoves }) => {
-    const [livesAnimation, setLivesAnimation] = useState('');
-    const [prevLives, setPrevLives] = useState(lives);
+interface CountersProps {
+    lives: number;
+    deckLength: number;
+    state: GameState;
+    handleSkipPhase: () => void;
+    handleSkipMoves: () => void;
+}
+
+const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSkipPhase, handleSkipMoves }) => {
+    const [livesAnimation, setLivesAnimation] = useState<string>('');
+    const [prevLives, setPrevLives] = useState<number>(lives);
 
     useEffect(() => {
         if (lives !== prevLives) {
@@ -27,7 +38,7 @@ const Counters = ({ lives, deckLength, state, handleSkipPhase, handleSkipMoves }
         }
     }, [lives, prevLives]);
 
-    const currentPhase = typeof state.value === 'object' ? state.value.playing : state.value;
+    const currentPhase = typeof state.value === 'object' ? state.value.playing as GamePhase : state.value as GamePhase;
     const message = PHASE_MESSAGES[currentPhase] || 'Неизвестная фаза';
     const showSkipButton = currentPhase === 'checkingFlippable';
     const showSkipMovesButton = currentPhase === 'moving' && state.context.hasMoved;

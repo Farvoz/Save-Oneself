@@ -1,14 +1,34 @@
-import { Position } from './positionSystem';
+import { Position } from './PositionSystem';
+
+type ShipDirection = 'NW' | 'NE' | 'SW' | 'SE';
+
+interface Bounds {
+    minRow: number;
+    maxRow: number;
+    minCol: number;
+    maxCol: number;
+}
+
+interface CornerCoordinates {
+    topLeft: [number, number];
+    topRight: [number, number];
+    bottomLeft: [number, number];
+    bottomRight: [number, number];
+}
 
 // Является частью ShipCard
 export class ShipCornerManager {
-    constructor(direction, bounds) {
+    private direction: ShipDirection;
+    private bounds: Bounds;
+    private cornerCoordinates: CornerCoordinates;
+
+    constructor(direction: ShipDirection, bounds: Bounds) {
         this.direction = direction;
         this.bounds = bounds;
         this.cornerCoordinates = this.calculateCornerCoordinates();
     }
 
-    calculateCornerCoordinates() {
+    private calculateCornerCoordinates(): CornerCoordinates {
         const { minRow, maxRow, minCol, maxCol } = this.bounds;
         
         switch(this.direction) {
@@ -43,7 +63,7 @@ export class ShipCornerManager {
         }
     }
 
-    isFinalCornerShipPosition(pos) {
+    isFinalCornerShipPosition(pos: Position): boolean {
         const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
         
         switch(this.direction) {
@@ -54,7 +74,7 @@ export class ShipCornerManager {
         }
     }
 
-    isCornerCard(pos) {
+    isCornerCard(pos: Position): boolean {
         const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
 
         return pos.equals(new Position(topLeft[0], topLeft[1])) ||
@@ -63,7 +83,7 @@ export class ShipCornerManager {
                pos.equals(new Position(bottomRight[0], bottomRight[1]));
     }
 
-    isPlayerValidPosition(pos) {
+    isPlayerValidPosition(pos: Position): boolean {
         const { topLeft, bottomLeft, bottomRight } = this.cornerCoordinates;
 
         return !(pos.row < topLeft[0] || 
@@ -72,7 +92,7 @@ export class ShipCornerManager {
                 pos.col > bottomRight[1]);
     }
 
-    getNextDirection() {
+    getNextDirection(): ShipDirection {
         switch(this.direction) {
             case 'NE': return 'SE';
             case 'SE': return 'SW';
@@ -81,7 +101,7 @@ export class ShipCornerManager {
         }
     }
 
-    getStartShipPosition() {
+    getStartShipPosition(): Position {
         const { minRow, maxRow, minCol, maxCol } = this.bounds;
         
         switch(this.direction) {
@@ -93,7 +113,7 @@ export class ShipCornerManager {
     }
 
     // Helper function to calculate new ship position based on direction
-    getNextShipPosition = (pos, direction) => {
+    getNextShipPosition = (pos: Position, direction: ShipDirection): Position => {
         let newRow = pos.row, newCol = pos.col;
         
         switch(direction) {
@@ -106,7 +126,7 @@ export class ShipCornerManager {
         return new Position(newRow, newCol);
     };
 
-    isShipOutOfBounds(shipPosition) {
+    isShipOutOfBounds(shipPosition: Position | null): boolean {
         if (!shipPosition) return false;
 
         const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;

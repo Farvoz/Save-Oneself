@@ -1,31 +1,36 @@
 // Position System
 // This system handles all position-related operations
 
+import { Card } from './gameData';
+
 export class Position {
-    constructor(row, col) {
+    row: number;
+    col: number;
+
+    constructor(row: number, col: number) {
         this.row = row;
         this.col = col;
     }
 
-    toString() {
+    toString(): string {
         return `${this.row},${this.col}`;
     }
 
-    static fromString(str) {
+    static fromString(str: string): Position {
         const [row, col] = str.split(',').map(Number);
         return new Position(row, col);
     }
 
-    equals(other) {
+    equals(other: Position): boolean {
         return this.row === other.row && this.col === other.col;
     }
 
     // Возвращает количество клеток, если игрок перемещается
-    distanceTo(other) {
+    distanceTo(other: Position): number {
         return Math.abs(this.row - other.row) + Math.abs(this.col - other.col);
     }
 
-    isValid() {
+    isValid(): boolean {
         return Number.isInteger(this.row) && Number.isInteger(this.col);
     }
 }
@@ -33,12 +38,13 @@ export class Position {
 export class PositionSystem {
     MAX_COLUMNS = 4;
     MAX_ROWS = 4;
+    occupiedPositions: Map<string, Card>;
     
     constructor() {
         this.occupiedPositions = new Map();
     }
 
-    setPosition(pos, value) {
+    setPosition(pos: Position, value: Card): void {
         if (value === undefined) {
             throw new Error('Value is undefined');
         }
@@ -46,19 +52,19 @@ export class PositionSystem {
         this.occupiedPositions.set(pos.toString(), value);
     }
 
-    getPosition(pos) {
+    getPosition(pos: Position): Card | undefined {
         return this.occupiedPositions.get(pos.toString());
     }
 
-    hasPosition(pos) {
+    hasPosition(pos: Position): boolean {
         return this.occupiedPositions.has(pos.toString());
     }
 
-    removePosition(pos) {
+    removePosition(pos: Position): void {
         this.occupiedPositions.delete(pos.toString());
     }
 
-    swapPositions(pos1, pos2) {
+    swapPositions(pos1: Position, pos2: Position): void {
         const value1 = this.getPosition(pos1);
         const value2 = this.getPosition(pos2);
 
@@ -76,7 +82,7 @@ export class PositionSystem {
     }
 
     // Вычисляет границы поля, состоящего из карт и корабля
-    getBounds() {
+    getBounds(): { minRow: number; maxRow: number; minCol: number; maxCol: number; width: number; height: number } {
         let minRow = Infinity, maxRow = -Infinity;
         let minCol = Infinity, maxCol = -Infinity;
 
@@ -98,7 +104,7 @@ export class PositionSystem {
         };
     }
 
-    findCardById(cardId) {
+    findCardById(cardId: string): { position: Position; card: Card } | null {
         for (const [posStr, card] of this.occupiedPositions.entries()) {
             if (card.id === cardId) {
                 return {
@@ -110,8 +116,8 @@ export class PositionSystem {
         return null;
     }
 
-    findAllBy(func) {
-        const result = [];
+    findAllBy(func: (card: Card) => boolean): Array<{ position: Position; card: Card }> {
+        const result: Array<{ position: Position; card: Card }> = [];
         for (const [posStr, card] of this.occupiedPositions.entries()) {
             if (func(card)) {
                 result.push({ position: Position.fromString(posStr), card });
@@ -120,9 +126,9 @@ export class PositionSystem {
         return result;
     }
 
-    findFarthestPosition(fromPos) {
+    findFarthestPosition(fromPos: Position): Position | null {
         let maxDistance = -1;
-        let farthestPosition = null;
+        let farthestPosition: Position | null = null;
 
         for (const posStr of this.occupiedPositions.keys()) {
             const pos = Position.fromString(posStr);
@@ -137,8 +143,8 @@ export class PositionSystem {
         return farthestPosition;
     }
 
-    getAdjacentPositions(pos) {
-        const adjacent = [];
+    getAdjacentPositions(pos: Position): Position[] {
+        const adjacent: Position[] = [];
         const directions = [
             { row: -1, col: 0 },  // up
             { row: 1, col: 0 },   // down
@@ -156,11 +162,11 @@ export class PositionSystem {
         return adjacent;
     }
 
-    isAdjacent(pos1, pos2) {
+    isAdjacent(pos1: Position, pos2: Position): boolean {
         return pos1.distanceTo(pos2) === 1;
     }
 
-    isOutOfBounds(pos) {
+    isOutOfBounds(pos: Position): boolean {
         const positions = this.findAllBy(card => card.type !== 'ship').map(card => card.position);
         positions.push(pos);
         
@@ -170,7 +176,7 @@ export class PositionSystem {
         return uniqueRows.length > 4 || uniqueCols.length > 4;
     }
 
-    countNonShipCards() {
+    countNonShipCards(): number {
         return this.findAllBy(card => card.type !== 'ship').length;
     }
 } 

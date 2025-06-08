@@ -1,9 +1,15 @@
 import React from 'react';
 
-const GameOver = ({ message, isVictory, score }) => {
+interface GameOverProps {
+    message: string | null;
+    isVictory: boolean;
+    score: number;
+}
+
+const GameOver: React.FC<GameOverProps> = ({ message, isVictory, score }) => {
     if (!message) return null;
 
-    const style = {
+    const style: React.CSSProperties = {
         display: 'block',
         backgroundColor: isVictory ? 'rgba(0, 128, 0, 0.9)' : 'rgba(0, 0, 0, 0.9)'
     };

@@ -1,31 +1,43 @@
 import React from 'react';
-import { INITIAL_DECK, INITIAL_FRONT_DECK } from '../game/gameData';   
+import { INITIAL_DECK, INITIAL_FRONT_DECK } from '../core/gameData';
+import { Card as CardType } from '../core/gameData';
 import './Card.css';
 
-const Card = ({ 
+interface CardProps {
+    card: CardType;
+    row: number;
+    col: number;
+    isPlayerPosition: boolean;
+    onClick: (row: number, col: number) => void;
+    isFlipped?: boolean;
+    isAvailableMove: boolean;
+    isFlippable: boolean;
+}
+
+const Card: React.FC<CardProps> = ({ 
     card, 
     row,
     col, 
     isPlayerPosition, 
     onClick, 
-    isFlipped,
+    isFlipped = false,
     isAvailableMove,
     isFlippable
 }) => {
-    const handleClick = () => {
+    const handleClick = (): void => {
         if (onClick) {
             onClick(row, col);
         }
     };
 
-    const getEmoji = () => {
+    const getEmoji = (): string => {
         if (card.type === 'ship') {
             return card.getEmoji ? card.getEmoji() : '🚢';
         }
         return card.emoji;
     };
 
-    const cardStyle = {
+    const cardStyle: React.CSSProperties = {
         position: 'absolute',
         left: '1px',
         top: '1px',
@@ -77,13 +89,14 @@ const Card = ({
     );
 };
 
-const getCardBackground = (cardObj) => {
+const getCardBackground = (cardObj: CardType): string => {
     if (cardObj.type === 'ship') return '#87CEEB';
     if (cardObj.type === 'back') return '#F5F5DC';
     if (cardObj.type === 'front') return '#E8F5E9';
     return '#F5F5DC';
 };
-const getRequirementsText = (requirements) => {
+
+const getRequirementsText = (requirements: string): string => {
     if (requirements === '_ship-set-sail') {
         return 'нужен корабль на паузе';
     }

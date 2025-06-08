@@ -3,19 +3,20 @@ import { useActorRef, useSelector } from '@xstate/react';
 import Grid from './Grid';
 import Counters from './Counters';
 import GameOver from './GameOver';
-import { createGameStateMachine } from '../game/gameStateMachine';
-import { isPlayerValidPosition, calculateScore } from '../game/gameRules';
-import { Position } from '../game/positionSystem';
+import { createGameStateMachine } from '../core/gameStateMachine';
+import { isPlayerValidPosition, calculateScore } from '../core/gameRules';
+import { Position } from '../core/PositionSystem';
+import { GameState } from '../core/gameData';
 
 const machine = createGameStateMachine();
 
-const Game = () => {
-    const gameService = useActorRef(machine);
+const Game: React.FC = () => {
+    const gameService = useActorRef<typeof machine>(machine);
 
-    const state = useSelector(gameService, (state) => state);
-    const context = useSelector(gameService, (state) => state.context);
+    const state = useSelector(gameService, (state: GameState) => state);
+    const context = useSelector(gameService, (state: GameState) => state.context);
 
-    const handleCellClick = (row, col) => {
+    const handleCellClick = (row: number, col: number): void => {
         if (state.matches('playing.moving') && isPlayerValidPosition(context, new Position(row, col))) {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
@@ -23,13 +24,13 @@ const Game = () => {
         }
     }
 
-    const handleSkipPhase = useCallback(() => {
+    const handleSkipPhase = useCallback((): void => {
         if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'SKIP_PHASE' });
         }
     }, [state, gameService]);
 
-    const handleSkipMoves = useCallback(() => {
+    const handleSkipMoves = useCallback((): void => {
         if (state.matches('playing.moving') && context.hasMoved) {
             gameService.send({ type: 'SKIP_MOVES' });
         }
@@ -37,7 +38,7 @@ const Game = () => {
 
     // Add keyboard event listener for space key
     useEffect(() => {
-        const handleKeyPress = (event) => {
+        const handleKeyPress = (event: KeyboardEvent): void => {
             if (event.code === 'Space') {
                 event.preventDefault(); // Prevent page scroll
                 handleSkipPhase();

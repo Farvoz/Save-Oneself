@@ -3,7 +3,8 @@ import { INITIAL_STATE, INITIAL_FRONT_DECK, INITIAL_SHIP, INITIAL_DECK } from '.
 import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
 import { shuffleDeck, movePlayer, flipCard, moveShip, updateLives, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
-import { Position } from './positionSystem';
+import { Position } from './PositionSystem';
+import { ShipCard } from './gameData';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -40,7 +41,7 @@ export const createGameStateMachine = () => {
                             MOVE_PLAYER: {
                                 actions: [
                                     assign(({ context, event }) => movePlayer(context, new Position(event.row, event.col))),
-                                    ({ context: { playerPosition } }) => gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.row, col: playerPosition.col })
+                                    ({ context: { playerPosition } }) => playerPosition && gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.row, col: playerPosition.col })
                                 ],
                                 target: 'checkingCardPlacement'
                             },
@@ -59,7 +60,7 @@ export const createGameStateMachine = () => {
                             0: [
                                 {
                                     target: 'gameOver',
-                                    guard: ({ context }) => context.gameOverMessage,
+                                    guard: ({ context }) => Boolean(context.gameOverMessage),
                                     actions: ({ context }) => {
                                         gameLogger.info('Game over condition met', { message: context.gameOverMessage });
                                     }
@@ -67,7 +68,7 @@ export const createGameStateMachine = () => {
                                 {
                                     target: 'placingCardAndShip',
                                     guard: ({ context }) => { 
-                                        return !context.positionSystem.getPosition(context.playerPosition) && !context.hasPlacedCard 
+                                        return !context.positionSystem.getPosition(context.playerPosition!) && !context.hasPlacedCard 
                                     },
                                     actions: () => {
                                         gameLogger.info('Нужно разместить карту');
@@ -84,7 +85,7 @@ export const createGameStateMachine = () => {
                                 let newContext = { ...context };
                                 
                                 // Размещаем карту
-                                const { positionSystem, deck, cardObj, lives } = placeCard(context, context.playerPosition);
+                                const { positionSystem, deck, cardObj, lives } = placeCard(context, context.playerPosition!);
                                 newContext = {
                                     ...newContext,
                                     positionSystem,
@@ -94,7 +95,7 @@ export const createGameStateMachine = () => {
                                 };
 
                                 // Проверяем необходимость размещения корабля
-                                if (cardObj.direction && !context.shipCard.direction) {
+                                if (cardObj.direction && !context.shipCard?.direction) {
                                     const { shipCard, positionSystem: newPositionSystem } = placeShip(positionSystem, cardObj.direction);
                                     newContext = {
                                         ...newContext,
@@ -114,7 +115,8 @@ export const createGameStateMachine = () => {
                     checkingCardEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition);
+                                const card = context.positionSystem.getPosition(context.playerPosition!);
+                                if (!card) return context;
                                 let newContext = { ...context };
 
                                 // если карта с жизнями, то восстанавливается жизнь (только 1 раз при вскрытии)
@@ -125,13 +127,13 @@ export const createGameStateMachine = () => {
 
                                 // Обработка эффекта mirage
                                 if (card.id === 'mirage') {
-                                    const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition);
+                                    const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition!);
 
                                     if (farthestPos) {
-                                        context.positionSystem.swapPositions(context.playerPosition, farthestPos);
+                                        context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
 
                                         const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'mirage');
-                                        context.positionSystem.setPosition(farthestPos, frontCard);
+                                        context.positionSystem.setPosition(farthestPos, frontCard!);
                                     }
                                     newContext = {
                                         ...newContext,
@@ -140,14 +142,14 @@ export const createGameStateMachine = () => {
                                 }
 
                                 // Обработка эффекта пиратов
-                                if (card.id === 'pirates' && !context.shipCard.skipMove) {
-                                    context.positionSystem.removePosition(context.shipCard.position);
+                                if (card.id === 'pirates' && !context.shipCard?.skipMove) {
+                                    context.positionSystem.removePosition(context.shipCard!.position!);
                                     const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
-                                    context.positionSystem.setPosition(context.playerPosition, frontCard);
+                                    context.positionSystem.setPosition(context.playerPosition!, frontCard!);
                                     newContext = {
                                         ...newContext,
                                         positionSystem: context.positionSystem,
-                                        shipCard: { ...INITIAL_SHIP }
+                                        shipCard: { ...INITIAL_SHIP } as ShipCard
                                     };
                                 }
 
@@ -162,7 +164,8 @@ export const createGameStateMachine = () => {
                     checkingNegativeEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition);
+                                const card = context.positionSystem.getPosition(context.playerPosition!);
+                                if (!card) return context;
                                 if (card.lives < 0) {
                                     // Check if there's protection from negative effects
                                     const isProtected = context.positionSystem.findCardById('spear') && card.id === 'pig' 
@@ -186,7 +189,7 @@ export const createGameStateMachine = () => {
                             0: [
                                 {
                                     target: 'gameOver',
-                                    guard: ({ context }) => context.gameOverMessage,
+                                    guard: ({ context }) => Boolean(context.gameOverMessage),
                                     actions: ({ context }) => {
                                         gameLogger.info('Game over condition met', { message: context.gameOverMessage });
                                     }
@@ -213,7 +216,7 @@ export const createGameStateMachine = () => {
                     checkingStorm: {
                         entry: [
                             assign(({ context }) => {
-                                const stormPos = context.positionSystem.findCardById('storm').position;
+                                const stormPos = context.positionSystem.findCardById('storm')!.position;
                                 gameLogger.info('Шторм найден на позиции', { stormPos });
 
                                 if (stormPos) {
@@ -268,7 +271,7 @@ export const createGameStateMachine = () => {
                             FLIP_CARD: {
                                 guard: ({ context, event }) => {
                                     const card = context.positionSystem.getPosition(new Position(event.row, event.col));
-                                    return card && canFlipCard(context, card);
+                                    return Boolean(card && canFlipCard(context, card));
                                 },
                                 actions: [
                                     assign(({ context, event }) => 
@@ -290,7 +293,8 @@ export const createGameStateMachine = () => {
                     checkingFlipEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition);
+                                const card = context.positionSystem.getPosition(context.playerPosition!);
+                                if (!card) return context;
                                 let newContext = { ...context };
 
                                 // Обновляем жизни при перевороте карты
@@ -301,16 +305,16 @@ export const createGameStateMachine = () => {
 
                                 // Если это tornado, то переворачиваем обратно
                                 if (context.positionSystem.countNonShipCards() === 13 && card.id === 'tornado') {
-                                    context.positionSystem.setPosition(context.playerPosition, INITIAL_DECK.find(c => c.backId === card.id));
+                                    context.positionSystem.setPosition(context.playerPosition!, INITIAL_DECK.find(c => c.backId === card.id)!);
 
                                     // А также переворачивает обратно shelter и lit beacon
                                     const shelterResult = context.positionSystem.findCardById('shelter');
                                     const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
                                     if (shelterResult) {
-                                        context.positionSystem.setPosition(shelterResult.position, INITIAL_DECK.find(card => card.id === 'vines'));
+                                        context.positionSystem.setPosition(shelterResult.position, INITIAL_DECK.find(card => card.id === 'vines')!);
                                     }
                                     if (litBeaconResult) {
-                                        context.positionSystem.setPosition(litBeaconResult.position, INITIAL_DECK.find(card => card.id === 'higher-ground'));
+                                        context.positionSystem.setPosition(litBeaconResult.position, INITIAL_DECK.find(card => card.id === 'higher-ground')!);
                                     }
                                 }
 
@@ -320,7 +324,7 @@ export const createGameStateMachine = () => {
                                     const otherMapId = card.backId === 'map-r' ? 'map-c' : 'map-r';
                                     const otherMapResult = context.positionSystem.findCardById(otherMapId);
                                     const otherFrontCard = INITIAL_FRONT_DECK.find(card => card.backId === otherMapId);
-                                    context.positionSystem.setPosition(otherMapResult.position, otherFrontCard);
+                                    context.positionSystem.setPosition(otherMapResult!.position, otherFrontCard!);
 
                                     // Увеличиваем количество жизней на 1 - эффект rum
                                     const { lives } = updateLives(newContext.lives, 1);
@@ -337,8 +341,8 @@ export const createGameStateMachine = () => {
                     shipMoving: {
                         entry: [
                             assign(({ context }) => moveShip(context)),
-                            ({ context: { shipCard: { position } } }) => position 
-                                ? gameLogger.info('Корабль перемещён на позицию', { position }) 
+                            ({ context: { shipCard } }) => shipCard?.position 
+                                ? gameLogger.info('Корабль перемещён на позицию', { position: shipCard.position }) 
                                 : gameLogger.info('Корабль не перемещён')
                         ],
                         after: {
@@ -353,8 +357,8 @@ export const createGameStateMachine = () => {
                                 },
                                 {             
                                     target: 'gameOver',
-                                    guard: ({ context }) => context.shipCard.cornerManager 
-                                        ? context.shipCard.cornerManager.isShipOutOfBounds(context.shipCard.position) 
+                                    guard: ({ context }) => context.shipCard?.cornerManager 
+                                        ? context.shipCard.cornerManager.isShipOutOfBounds(context.shipCard!.position!) 
                                         : false,
                                     actions: assign({
                                         gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.',
@@ -372,23 +376,24 @@ export const createGameStateMachine = () => {
                                 let newContext = { ...context };
 
                                 // Проверяем эффект sea-serpent
-                                const adjacentPositions = context.positionSystem.getAdjacentPositions(context.shipCard.position);
+                                if (!context.shipCard?.position) return newContext;
+                                const adjacentPositions = context.positionSystem.getAdjacentPositions(context.shipCard!.position);
                                 const hasSeaSerpent = adjacentPositions.some(adjPos => {
                                     const card = context.positionSystem.getPosition(adjPos);
                                     return card && card.id === 'sea-serpent';
                                 });
 
-                                if (hasSeaSerpent) {
+                                if (hasSeaSerpent && context.shipCard?.cornerManager) {
                                     const extraPosition = context.shipCard.cornerManager.getNextShipPosition(
-                                        context.shipCard.position, 
-                                        context.shipCard.direction
+                                        context.shipCard!.position!, 
+                                        context.shipCard!.direction!
                                     );
                                     const extraShipCard = {
                                         ...context.shipCard,
                                         position: extraPosition
                                     };
 
-                                    context.positionSystem.swapPositions(context.shipCard.position, extraPosition);
+                                    context.positionSystem.swapPositions(context.shipCard!.position!, extraPosition);
                                     newContext = {
                                         ...newContext,
                                         shipCard: extraShipCard,

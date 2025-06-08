@@ -1,11 +1,19 @@
 import React from 'react';
 import Card from './Card';
 import './Grid.css';
-import { isPlayerValidPosition, canFlipCard } from '../game/gameRules';
-import { Position } from '../game/positionSystem';
+import { isPlayerValidPosition, canFlipCard } from '../core/gameRules';
+import { Position, PositionSystem } from '../core/PositionSystem';
+import { GameState } from '../core/gameData';
 
-const Grid = ({ onCellClick, positionSystem, state, context }) => {
-    const renderGridCell = (row, col) => {
+interface GridProps {
+    onCellClick: (row: number, col: number) => void;
+    positionSystem: PositionSystem;
+    state: GameState;
+    context: GameState['context'];
+}
+
+const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, context }) => {
+    const renderGridCell = (row: number, col: number): React.ReactNode => {
         const pos = new Position(row, col);
         const card = positionSystem.getPosition(pos);
         const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, pos);
@@ -17,19 +25,21 @@ const Grid = ({ onCellClick, positionSystem, state, context }) => {
         let isCoastline = false;
         if (context.shipCard?.direction) {
             const shipPos = context.shipCard.position;
-            switch (context.shipCard.direction) {
-                case 'NE':
-                    isCoastline = col === shipPos.col;
-                    break;
-                case 'SW':
-                    isCoastline = col === shipPos.col;
-                    break;
-                case 'NW':
-                    isCoastline = row === shipPos.row;
-                    break;
-                case 'SE':
-                    isCoastline = row === shipPos.row;
-                    break;
+            if (shipPos) {
+                switch (context.shipCard.direction) {
+                    case 'NE':
+                        isCoastline = col === shipPos.col;
+                        break;
+                    case 'SW':
+                        isCoastline = col === shipPos.col;
+                        break;
+                    case 'NW':
+                        isCoastline = row === shipPos.row;
+                        break;
+                    case 'SE':
+                        isCoastline = row === shipPos.row;
+                        break;
+                }
             }
         }
 
@@ -47,8 +57,8 @@ const Grid = ({ onCellClick, positionSystem, state, context }) => {
                         col={col}
                         isAvailableMove={isAvailableMove}
                         onClick={() => onCellClick(row, col)}
-                        isPlayerPosition={isPlayerPosition}
-                        isFlippable={isFlippable}
+                        isPlayerPosition={isPlayerPosition ?? false}
+                        isFlippable={isFlippable ?? false}
                     />
                 )}
             </div>
