@@ -27,11 +27,11 @@ export type ShipCard = {
     type: 'ship';
     direction: Direction;
     id: string;
-    position: Position | null;
+    position: Position;
     skipMove: boolean;
     hasTurned: boolean;
     emoji: string;
-    cornerManager?: ShipCornerManager;
+    cornerManager: ShipCornerManager;
     getEmoji: () => string;
     lives: number;
 };
@@ -106,7 +106,6 @@ export const INITIAL_SHIP: Partial<ShipCard> = {
     type: 'ship',
     direction: 'NE',
     id: 'ship',
-    position: null,
     skipMove: true,
     hasTurned: false,
     emoji: '⛵',

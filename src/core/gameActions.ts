@@ -177,6 +177,24 @@ export const flipCard = (context: GameContext, pos: Position): FlipCardResult =>
     };
 };
 
+// Handle ship-sighted card effect
+export const handleShipSightedEffect = (context: GameContext): { newDirection: Direction, hasTurned: boolean } => {
+    const hasShipSighted = context.positionSystem.findCardById('ship-sighted');
+    const isAtCorner = context.shipCard?.cornerManager?.isFinalCornerShipPosition(context.shipCard.position!) ?? false;
+
+    if (hasShipSighted && !context.shipCard?.hasTurned && isAtCorner && context.shipCard?.cornerManager) {
+        return {
+            newDirection: context.shipCard.cornerManager.getNextDirection(),
+            hasTurned: true
+        };
+    }
+
+    return {
+        newDirection: context.shipCard!.direction,
+        hasTurned: Boolean(context.shipCard?.hasTurned || (hasShipSighted && isAtCorner))
+    };
+};
+
 // Move the ship
 export const moveShip = (context: GameContext): MoveShipResult => {
     if (!context.shipCard?.position || !context.shipCard?.direction) {
@@ -199,17 +217,9 @@ export const moveShip = (context: GameContext): MoveShipResult => {
     }
 
     const shipPos = context.shipCard.position;
-    let newDirection = context.shipCard.direction;
 
-    // Проверяем, существует ли карта "ship-sighted"
-    const hasShipSighted = context.positionSystem.findCardById('ship-sighted');
-
-    const isAtCorner = context.shipCard.cornerManager?.isFinalCornerShipPosition(shipPos) ?? false;
-    // Если карта "ship-sighted" существует и корабль ещё не повернулся, проверяем, достиг ли корабль угла
-    if (hasShipSighted && !context.shipCard.hasTurned && isAtCorner && context.shipCard.cornerManager) {
-        // Меняем направление на следующее по часовой стрелке
-        newDirection = context.shipCard.cornerManager.getNextDirection();
-    }
+    // Handle ship-sighted effect
+    const { newDirection, hasTurned } = handleShipSightedEffect(context);
 
     // Смещаем корабль в новое положение
     const newPosition = context.shipCard.cornerManager!.getNextShipPosition(shipPos, newDirection);
@@ -219,7 +229,7 @@ export const moveShip = (context: GameContext): MoveShipResult => {
         ...context.shipCard,
         position: newPosition,
         direction: newDirection,
-        hasTurned: Boolean(context.shipCard.hasTurned || (hasShipSighted && isAtCorner))
+        hasTurned
     };
 
     context.positionSystem.swapPositions(shipPos, newPosition);

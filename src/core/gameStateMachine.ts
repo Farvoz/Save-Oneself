@@ -142,8 +142,8 @@ export const createGameStateMachine = () => {
                                 }
 
                                 // Обработка эффекта пиратов
-                                if (card.id === 'pirates' && !context.shipCard?.skipMove) {
-                                    context.positionSystem.removePosition(context.shipCard!.position!);
+                                if (card.id === 'pirates' && context.shipCard && !context.shipCard?.skipMove) {
+                                    context.positionSystem.removePosition(context.shipCard.position);
                                     const frontCard = INITIAL_FRONT_DECK.find(c => c.backId === 'pirates');
                                     context.positionSystem.setPosition(context.playerPosition!, frontCard!);
                                     newContext = {
@@ -153,19 +153,6 @@ export const createGameStateMachine = () => {
                                     };
                                 }
 
-                                return newContext;
-                            })
-                        ],
-                        after: {
-                            0: { target: 'checkingNegativeEffects' }
-                        }
-                    },
-                    // Проверяем отрицательные эффекты
-                    checkingNegativeEffects: {
-                        entry: [
-                            assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition!);
-                                if (!card) return context;
                                 if (card.lives < 0) {
                                     // Check if there's protection from negative effects
                                     const isProtected = context.positionSystem.findCardById('spear') && card.id === 'pig' 
@@ -173,10 +160,21 @@ export const createGameStateMachine = () => {
 
                                     if (!isProtected) {
                                         const { lives } = updateLives(context.lives, card.lives);
-                                        return { lives };
+                                        newContext = { ...newContext, lives };
                                     }
                                 }
-                                return context;
+
+                                // Проверяем шторм при размещении 13-й карты
+                                if (context.positionSystem.countNonShipCards() === 13) {
+                                    const stormPos = context.positionSystem.findCardById('storm')?.position;
+                                    if (stormPos) {
+                                        gameLogger.info('Шторм найден на позиции', { stormPos });
+                                        const { positionSystem } = flipCard(newContext, stormPos);
+                                        newContext = { ...newContext, positionSystem };
+                                    }
+                                }
+
+                                return newContext;
                             })
                         ],
                         after: {
@@ -195,13 +193,6 @@ export const createGameStateMachine = () => {
                                     }
                                 },
                                 {
-                                    target: 'checkingStorm',
-                                    guard: ({ context }) => context.positionSystem.countNonShipCards() === 13,
-                                    actions: () => {
-                                        gameLogger.info('Проверяем, есть ли шторм на поле, так как вышла 13 карта');
-                                    }
-                                },
-                                {
                                     target: 'moving',
                                     guard: ({ context }) => context.movesLeft > 0,
                                     actions: () => {
@@ -209,34 +200,6 @@ export const createGameStateMachine = () => {
                                     }
                                 },
                                 { target: 'decreasingLives' }
-                            ]
-                        }
-                    },
-                    // На 13 ходу проверяем, есть ли шторм на поле
-                    checkingStorm: {
-                        entry: [
-                            assign(({ context }) => {
-                                const stormPos = context.positionSystem.findCardById('storm')!.position;
-                                gameLogger.info('Шторм найден на позиции', { stormPos });
-
-                                if (stormPos) {
-                                    return flipCard(context, stormPos);
-                                }
-                                return context;
-                            })
-                        ],
-                        after: {
-                            0: [
-                                {
-                                    target: 'moving',
-                                    guard: ({ context }) => context.movesLeft > 0,
-                                    actions: () => {
-                                        gameLogger.info('У игрока остались ходы');
-                                    }
-                                },
-                                { 
-                                    target: 'decreasingLives' 
-                                }
                             ]
                         }
                     },
