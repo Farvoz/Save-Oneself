@@ -1,7 +1,7 @@
 // Position System
 // This system handles all position-related operations
 
-import { Card } from './gameData';
+import { Card } from './Card';
 
 export class Position {
     row: number;
@@ -106,7 +106,7 @@ export class PositionSystem {
 
     findCardById(cardId: string): { position: Position; card: Card } | null {
         for (const [posStr, card] of this.occupiedPositions.entries()) {
-            if (card.id === cardId) {
+            if (card.getCurrentId() === cardId) {
                 return {
                     position: Position.fromString(posStr),
                     card
@@ -167,7 +167,7 @@ export class PositionSystem {
     }
 
     isOutOfBounds(pos: Position): boolean {
-        const positions = this.findAllBy(card => card.type !== 'ship').map(card => card.position);
+        const positions = this.findAllBy(card => card.getCurrentType() !== 'ship').map(card => card.position);
         positions.push(pos);
         
         const uniqueRows = [...new Set(positions.map(pos => pos.row))];
@@ -177,6 +177,6 @@ export class PositionSystem {
     }
 
     countNonShipCards(): number {
-        return this.findAllBy(card => card.type !== 'ship').length;
+        return this.findAllBy(card => card.getCurrentType() !== 'ship').length;
     }
 } 

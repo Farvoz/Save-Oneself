@@ -1,5 +1,5 @@
-import { ShipCornerManager } from '../../game/ShipCornerManager';
-import { Position } from '../../game/positionSystem';
+import { ShipCornerManager } from '../../core/ShipCornerManager';
+import { Position } from '../../core/PositionSystem';
 
 describe('ShipCornerManager', () => {
     // Интерес в том, чтобы границы были меньше 3 по всем сторонам
@@ -13,42 +13,35 @@ describe('ShipCornerManager', () => {
     describe('calculateCornerCoordinates', () => {
         test('should calculate correct coordinates for NW direction', () => {
             const manager = new ShipCornerManager('NW', bounds);
-            expect(manager.cornerCoordinates).toEqual({
-                topLeft: [1, 1],
-                topRight: [1, 4],
-                bottomLeft: [4, 1],
-                bottomRight: [4, 4]
-            });
+            // Тестируем через публичные методы вместо прямого доступа к cornerCoordinates
+            expect(manager.isCornerCard(new Position(1, 1))).toBe(true);  // topLeft
+            expect(manager.isCornerCard(new Position(1, 4))).toBe(true);  // topRight
+            expect(manager.isCornerCard(new Position(4, 1))).toBe(true);  // bottomLeft
+            expect(manager.isCornerCard(new Position(4, 4))).toBe(true);  // bottomRight
         });
 
         test('should calculate correct coordinates for NE direction', () => {
             const manager = new ShipCornerManager('NE', bounds);
-            expect(manager.cornerCoordinates).toEqual({
-                topLeft: [1, -1],
-                topRight: [1, 2],
-                bottomLeft: [4, -1],
-                bottomRight: [4, 2]
-            });
+            expect(manager.isCornerCard(new Position(1, -1))).toBe(true);  // topLeft
+            expect(manager.isCornerCard(new Position(1, 2))).toBe(true);   // topRight
+            expect(manager.isCornerCard(new Position(4, -1))).toBe(true);  // bottomLeft
+            expect(manager.isCornerCard(new Position(4, 2))).toBe(true);   // bottomRight
         });
 
         test('should calculate correct coordinates for SW direction', () => {
             const manager = new ShipCornerManager('SW', bounds);
-            expect(manager.cornerCoordinates).toEqual({
-                topLeft: [-1, 1],
-                topRight: [-1, 4],
-                bottomLeft: [2, 1],
-                bottomRight: [2, 4]
-            });
+            expect(manager.isCornerCard(new Position(-1, 1))).toBe(true);  // topLeft
+            expect(manager.isCornerCard(new Position(-1, 4))).toBe(true);  // topRight
+            expect(manager.isCornerCard(new Position(2, 1))).toBe(true);   // bottomLeft
+            expect(manager.isCornerCard(new Position(2, 4))).toBe(true);   // bottomRight
         });
 
         test('should calculate correct coordinates for SE direction', () => {
             const manager = new ShipCornerManager('SE', bounds);
-            expect(manager.cornerCoordinates).toEqual({
-                topLeft: [-1, -1],
-                topRight: [-1, 2],
-                bottomLeft: [2, -1],
-                bottomRight: [2, 2]
-            });
+            expect(manager.isCornerCard(new Position(-1, -1))).toBe(true); // topLeft
+            expect(manager.isCornerCard(new Position(-1, 2))).toBe(true);  // topRight
+            expect(manager.isCornerCard(new Position(2, -1))).toBe(true);  // bottomLeft
+            expect(manager.isCornerCard(new Position(2, 2))).toBe(true);   // bottomRight
         });
     });
 
@@ -132,14 +125,14 @@ describe('ShipCornerManager', () => {
             const manager = new ShipCornerManager('NE', bounds);
             expect(manager.getNextDirection()).toBe('SE');
 
-            manager.direction = 'SE';
-            expect(manager.getNextDirection()).toBe('SW');
+            const manager2 = new ShipCornerManager('SE', bounds);
+            expect(manager2.getNextDirection()).toBe('SW');
 
-            manager.direction = 'SW';
-            expect(manager.getNextDirection()).toBe('NW');
+            const manager3 = new ShipCornerManager('SW', bounds);
+            expect(manager3.getNextDirection()).toBe('NW');
 
-            manager.direction = 'NW';
-            expect(manager.getNextDirection()).toBe('NE');
+            const manager4 = new ShipCornerManager('NW', bounds);
+            expect(manager4.getNextDirection()).toBe('NE');
         });
     });
 

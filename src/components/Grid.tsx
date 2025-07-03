@@ -18,8 +18,7 @@ const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, context
         const card = positionSystem.getPosition(pos);
         const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, pos);
         const isPlayerPosition = context.playerPosition && context.playerPosition.equals(pos);
-        const isFlippable = card && state.matches('playing.checkingFlippable') && 
-            card.type === 'back' && canFlipCard(context, card);
+        const isFlippable = card && state.matches('playing.checkingFlippable') && canFlipCard(context, card);
 
         // Add coastline logic
         let isCoastline = false;

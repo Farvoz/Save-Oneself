@@ -1,7 +1,8 @@
-import { INITIAL_FRONT_DECK } from './gameData';
 import { ShipCornerManager } from './ShipCornerManager';
-import { GameContext, Card, ShipCard, CardType, Direction } from './gameData';
+import { GameContext } from './gameData';
+import { Card, ShipCard, Direction } from './Card';
 import { Position, PositionSystem } from './PositionSystem';
+import { ship } from './cardData';
 
 interface MovePlayerResult {
     playerPosition: Position;
@@ -30,11 +31,6 @@ interface PlaceCardResult {
 interface PlaceShipResult {
     shipCard: ShipCard;
     positionSystem: PositionSystem;
-}
-
-interface FlipCardResult {
-    positionSystem: PositionSystem;
-    lives: number;
 }
 
 interface MoveShipResult {
@@ -123,57 +119,13 @@ export const placeShip = (positionSystem: PositionSystem, direction: Direction):
     const cornerManager = new ShipCornerManager(direction, bounds);
     const shipPosition = cornerManager.getStartShipPosition();
 
-    const newShipCard: ShipCard = {
-        type: 'ship',
-        direction,
-        id: 'ship',
-        position: shipPosition,
-        skipMove: true,
-        hasTurned: false,
-        emoji: '⛵',
-        cornerManager,
-        lives: 0,
-        getEmoji() {
-            if (!this.direction) return this.emoji;
-            const arrows = {
-                'NE': '⬇️',
-                'SE': '⬅️', 
-                'SW': '⬆️',
-                'NW': '➡️'
-            };
-            return `${this.emoji}${arrows[this.direction]}`;
-        }
-    };
+    const newShipCard = new ShipCard(ship, direction, shipPosition, cornerManager);
 
     positionSystem.setPosition(shipPosition, newShipCard);
 
     return {
         shipCard: newShipCard,
         positionSystem
-    };
-};
-
-// Flip a card
-export const flipCard = (context: GameContext, pos: Position): FlipCardResult => {
-    const cardObj = context.positionSystem.getPosition(pos);
-    if (!cardObj) {
-        throw new Error('Card not found at position');
-    }
-    const frontCard = INITIAL_FRONT_DECK.find(card => card.backId === cardObj.id);
-    if (!frontCard) {
-        throw new Error('Front card not found for back card');
-    }
-    
-    // Размещает перевернутую карту на поле
-    const flippedCard: Card = {
-        ...frontCard,
-        type: 'front' as CardType
-    };
-    context.positionSystem.setPosition(pos, flippedCard);
-    
-    return {
-        positionSystem: context.positionSystem,
-        lives: context.lives
     };
 };
 
@@ -190,14 +142,14 @@ export const handleShipSightedEffect = (context: GameContext): { newDirection: D
     }
 
     return {
-        newDirection: context.shipCard!.direction,
+        newDirection: context.shipCard!.getCurrentDirection()!,
         hasTurned: Boolean(context.shipCard?.hasTurned || (hasShipSighted && isAtCorner))
     };
 };
 
 // Move the ship
 export const moveShip = (context: GameContext): MoveShipResult => {
-    if (!context.shipCard?.position || !context.shipCard?.direction) {
+    if (!context.shipCard?.position || !context.shipCard?.getCurrentDirection()) {
         return {
             shipCard: context.shipCard!,
             positionSystem: context.positionSystem
@@ -206,12 +158,10 @@ export const moveShip = (context: GameContext): MoveShipResult => {
 
     // Если корабль должен пропустить ход, просто сбрасываем флаг
     if (context.shipCard.skipMove) {
-        const newShipCard: ShipCard = {
-            ...context.shipCard,
-            skipMove: false
-        };
+        context.shipCard.skipMove = false;
+
         return {
-            shipCard: newShipCard,
+            shipCard: context.shipCard,
             positionSystem: context.positionSystem
         };
     }
@@ -225,17 +175,14 @@ export const moveShip = (context: GameContext): MoveShipResult => {
     const newPosition = context.shipCard.cornerManager!.getNextShipPosition(shipPos, newDirection);
 
     // Обновляем все значения
-    const newShipCard: ShipCard = {
-        ...context.shipCard,
-        position: newPosition,
-        direction: newDirection,
-        hasTurned
-    };
+    context.shipCard.position = newPosition;
+    context.shipCard.direction = newDirection;
+    context.shipCard.hasTurned = hasTurned;
 
     context.positionSystem.swapPositions(shipPos, newPosition);
 
     return {
-        shipCard: newShipCard,
+        shipCard: context.shipCard,
         positionSystem: context.positionSystem
     };
 };

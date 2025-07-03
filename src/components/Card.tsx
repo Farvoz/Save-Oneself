@@ -1,10 +1,11 @@
 import React from 'react';
-import { INITIAL_DECK, INITIAL_FRONT_DECK } from '../core/gameData';
-import { Card as CardType } from '../core/gameData';
+import { INITIAL_GAME_DECK } from '../core/gameData';
 import './Card.css';
+import type { Card } from '../core/Card';
+import { ShipCard } from '../core/Card';
 
 interface CardProps {
-    card: CardType;
+    card: Card;
     row: number;
     col: number;
     isPlayerPosition: boolean;
@@ -31,10 +32,10 @@ const Card: React.FC<CardProps> = ({
     };
 
     const getEmoji = (): string => {
-        if (card.type === 'ship') {
-            return card.getEmoji ? card.getEmoji() : '🚢';
+        if (card.getCurrentType() === 'ship' && card instanceof ShipCard) {
+            return card.getEmoji();
         }
-        return card.emoji;
+        return card.getCurrentEmoji();
     };
 
     const cardStyle: React.CSSProperties = {
@@ -52,9 +53,9 @@ const Card: React.FC<CardProps> = ({
             className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isAvailableMove ? 'available-move' : ''} ${isFlippable ? 'flippable' : ''}`}
             style={cardStyle}
             data-position={`${row},${col}`}
-            data-testid={`card-${card.id}`}
+            data-testid={`card-${card.getCurrentId()}`}
             onClick={handleClick}
-            title={card.description}
+            title={card.getCurrentDescription()}
         >
             {isPlayerPosition && (
                 <div className="player-marker">Игрок</div>
@@ -63,36 +64,36 @@ const Card: React.FC<CardProps> = ({
                 <div className="flip-indicator">🔄</div>
             )}
             <div className="card-content">
-                {Math.abs(card.lives) > 0 && (
-                    <div className={"card-lives " + (card.lives > 0 ? "positive" : "")}>
-                        {card.lives}
+                {Math.abs(card.getCurrentLives()) > 0 && (
+                    <div className={"card-lives " + (card.getCurrentLives() > 0 ? "positive" : "")}>
+                        {card.getCurrentLives()}
                     </div>
                 )}
-                {card.score && (
+                {card.getCurrentScore() && (
                     <div className="card-score">
-                        {card.score} ⭐
+                        {card.getCurrentScore()} ⭐
                     </div>
                 )}
-                {card.type === 'back' && card.requirements && (
+                {card.getCurrentType() === 'back' && card.getRequirements() && (
                     <div className="card-requirements">
-                        {getRequirementsText(card.requirements)}
+                        {getRequirementsText(card.getRequirements()!)}
                     </div>
                 )}
-                {card.id && (
-                    <div className="card-name">{`${getEmoji()} ${card.type === 'ship' ? '' : card.id}`}</div>
+                {card.getCurrentId() && (
+                    <div className="card-name">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentId()}`}</div>
                 )}
-                {card.direction && (
-                    <div className="card-direction">{card.direction}</div>
+                {card.getCurrentDirection() && (
+                    <div className="card-direction">{card.getCurrentDirection()}</div>
                 )}
             </div>
         </div>
     );
 };
 
-const getCardBackground = (cardObj: CardType): string => {
-    if (cardObj.type === 'ship') return '#87CEEB';
-    if (cardObj.type === 'back') return '#F5F5DC';
-    if (cardObj.type === 'front') return '#E8F5E9';
+const getCardBackground = (cardObj: Card): string => {
+    if (cardObj.getCurrentType() === 'ship') return '#87CEEB';
+    if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
+    if (cardObj.getCurrentType() === 'front') return '#E8F5E9';
     return '#F5F5DC';
 };
 
@@ -118,8 +119,8 @@ const getRequirementsText = (requirements: string): string => {
     }
 
     // Find required card from both decks
-    const requiredCard = [...INITIAL_DECK, ...INITIAL_FRONT_DECK].find(card => card.id === requirements);
-    const emoji = requiredCard ? requiredCard.emoji : '❓';
+    const requiredCard = [...INITIAL_GAME_DECK].find(card => card.getCurrentId() === requirements);
+    const emoji = requiredCard ? requiredCard.getCurrentEmoji() : '❓';
 
     return `нужна ${emoji}`;
 };

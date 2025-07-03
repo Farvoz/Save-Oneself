@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Grid from '../../components/Grid';
-import { PositionSystem, Position } from '../../game/positionSystem';
+import { PositionSystem, Position } from '../../core/PositionSystem';
 
 describe('Grid Component', () => {
   const mockProps = {

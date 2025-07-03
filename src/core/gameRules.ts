@@ -1,6 +1,6 @@
 import { GameContext } from './gameData';
 import { Position } from './PositionSystem';
-import { Card } from './gameData';
+import { Card } from './Card';
 
 // Файл с игровыми предикатами
 
@@ -34,23 +34,24 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
 
 // Check if a card can be flipped
 export const canFlipCard = (context: GameContext, card: Card): boolean => {
-    if (card.type === 'front') return false;
+    if (card.getCurrentType() === 'front') return false;
     
-    if (card.requirements) {
-        if (card.requirements === '_ship-set-sail') {
+    const requirements = card.getRequirements();
+    if (requirements) {
+        if (requirements === '_ship-set-sail') {
             return context.shipCard?.direction !== undefined && context.shipCard?.skipMove;
         }
         
         // Check if player is on higher-ground when required
-        if (card.requirements === 'higher-ground' || card.id === 'higher-ground') {
+        if (requirements === 'higher-ground' || card.getCurrentId() === 'higher-ground') {
             const playerCard = context.positionSystem.getPosition(context.playerPosition!);
-            if (!playerCard || playerCard.id !== 'higher-ground') {
+            if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
                 return false;
             }
         }
 
         // Check map card requirements
-        if (card.requirements === '_map') {
+        if (requirements === '_map') {
             // Both map cards must be on the board
             const mapRResult = context.positionSystem.findCardById('map-r');
             const mapCResult = context.positionSystem.findCardById('map-c');
@@ -62,7 +63,7 @@ export const canFlipCard = (context: GameContext, card: Card): boolean => {
                    mapCResult.position.col === context.playerPosition!.col;
         }
         
-        return context.positionSystem.findCardById(card.requirements) !== null;
+        return context.positionSystem.findCardById(requirements) !== null;
     }
     
     return true;
@@ -71,7 +72,7 @@ export const canFlipCard = (context: GameContext, card: Card): boolean => {
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context: GameContext): boolean => {
     for (const [, card] of context.positionSystem.occupiedPositions) {
-        if (card.type === 'back' && canFlipCard(context, card)) {
+        if (canFlipCard(context, card) && card.getCurrentType() !== 'ship') {
             return true;
         }
     }
@@ -111,8 +112,8 @@ export const calculateScore = (context: GameContext): number => {
     let score = 0;
     
     // Add scores from flipped cards
-    const scoreCards = context.positionSystem.findAllBy(card => Boolean(card.score)).map(result => result.card);
-    score += scoreCards.reduce((acc, card) => acc + Number(card.score), 0);
+    const scoreCards = context.positionSystem.findAllBy(card => Boolean(card.getCurrentScore())).map(result => result.card);
+    score += scoreCards.reduce((acc, card) => acc + Number(card.getCurrentScore()), 0);
     
     // Add remaining lives
     score += context.lives;

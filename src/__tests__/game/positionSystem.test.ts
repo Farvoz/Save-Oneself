@@ -1,4 +1,6 @@
-import { Position, PositionSystem } from '../../game/positionSystem';
+import { Position, PositionSystem } from '../../core/PositionSystem';
+import { GameCard } from '../../core/Card';
+import { CARD_DATA } from '../../core/cardData';
 
 describe('Position', () => {
   test('should create position with row and col', () => {
@@ -41,7 +43,7 @@ describe('Position', () => {
 });
 
 describe('PositionSystem', () => {
-  let positionSystem;
+  let positionSystem: PositionSystem;
 
   beforeEach(() => {
     positionSystem = new PositionSystem();
@@ -49,21 +51,23 @@ describe('PositionSystem', () => {
 
   test('should set and get position', () => {
     const pos = new Position(1, 2);
-    const value = { id: 'test' };
-    positionSystem.setPosition(pos, value);
-    expect(positionSystem.getPosition(pos)).toEqual(value);
+    const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    positionSystem.setPosition(pos, card);
+    expect(positionSystem.getPosition(pos)).toEqual(card);
   });
 
   test('should check if position exists', () => {
     const pos = new Position(1, 2);
     expect(positionSystem.hasPosition(pos)).toBe(false);
-    positionSystem.setPosition(pos, { id: 'test' });
+    const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    positionSystem.setPosition(pos, card);
     expect(positionSystem.hasPosition(pos)).toBe(true);
   });
 
   test('should remove position', () => {
     const pos = new Position(1, 2);
-    positionSystem.setPosition(pos, { id: 'test' });
+    const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    positionSystem.setPosition(pos, card);
     expect(positionSystem.hasPosition(pos)).toBe(true);
     positionSystem.removePosition(pos);
     expect(positionSystem.hasPosition(pos)).toBe(false);
@@ -72,21 +76,25 @@ describe('PositionSystem', () => {
   test('should swap positions', () => {
     const pos1 = new Position(1, 2);
     const pos2 = new Position(3, 4);
-    const value1 = { id: 'test1' };
-    const value2 = { id: 'test2' };
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
 
-    positionSystem.setPosition(pos1, value1);
-    positionSystem.setPosition(pos2, value2);
+    positionSystem.setPosition(pos1, card1);
+    positionSystem.setPosition(pos2, card2);
     positionSystem.swapPositions(pos1, pos2);
 
-    expect(positionSystem.getPosition(pos1)).toEqual(value2);
-    expect(positionSystem.getPosition(pos2)).toEqual(value1);
+    expect(positionSystem.getPosition(pos1)).toEqual(card2);
+    expect(positionSystem.getPosition(pos2)).toEqual(card1);
   });
 
   test('should get bounds of occupied positions', () => {
-    positionSystem.setPosition(new Position(1, 2), { id: 'test1' });
-    positionSystem.setPosition(new Position(3, 4), { id: 'test2' });
-    positionSystem.setPosition(new Position(2, 3), { id: 'test3' });
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
+    const card3 = new GameCard(CARD_DATA.water.back, CARD_DATA.water.front);
+    
+    positionSystem.setPosition(new Position(1, 2), card1);
+    positionSystem.setPosition(new Position(3, 4), card2);
+    positionSystem.setPosition(new Position(2, 3), card3);
 
     const bounds = positionSystem.getBounds();
     expect(bounds).toEqual({
@@ -101,10 +109,10 @@ describe('PositionSystem', () => {
 
   test('should find card by id', () => {
     const pos = new Position(1, 2);
-    const card = { id: 'test' };
+    const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
     positionSystem.setPosition(pos, card);
 
-    const result = positionSystem.findCardById('test');
+    const result = positionSystem.findCardById('vines');
     expect(result).toEqual({
       position: pos,
       card: card
@@ -113,8 +121,11 @@ describe('PositionSystem', () => {
 
   test('should find farthest position', () => {
     const fromPos = new Position(0, 0);
-    positionSystem.setPosition(new Position(1, 1), { id: 'test1' });
-    positionSystem.setPosition(new Position(3, 3), { id: 'test2' });
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
+    
+    positionSystem.setPosition(new Position(1, 1), card1);
+    positionSystem.setPosition(new Position(3, 3), card2);
 
     const farthestPos = positionSystem.findFarthestPosition(fromPos);
     expect(farthestPos).toEqual(new Position(3, 3));
@@ -122,10 +133,15 @@ describe('PositionSystem', () => {
 
   test('should get adjacent positions', () => {
     const centerPos = new Position(1, 1);
-    positionSystem.setPosition(new Position(0, 1), { id: 'up' });
-    positionSystem.setPosition(new Position(2, 1), { id: 'down' });
-    positionSystem.setPosition(new Position(1, 0), { id: 'left' });
-    positionSystem.setPosition(new Position(1, 2), { id: 'right' });
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
+    const card3 = new GameCard(CARD_DATA.water.back, CARD_DATA.water.front);
+    const card4 = new GameCard(CARD_DATA.flint.back, CARD_DATA.flint.front);
+    
+    positionSystem.setPosition(new Position(0, 1), card1);
+    positionSystem.setPosition(new Position(2, 1), card2);
+    positionSystem.setPosition(new Position(1, 0), card3);
+    positionSystem.setPosition(new Position(1, 2), card4);
 
     const adjacent = positionSystem.getAdjacentPositions(centerPos);
     expect(adjacent).toHaveLength(4);

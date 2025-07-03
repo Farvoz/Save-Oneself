@@ -1,39 +1,43 @@
-import { 
-  movePlayer, 
-  shuffleDeck, 
-  placeCard, 
-  placeShip,
-} from '../../game/gameActions';
-import { INITIAL_DECK, INITIAL_SHIP } from '../../game/gameData';
-import { PositionSystem, Position } from '../../game/positionSystem';
+import {
+  movePlayer,
+  shuffleDeck,
+  placeCard,
+  placeShip
+} from '../../core/gameActions';
+import { INITIAL_GAME_DECK, GameContext } from '../../core/gameData';
+import { GameCard } from '../../core/Card';
+import { PositionSystem, Position } from '../../core/PositionSystem';
+import { CARD_DATA } from '../../core/cardData';
 
 describe('Game Actions', () => {
-  let mockContext;
+  let mockContext: GameContext;
 
   beforeEach(() => {
     mockContext = {
       positionSystem: new PositionSystem(),
-      deck: [...INITIAL_DECK],
+      deck: [...INITIAL_GAME_DECK],
       lives: 3,
-      shipCard: { ...INITIAL_SHIP },
+      shipCard: undefined,
       hasPlacedCard: false,
-      movesLeft: 3
+      movesLeft: 3,
+      hasMoved: false,
+      gameOverMessage: null,
+      isVictory: false
     };
   });
 
   describe('movePlayer', () => {
     test('should handle game over when deck is empty', () => {
       mockContext.deck = [];
-      const result = movePlayer(mockContext, 0, 0);
+      const result = movePlayer(mockContext, new Position(0, 0));
       expect(result.gameOverMessage).toBe('Игра окончена! Колода пуста.');
       expect(result.isVictory).toBe(false);
     });
 
-    test('should handle pirates card effect', () => {
-      const piratesCard = { id: 'pirates' };
-      mockContext.positionSystem.setPosition(new Position(0, 0), piratesCard);
+    test('should move player to new position', () => {
       const result = movePlayer(mockContext, new Position(0, 0));
-      expect(result.shipCard).toEqual(INITIAL_SHIP);
+      expect(result.playerPosition).toEqual(new Position(0, 0));
+      expect(result.hasMoved).toBe(true);
     });
   });
 
@@ -47,12 +51,11 @@ describe('Game Actions', () => {
     });
   });
 
-  // Эта функция вызывается только внутри movePlayer
   describe('placeCard', () => {
     test('should place card and remove from deck', () => {
       const result = placeCard(mockContext, new Position(0, 0));
       expect(result.positionSystem.countNonShipCards()).toBe(1);
-      expect(result.deck.length).toBe(INITIAL_DECK.length - 1);
+      expect(result.deck.length).toBe(INITIAL_GAME_DECK.length - 1);
       expect(result.cardObj).toBeDefined();
     });
   });
@@ -60,8 +63,11 @@ describe('Game Actions', () => {
   describe('placeShip', () => {
     test('should place ship in correct position based on direction', () => {
       const positionSystem = new PositionSystem();
-      positionSystem.setPosition(new Position(0, 0), { id: 'card1' });
-      positionSystem.setPosition(new Position(0, 1), { id: 'card2' });
+      const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+      const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
+      
+      positionSystem.setPosition(new Position(0, 0), card1);
+      positionSystem.setPosition(new Position(0, 1), card2);
       
       const result = placeShip(positionSystem, 'NW');
       expect(result.shipCard.position).toBeDefined();
