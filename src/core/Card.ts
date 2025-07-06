@@ -1,5 +1,6 @@
 import { ShipCornerManager } from "./ShipCornerManager";
 import { Position } from "./PositionSystem";
+import type { GameContext, GameEvent } from "./gameData";
 
 export type Direction = 'NE' | 'SE' | 'SW' | 'NW';
 
@@ -18,6 +19,22 @@ export type CardSide = {
     hasTurned?: boolean;
     cornerManager?: ShipCornerManager;
     getEmoji?: () => string;
+    /**
+     * Вызывается при размещении карты на поле
+     */
+    onPlace?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
+     * Вызывается при перевороте карты
+     */
+    onFlip?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
+     * Вызывается при движении корабля
+     */
+    onShipMove?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
+     * Вызывается при начале раунда
+     */
+    onRoundStart?: (context: GameContext, event?: GameEvent) => GameContext;
 };
 
 export class GameCard {

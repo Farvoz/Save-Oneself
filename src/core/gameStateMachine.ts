@@ -4,6 +4,8 @@ import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
 import { shuffleDeck, movePlayer, moveShip, updateLives, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
+import type { GameContext } from './gameData';
+import type { CardSide } from './Card';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -26,12 +28,9 @@ export const createGameStateMachine = () => {
                         entry: [
                             assign({
                                 hasPlacedCard: false,
-                                hasMoved: false,
-                                movesLeft: ({ context }) => {
-                                    const hasCompass = context.positionSystem.findCardById('compass');
-                                    return hasCompass ? 2 : 1;
-                                }
-                            })
+                                hasMoved: false
+                            }),
+                            assign(({ context }) => applyCardHandlers(context, 'onRoundStart'))
                         ],
                         always: { target: 'moving' }
                     },
@@ -117,58 +116,12 @@ export const createGameStateMachine = () => {
                                 const card = context.positionSystem.getPosition(context.playerPosition!);
                                 if (!card) return context;
                                 let newContext = { ...context };
-
-                                // если карта с жизнями, то восстанавливается жизнь (только 1 раз при вскрытии)
                                 if (card.getCurrentLives() > 0) {
                                     const { lives } = updateLives(context.lives, card.getCurrentLives());
                                     newContext = { ...newContext, lives };
                                 }
-
-                                // Обработка эффекта mirage
-                                if (card.getCurrentId() === 'mirage') {
-                                    const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition!);
-
-                                    if (farthestPos) {
-                                        context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
-                                        card.flip();
-                                    }
-                                    newContext = {
-                                        ...newContext,
-                                        positionSystem: context.positionSystem
-                                    };
-                                }
-
-                                // Обработка эффекта пиратов
-                                if (card.getCurrentId() === 'pirates' && context.shipCard && !context.shipCard.getCurrentSide().skipMove) {
-                                    context.positionSystem.removePosition(context.shipCard.position);
-                                    card.flip();
-                                    newContext = {
-                                        ...newContext,
-                                        positionSystem: context.positionSystem,
-                                        shipCard: undefined
-                                    };
-                                }
-
-                                if (card.getCurrentLives() < 0) {
-                                    // Check if there's protection from negative effects
-                                    const isProtected = context.positionSystem.findCardById('spear') && card.getCurrentId() === 'pig' 
-                                        || context.positionSystem.findCardById('shelter') && card.getCurrentId() === 'storm';
-
-                                    if (!isProtected) {
-                                        const { lives } = updateLives(context.lives, card.getCurrentLives());
-                                        newContext = { ...newContext, lives };
-                                    }
-                                }
-
-                                // Проверяем шторм при размещении 13-й карты
-                                if (context.positionSystem.countNonShipCards() === 13) {
-                                    const stormResult = context.positionSystem.findCardById('storm');
-                                    if (stormResult) {
-                                        gameLogger.info('Шторм найден на позиции', { stormPos: stormResult.position });
-                                        stormResult.card.flip();
-                                    }
-                                }
-
+                                // Вызов обработчика onPlace только для текущей карты
+                                newContext = applyCardHandlerForCurrentCard(newContext, 'onPlace', context.playerPosition!);
                                 return newContext;
                             })
                         ],
@@ -258,43 +211,12 @@ export const createGameStateMachine = () => {
                                 const card = context.positionSystem.getPosition(context.playerPosition!);
                                 if (!card) return context;
                                 let newContext = { ...context };
-
-                                // Обновляем жизни при перевороте карты
                                 if (card.getCurrentLives() > 0) {
                                     const { lives } = updateLives(context.lives, card.getCurrentLives());
                                     newContext = { ...newContext, lives };
                                 }
-
-                                // Если это tornado, то переворачиваем обратно
-                                if (context.positionSystem.countNonShipCards() === 13 && card.getCurrentId() === 'tornado') {
-                                    card.flip();
-
-                                    // А также переворачивает обратно shelter и lit beacon
-                                    const shelterResult = context.positionSystem.findCardById('shelter');
-                                    const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
-                                    if (shelterResult) {
-                                        shelterResult.card.flip();
-                                    }
-                                    if (litBeaconResult) {
-                                        litBeaconResult.card.flip();
-                                    }
-                                }
-
-                                // Если это одна из карт сокровищ, переворачиваем обе
-                                if (card.getCurrentBackId() === 'map-r' || card.getCurrentBackId() === 'map-c') {
-                                    // Находим и переворачиваем вторую карту сокровищ
-                                    const otherMapId = card.getCurrentBackId() === 'map-r' ? 'map-c' : 'map-r';
-                                    const otherMapResult = context.positionSystem.findCardById(otherMapId);                                    
-                                    if (otherMapResult) {
-                                        otherMapResult.card.flip();
-                                    }
-
-                                    // Увеличиваем количество жизней на 1 - эффект rum
-                                    // TODO: добавить в очередь эффект карты rum
-                                    const { lives } = updateLives(newContext.lives, 1);
-                                    newContext = { ...newContext, lives };
-                                }
-
+                                // Вызов обработчика onFlip только для текущей карты
+                                newContext = applyCardHandlerForCurrentCard(newContext, 'onFlip', context.playerPosition!);
                                 return newContext;
                             })
                         ],
@@ -336,35 +258,7 @@ export const createGameStateMachine = () => {
                     // Проверяем эффекты при движении корабля
                     checkingShipEffects: {
                         entry: [
-                            assign(({ context }) => {
-                                let newContext = { ...context };
-
-                                // Проверяем эффект sea-serpent
-                                if (!context.shipCard?.position) return newContext;
-                                const adjacentPositions = context.positionSystem.getAdjacentPositions(context.shipCard!.position);
-                                const hasSeaSerpent = adjacentPositions.some(adjPos => {
-                                    const card = context.positionSystem.getPosition(adjPos);
-                                    return card && card.getCurrentId() === 'sea-serpent';
-                                });
-
-                                if (hasSeaSerpent && context.shipCard?.cornerManager) {
-                                    const extraPosition = context.shipCard.cornerManager.getNextShipPosition(
-                                        context.shipCard!.position!, 
-                                        context.shipCard!.getCurrentDirection()!
-                                    );
-                                    const extraShipCard = context.shipCard;
-                                    extraShipCard.position = extraPosition;
-
-                                    context.positionSystem.swapPositions(context.shipCard!.position!, extraPosition);
-                                    newContext = {
-                                        ...newContext,
-                                        shipCard: extraShipCard,
-                                        positionSystem: context.positionSystem
-                                    };
-                                }
-
-                                return newContext;
-                            })
+                            assign(({ context }) => applyCardHandlers(context, 'onShipMove'))
                         ],
                         after: {
                             0: { target: 'startOfRound' }
@@ -377,4 +271,29 @@ export const createGameStateMachine = () => {
             }
         }
     });
-}; 
+};
+
+// Вспомогательная функция для вызова обработчиков карт
+function applyCardHandlers(context: GameContext, handlerName: keyof CardSide) {
+    let newContext = { ...context };
+    const allCards = context.positionSystem.findAllBy(() => true);
+    for (const { card } of allCards) {
+        const side = card.getCurrentSide();
+        if (side && typeof side[handlerName] === 'function') {
+            const handler = side[handlerName] as ((ctx: GameContext) => GameContext);
+            newContext = handler(newContext) || newContext;
+        }
+    }
+    return newContext;
+}
+
+function applyCardHandlerForCurrentCard(context: GameContext, handlerName: keyof CardSide, position: Position) {
+    const card = context.positionSystem.getPosition(position);
+    if (!card) return context;
+    const side = card.getCurrentSide();
+    if (side && typeof side[handlerName] === 'function') {
+        const handler = side[handlerName] as ((ctx: GameContext) => GameContext);
+        return handler(context) || context;
+    }
+    return context;
+} 

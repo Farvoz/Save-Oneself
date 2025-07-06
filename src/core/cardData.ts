@@ -1,4 +1,5 @@
 import { Direction, CardType, CardSide } from './Card';
+import { updateLives } from './gameActions';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
     'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' | 'pirates' | 
@@ -197,7 +198,16 @@ export const CARD_DATA: CardData = {
             requirements: 'spear',
             type: 'back' as CardType,
             emoji: '🐷',
-            description: 'После добычи, даёт мясо'
+            description: 'После добычи, даёт мясо',
+            onPlace: (context) => {
+                // Если есть spear, урон не наносится
+                const isProtected = context.positionSystem.findCardById('spear');
+                if (!isProtected) {
+                    const { lives } = updateLives(context.lives, -2);
+                    return { ...context, lives };
+                }
+                return context;
+            }
         },
         front: {
             id: 'meat',
@@ -213,14 +223,46 @@ export const CARD_DATA: CardData = {
             requirements: '_13-turn',
             type: 'back' as CardType,
             emoji: '🌧️',
-            description: 'Можно защититься в убежище'
+            description: 'Можно защититься в убежище',
+            onPlace: (context) => {
+                // Если есть shelter, урон не наносится
+                const isProtected = context.positionSystem.findCardById('shelter');
+                if (!isProtected) {
+                    const { lives } = updateLives(context.lives, -2);
+                    return { ...context, lives };
+                }
+                return context;
+            },
+            onRoundStart: (context) => {
+                if (context.positionSystem.countNonShipCards() === 13) {
+                    const stormResult = context.positionSystem.findCardById('storm');
+                    if (stormResult) {
+                        stormResult.card.flip();
+                    }
+                }
+                return context;
+            }
         },
         front: {
             id: 'tornado',
             lives: -3,
             type: 'front' as CardType,
             emoji: '🌪️',
-            description: 'Уничтожает убежище и костер, а затем переворачивается обратно'
+            description: 'Уничтожает убежище и костер, а затем переворачивается обратно',
+            onFlip: (context) => {
+                // tornado flips back, and also flips shelter and lit beacon back
+                if (context.positionSystem.countNonShipCards() === 13) {
+                    // flip tornado back
+                    const tornadoCard = context.positionSystem.getPosition(context.playerPosition!);
+                    if (tornadoCard) tornadoCard.flip();
+                    // flip shelter and lit beacon back
+                    const shelterResult = context.positionSystem.findCardById('shelter');
+                    const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
+                    if (shelterResult) shelterResult.card.flip();
+                    if (litBeaconResult) litBeaconResult.card.flip();
+                }
+                return context;
+            }
         }
     },
     mirage: {
@@ -230,14 +272,47 @@ export const CARD_DATA: CardData = {
             requirements: '_swap',
             type: 'back' as CardType,
             emoji: '🌫️',
-            description: 'Сразу же заменяет самую дальнюю карту и переворачивается'
+            description: 'Сразу же заменяет самую дальнюю карту и переворачивается',
+            onPlace: (context) => {
+                const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition!);
+                if (farthestPos) {
+                    context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
+                    // flip the mirage card after swap
+                    const card = context.positionSystem.getPosition(farthestPos);
+                    if (card) card.flip();
+                }
+                return { ...context, positionSystem: context.positionSystem };
+            }
         },
         front: {
             id: 'sea-serpent',
             lives: 0,
             type: 'front' as CardType,
             emoji: '🐍',
-            description: 'Корабль перескочет соседнюю клетку'
+            description: 'Корабль перескочет соседнюю клетку',
+            onShipMove: (context) => {
+                if (!context.shipCard?.position) return context;
+                const adjacentPositions = context.positionSystem.getAdjacentPositions(context.shipCard.position);
+                const isAdjacent = adjacentPositions.some(adjPos => {
+                    const card = context.positionSystem.getPosition(adjPos);
+                    return card && card.getCurrentId() === 'sea-serpent';
+                });
+                if (isAdjacent && context.shipCard.cornerManager) {
+                    const extraPosition = context.shipCard.cornerManager.getNextShipPosition(
+                        context.shipCard.position,
+                        context.shipCard.getCurrentDirection()!
+                    );
+                    const extraShipCard = context.shipCard;
+                    extraShipCard.position = extraPosition;
+                    context.positionSystem.swapPositions(context.shipCard.position, extraPosition);
+                    return {
+                        ...context,
+                        shipCard: extraShipCard,
+                        positionSystem: context.positionSystem
+                    };
+                }
+                return context;
+            }
         }
     },
     pirates: {
@@ -247,14 +322,32 @@ export const CARD_DATA: CardData = {
             requirements: '_ship-sailing',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
-            description: 'Срабатывает, когда корабль уже плывет'
+            description: 'Срабатывает, когда корабль уже плывет',
+            onPlace: (context) => {
+                if (context.shipCard && !context.shipCard.getCurrentSide().skipMove) {
+                    context.positionSystem.removePosition(context.shipCard.position);
+                    // flip the pirates card
+                    const piratesCard = context.positionSystem.getPosition(context.playerPosition!);
+                    if (piratesCard) piratesCard.flip();
+                    return {
+                        ...context,
+                        positionSystem: context.positionSystem,
+                        shipCard: undefined
+                    };
+                }
+                return context;
+            }
         },
         front: {
             id: 'compass',
             lives: 0,
             type: 'front' as CardType,
             emoji: '🧭',
-            description: 'Даёт дополнительный ход на выложенную карту'
+            description: 'Даёт дополнительный ход на выложенную карту',
+            onRoundStart: (context) => {
+                // Если компас есть на поле, movesLeft = 2
+                return { ...context, movesLeft: 2 };
+            }
         }
     },
     mapRow: {
@@ -270,7 +363,21 @@ export const CARD_DATA: CardData = {
             id: 'rum',
             lives: 1,
             type: 'front' as CardType,
-            emoji: '🥃'
+            emoji: '🥃',
+            onFlip: (context) => {
+                // flip both map cards and add 1 life (rum effect)
+                const card = context.positionSystem.getPosition(context.playerPosition!);
+                if (card) {
+                    // flip the other map card
+                    const otherMapId = 'map-c';
+                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
+                    if (otherMapResult) otherMapResult.card.flip();
+                    // add 1 life
+                    const { lives } = updateLives(context.lives, 1);
+                    return { ...context, lives };
+                }
+                return context;
+            }
         }
     },
     mapCol: {
@@ -287,7 +394,21 @@ export const CARD_DATA: CardData = {
             lives: 0,
             score: 10,
             type: 'front' as CardType,
-            emoji: '💎'
+            emoji: '💎',
+            onFlip: (context) => {
+                // flip both map cards and add 1 life (rum effect)
+                const card = context.positionSystem.getPosition(context.playerPosition!);
+                if (card) {
+                    // flip the other map card
+                    const otherMapId = 'map-r';
+                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
+                    if (otherMapResult) otherMapResult.card.flip();
+                    // add 1 life
+                    const { lives } = updateLives(context.lives, 1);
+                    return { ...context, lives };
+                }
+                return context;
+            }
         }
     },
 } as const; 
