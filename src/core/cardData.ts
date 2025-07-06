@@ -17,12 +17,15 @@ export const CARD_DATA: CardData = {
     vines: {
         back: {
             id: 'vines',
-            lives: 0,
             direction: 'SW' as Direction,
             requirements: 'palm-trees',
             type: 'back' as CardType,
             emoji: '🌿',
-            description: 'Позволяет сделать убежище'
+            description: 'Позволяет сделать убежище',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 2);
+                return { ...context, lives };
+            }
         },
         front: {
             id: 'shelter',
@@ -36,7 +39,6 @@ export const CARD_DATA: CardData = {
     hook: {
         back: {
             id: 'hook',
-            lives: 0,
             direction: 'NE' as Direction,
             requirements: 'water',
             type: 'back' as CardType,
@@ -57,19 +59,26 @@ export const CARD_DATA: CardData = {
             requirements: 'telescope',
             type: 'back' as CardType,
             emoji: '💧',
-            description: 'Позволяет освежиться'
+            description: 'Позволяет освежиться',
+            onPlace: (context) => {
+                const { lives } = updateLives(context.lives, 2);
+                return { ...context, lives };
+            }
         },
         front: {
             id: 'waterfall',
             lives: 2,
             type: 'front' as CardType,
-            emoji: '🌊'
+            emoji: '🌊',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 2);
+                return { ...context, lives };
+            }
         }
     },
     flint: {
         back: {
             id: 'flint',
-            lives: 0,
             requirements: 'vines',
             type: 'back' as CardType,
             emoji: '⚡',
@@ -77,7 +86,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'torch',
-            lives: 0,
             score: 2,
             type: 'front' as CardType,
             emoji: '🕯️'
@@ -86,7 +94,6 @@ export const CARD_DATA: CardData = {
     palmTrees: {
         back: {
             id: 'palm-trees',
-            lives: 0,
             direction: 'SE' as Direction,
             requirements: 'rocks',
             type: 'back' as CardType,
@@ -97,13 +104,16 @@ export const CARD_DATA: CardData = {
             id: 'coconuts',
             lives: 2,
             type: 'front' as CardType,
-            emoji: '🥥'
+            emoji: '🥥',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 2);
+                return { ...context, lives };
+            }
         }
     },
     sticks: {
         back: {
             id: 'sticks',
-            lives: 0,
             direction: 'NW' as Direction,
             requirements: 'flint',
             type: 'back' as CardType,
@@ -112,7 +122,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'spear',
-            lives: 0,
             score: 2,
             type: 'front' as CardType,
             emoji: '🗡️',
@@ -122,7 +131,6 @@ export const CARD_DATA: CardData = {
     bottle: {
         back: {
             id: 'bottle',
-            lives: 0,
             requirements: '_ship-set-sail',
             type: 'back' as CardType,
             emoji: '🍾',
@@ -130,7 +138,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'message',
-            lives: 0,
             score: 3,
             type: 'front' as CardType,
             emoji: '📜',
@@ -140,7 +147,6 @@ export const CARD_DATA: CardData = {
     higherGround: {
         back: {
             id: 'higher-ground',
-            lives: 0,
             requirements: 'torch',
             type: 'back' as CardType,
             emoji: '⛰️',
@@ -148,7 +154,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'lit-beacon',
-            lives: 0,
             score: 7,
             type: 'front' as CardType,
             emoji: '🔥',
@@ -158,7 +163,6 @@ export const CARD_DATA: CardData = {
     telescope: {
         back: {
             id: 'telescope',
-            lives: 0,
             requirements: 'higher-ground',
             type: 'back' as CardType,
             emoji: '🔭',
@@ -166,7 +170,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'ship-sighted',
-            lives: 0,
             score: 1,
             type: 'front' as CardType,
             emoji: '🚢',
@@ -176,7 +179,6 @@ export const CARD_DATA: CardData = {
     rocks: {
         back: {
             id: 'rocks',
-            lives: 0,
             requirements: 'higher-ground',
             type: 'back' as CardType,
             emoji: '🧱',
@@ -184,7 +186,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'sos',
-            lives: 0,
             score: 5,
             type: 'front' as CardType,
             emoji: '🆘',
@@ -213,7 +214,11 @@ export const CARD_DATA: CardData = {
             id: 'meat',
             lives: 3,
             type: 'front' as CardType,
-            emoji: '🍽️'
+            emoji: '🍽️',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 3);
+                return { ...context, lives };
+            }
         }
     },
     storm: {
@@ -268,7 +273,6 @@ export const CARD_DATA: CardData = {
     mirage: {
         back: {
             id: 'mirage',
-            lives: 0,
             requirements: '_swap',
             type: 'back' as CardType,
             emoji: '🌫️',
@@ -286,7 +290,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'sea-serpent',
-            lives: 0,
             type: 'front' as CardType,
             emoji: '🐍',
             description: 'Корабль перескочет соседнюю клетку',
@@ -318,7 +321,6 @@ export const CARD_DATA: CardData = {
     pirates: {
         back: {
             id: 'pirates',
-            lives: 0,
             requirements: '_ship-sailing',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
@@ -340,7 +342,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'compass',
-            lives: 0,
             type: 'front' as CardType,
             emoji: '🧭',
             description: 'Даёт дополнительный ход на выложенную карту',
@@ -353,7 +354,6 @@ export const CARD_DATA: CardData = {
     mapRow: {
         back: {
             id: 'map-r',
-            lives: 0,
             requirements: '_map',
             type: 'back' as CardType,
             emoji: '👈🗺️👉',
@@ -383,7 +383,6 @@ export const CARD_DATA: CardData = {
     mapCol: {
         back: {
             id: 'map-c',
-            lives: 0,
             requirements: '_map',
             type: 'back' as CardType,
             emoji: '👇🗺️☝️',
@@ -391,7 +390,6 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'treasure',
-            lives: 0,
             score: 10,
             type: 'front' as CardType,
             emoji: '💎',
@@ -415,7 +413,6 @@ export const CARD_DATA: CardData = {
 
 export const ship: CardSide = {
     id: 'ship',
-    lives: 0,
     type: 'ship' as CardType,
     emoji: '⛵',
 } as const; 

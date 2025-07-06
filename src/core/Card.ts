@@ -8,7 +8,7 @@ export type CardType = 'back' | 'front' | 'ship';
 
 export type CardSide = {
     id: string;
-    lives: number;
+    lives?: number;
     direction?: Direction;
     requirements?: string;
     type: CardType;
@@ -77,7 +77,7 @@ export class GameCard {
     }
 
     getCurrentLives(): number {
-        return this.getCurrentSide().lives;
+        return this.getCurrentSide().lives || 0;
     }
 
     getCurrentType(): CardType {

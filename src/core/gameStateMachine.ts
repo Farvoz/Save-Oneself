@@ -9,7 +9,7 @@ import type { CardSide } from './Card';
 
 export const createGameStateMachine = () => {
     return createMachine({
-        /** @xstate-layout N4IgpgJg5mDOIC5RQIYFswDoAOAbFAngJYB2UmsALigE6UDyAZgEoD2AriRAMQAeVKSlhSMhNABQAGAJTdUGHPmJkK1OkzacIAbUkBdRKGytYRSkVYlDIXogBMAZgAsANkwAOBwFYAnAHY-Jx93AEZ3ABoQAkQXLxDMF0kkyQCQhxSQvwBfLMj5LDxCUnI0VgA3Yu4AWXoANQBRAH0ABQAZAEEATXrmXQMkEGNTc0trWwRHYMwndycnOxm44O9I6IQQyRcfTAWfYJDHSTC7HLz0AqVizFKKsm4AZQBpAElmxpqG+77rIbMLKwG40crg83n8gX2ESi9i8kkwySOoScXjmDnc2VyIHyiiKKgAxgALMB4gDWxSq5TAzDg7FwlD4AiEmBEYiksmxhWU5EJxLJZApZSpNLp3wGvxGANA4wCmBCMxmDhCPliXj8Pjsq0Qs3cmB8CK83hSknVpyx5xxXMwPNJ5Mp1NgtPp-GoTJZYAkMjk5s5V2tfKgAqFDpFIX6RhMf1GgPs7jccu1czCcTsXk1CD8W0wEL2Xk87ncRwcpo5l3xRJt-LtwqdjOEondbK9Ch9Zd5tsF9sd2jsYcGEYlYxjcflsycSYOqehCHVbhcu3zfncXhcLnmxe9pe55f9gc7dIZLrrrM9JdxW7blY71e0Dl74v+g4msdlI8TS4nabsfjsmAcflhaR2D4mRjj467NpuVrbsU9yUKwNBoAeghHg2J4bmeUEXlAsHwWgorhsMD7RggK7bEqBoGkcapqmmi4OLqex7C4zghHKK7gRcGF+jBcEIUhrr1h67LoZa3FkDhCHaKGPz9kRUoxJm5HeOkmT+D4aYOMBCQpkkoSxrG34uBxFpXBAxI0GAKCmGQrREIKsD8ShEjpGhEEYWZeIWVZxS2fZ+F9oRUbyQg+azsaTjGgcQFfp+KIeP+kh-smfhol4xktuQHledZUC+XAjnMoJ4gucJbmWlllk5XlsBSXeslBTYiAbD4TjTBmuYOKuepzmmzH0cinjzGkqoHGBmKnuV5mVT5dn5c6yGFayJVNpxk2edNNmzTVPYyYFkqNes4VtbEnhdZsGpTpprUTrpYQuAZdhGeNIm+tBZAAGK4EQ2DYCgABGuBgNw72tK8jQAMLtMwAAi-n3g14whMmWbNZ4nVMS1aZxPRSVJOkoR7I96WQWJUCfd9v0A0DTxg80AAS7T3PUcP1ftiPI34qMOOjyqY1OzE6rjkjopIdihP+xMYbABLfQKlTzQJrKwq5q1XNLsvlMULN7Y+mTc-C4KSLm7gtfmk5rHErVLnjfiJSb8xjWcZVqzL2By3cCtOeIyularKjq27mtkLVu2RmzTWczqc6wl+KaquiF1rPMcKJEkXh2HKewpBiTt++QAfu1ABVuhIPsrSZ-uu4X3Z1TrxHkV40xJb4khBA4CxOL1cQJAiqTpJzGKYiQrBmfAAz5KHA7EQAtEqabT44DGMcvy9OEWz3O2Qk9yQdQG9fRytJC4nN-hFouS5aAjqCwHBcNvCP2Eq8QPZzKpHK3vVfrKCKsUcIQuGkC+VwbjFHvuHCYvh4jyk0q3DOjh-xpmavEFcKD252CNvMJwQDWwVgDFWYMlAwGPgCGmU2L5GKi00oEOY2Dzy4IkmgIhxFsa6mRGCTmaRWKdynBmKO85j4ZjFu3WhmAKreU2vZJhwVgJwjsHI4+rdNjcxSBpOKN05ERUyCldiG886YVweTH6-1AZSIOmkTqOwTasRRPMXw+Yu6NzRs4dB+YlQ+HXrnCu+cq5BygKYxG-5tgoi2BFQ4-hWK9TlN-JIGd1TUVCMZfI9BBQ0H8YgeYiDgQ7CCMEe6cQj6DyyEAA */
+        /** @xstate-layout N4IgpgJg5mDOIC5RQIYFswDoAOAbFAngJYB2UmsALigE6UDyAZgEoD2AriRAMQDaADAF1EobK1hFKRViREgAHogBMAVgDsAFkwBOJQEYAbAA41ag2pUajKgDQgCia-x0BmMxrUujL-toN6AXwC7VAwcfGIyTDRWADdSKG4AWXoANQBRAH0ABQAZAEEATXTmAWEkEDEJKRk5RQQlXTVMAysNDRUXbV8VJTsHBCMlJRaers7+DxcDIJD0LDxCBOi4hO4AZQBpAElszJSM9bK5KslpWQr61U0dfWNTc0trfsRtIcx9PS-+FyUjI34jVmIFCCwiywAxgALMAQgDWCQAwrQINl8BCwBgSJRuPIqChKFgUIxCTQABT8ACU3FB4SWUWhsIRZGRNFR6MxYGxxwqpxqF1A9RcwpGejUSn4am6LnU2g0LwQmi0el+2h8w38ejlwNpi0i5EZ8KRKLRKAxWJxeOohMwxNJFOpuvBDJhRpZJo5Ft4enKonEZ1ql0Qwt+mDFEqlP1l8vsjjcmBURgM-GTuiUBjcLh18zp+swhuZUFZ7LNnOxuPxNrtYHJVJpOb1kNdheLpvNXMovCUvsq-v5dWDIrD4sl0ujCr0-B+mBceiUHR+Rg8GmF2bCjaiiwhxrZ+S46yhRGwFetRJJNYd9fXzvIW53ED3EAPR55fuq5wHCC80960wBBhUfwujUBUk2cQD00nDM-F6FQ1zBekDWbe90kYRhYUoWATwJM97TrJ1EPzZD3TZVD0IhTDX17d9A0FYMARcBMlDcPQlyUUxAInRoRlafhvG0FV1DUQx4NzJsmQSJI4jAZg4HYXBLUrXCL3whsbyIiSyCk2IZLkhSqL5D8gwaXQEwMVRJQBDQ5xA2MGnnTAp34ScXDaIYVxmYIQTUwiC0k6TZNgeTFNPW1z1rR0fLzPytICvTOx9E4+yMuiTJGCCVEsyYbInGzMBXdxrHY9MNG0USNyQzSoG03SgoU7Cq3Cy8COi4jqriurO27JKaIFBRlFMjKsus9iFX8FQZ3nZNNGc8U53K9SIFhGgwBQCQyFyIgdKwq0cLCvDIuvQilohFa1oSTbtoM5LaP6xVWLDZyVEsczzJlGMBmmAwPnTAxjG8HwAbgryWuWE6zvWqBLrgBrlIiq8ELzcHVsh6HYG9HtDNu+phKMR69GejRXuYywFVlMM3n4dQk2E6yNAW47lpRi6tph3bGoOhGxKiZHzo21n0e63kbr6nGHsnAmXvTEmPscd5mI6NRfCV8UBIZ1qqoAMVwI9sBQAAjXAwG4TXcl2TJEXyZgABFrt6z8vg0dKiYsSU1H+Mn1EwKyzH46xek8uYjo1t0oG13WDaNjYdj2bIAAl8nWdI7YDUXEEd53Hjdj27NpxzZ3aXpvAzdR1fE0Pw+wMiMJ2pT9pUw7EfLwtK+rij0aEHrU4dyxtEcl7AT8XRANlhAVG0CaLClbpx+svwsxBqLllgQ9sG0tZ2bhslMtU4Pl9X9eyBT-tjNYrxHIJroZVlfRbIGZM9B0FNpisUwwOBoOm6iFej0PxJN-ruSHejdubkB-mvVYR9ErC3tqfbweMnpX2elKW+ZM+L5U6ArViKonauTLt-A+kD-512rEAqcICKoUEIfEI+Qs3zdzgefRBapkG6DFKBTKrh3CeG8L4fw+DKqh2fFXNCNdYaAOakvF0VVhFt0op3GBDDUrDAnjoaafFfh8UBBw5wapTAqPTL8awQQvIkFYEteAFRQRdxPqlAAtPOBUDj6aLz3mQGxKU7qOLshmBMU4vgSngUMUwAiKDUDoEwNgnAIAeOxsoayE0-BFVcomFcMpQIqnym4P6XR0wqEMIHbybjyAxBoVAWJacGgAjxq0JcrkjAEyJiqDhfcIIGG0NoKe7s8GuK-oIlsHpSwWgqZ+WcU5HLMXMqofQwSWlmVUFYcwKpWIfyKX0uk24SIPn3KvEZxlpjjMBNMTwkpmLvVAtMRy5lhK+CGOoIEvTQEaVDsWORlj6G2LulfRinQ9ClVlG4YSd9HBewKuPQGMpASBEeZQmK7UdKBWCns1K4oxoSmHB0VMnR1SFNBjzJmfMoYC2RXdCY+U-kSyXCmYwtg7JCW9lNZicp8nWSMKEuFlc9aGzACS+oE9EkTE8F8Ce7QXBjWchiywgECZDFUOytqrdRHt15enGUj8ZkZgaYCay5gybCQ+NTVoPhNBagXp-J54C-4qoQIYKUVzmIMRlOxLUZMTAziGGqL4XhGi4qkf0hIsilWYWtRKAS3tpQmBcs5IwoF0xZNMB4cUD8AKhNBPQHSNBrUHOcEc8wxqzmkzsumHN48Ok0uqb4ExAQgA */
         id: 'game',
         initial: 'playing',
         context: INITIAL_STATE,
@@ -115,14 +115,8 @@ export const createGameStateMachine = () => {
                             assign(({ context }) => {
                                 const card = context.positionSystem.getPosition(context.playerPosition!);
                                 if (!card) return context;
-                                let newContext = { ...context };
-                                if (card.getCurrentLives() > 0) {
-                                    const { lives } = updateLives(context.lives, card.getCurrentLives());
-                                    newContext = { ...newContext, lives };
-                                }
                                 // Вызов обработчика onPlace только для текущей карты
-                                newContext = applyCardHandlerForCurrentCard(newContext, 'onPlace', context.playerPosition!);
-                                return newContext;
+                                return applyCardHandlerForCurrentCard(context, 'onPlace', context.playerPosition!);
                             })
                         ],
                         after: {
@@ -210,14 +204,8 @@ export const createGameStateMachine = () => {
                             assign(({ context }) => {
                                 const card = context.positionSystem.getPosition(context.playerPosition!);
                                 if (!card) return context;
-                                let newContext = { ...context };
-                                if (card.getCurrentLives() > 0) {
-                                    const { lives } = updateLives(context.lives, card.getCurrentLives());
-                                    newContext = { ...newContext, lives };
-                                }
                                 // Вызов обработчика onFlip только для текущей карты
-                                newContext = applyCardHandlerForCurrentCard(newContext, 'onFlip', context.playerPosition!);
-                                return newContext;
+                                return applyCardHandlerForCurrentCard(context, 'onFlip', context.playerPosition!);
                             })
                         ],
                         after: {
