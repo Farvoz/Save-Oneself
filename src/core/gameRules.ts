@@ -1,6 +1,6 @@
 import { GameContext } from './gameData';
 import { Position } from './PositionSystem';
-import { Card } from './Card';
+import { GameCard } from './Card';
 
 // Файл с игровыми предикатами
 
@@ -33,7 +33,7 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
 };
 
 // Check if a card can be flipped
-export const canFlipCard = (context: GameContext, card: Card): boolean => {
+export const canFlipCard = (context: GameContext, card: GameCard): boolean => {
     if (card.getCurrentType() === 'front') return false;
     
     const requirements = card.getRequirements();

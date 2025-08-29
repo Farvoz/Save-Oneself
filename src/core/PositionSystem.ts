@@ -1,7 +1,7 @@
 // Position System
 // This system handles all position-related operations
 
-import { Card } from './Card';
+import { GameCard } from './Card';
 
 export class Position {
     row: number;
@@ -38,13 +38,13 @@ export class Position {
 export class PositionSystem {
     MAX_COLUMNS = 4;
     MAX_ROWS = 4;
-    occupiedPositions: Map<string, Card>;
+    occupiedPositions: Map<string, GameCard>;
     
     constructor() {
         this.occupiedPositions = new Map();
     }
 
-    setPosition(pos: Position, value: Card): void {
+    setPosition(pos: Position, value: GameCard): void {
         if (value === undefined) {
             throw new Error('Value is undefined');
         }
@@ -52,7 +52,7 @@ export class PositionSystem {
         this.occupiedPositions.set(pos.toString(), value);
     }
 
-    getPosition(pos: Position): Card | undefined {
+    getPosition(pos: Position): GameCard | undefined {
         return this.occupiedPositions.get(pos.toString());
     }
 
@@ -104,7 +104,7 @@ export class PositionSystem {
         };
     }
 
-    findCardById(cardId: string): { position: Position; card: Card } | null {
+    findCardById(cardId: string): { position: Position; card: GameCard } | null {
         for (const [posStr, card] of this.occupiedPositions.entries()) {
             if (card.getCurrentId() === cardId) {
                 return {
@@ -116,8 +116,8 @@ export class PositionSystem {
         return null;
     }
 
-    findAllBy(func: (card: Card) => boolean): Array<{ position: Position; card: Card }> {
-        const result: Array<{ position: Position; card: Card }> = [];
+    findAllBy(func: (card: GameCard) => boolean): Array<{ position: Position; card: GameCard }> {
+        const result: Array<{ position: Position; card: GameCard }> = [];
         for (const [posStr, card] of this.occupiedPositions.entries()) {
             if (func(card)) {
                 result.push({ position: Position.fromString(posStr), card });

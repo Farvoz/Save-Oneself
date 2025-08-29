@@ -89,7 +89,7 @@ export const Card: React.FC<CardProps> = ({
     );
 };
 
-const getCardBackground = (cardObj: Card): string => {
+const getCardBackground = (cardObj: GameCard): string => {
     if (cardObj.getCurrentType() === 'ship') return '#87CEEB';
     if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
     if (cardObj.getCurrentType() === 'front') return '#E8F5E9';

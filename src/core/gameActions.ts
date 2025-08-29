@@ -1,13 +1,13 @@
 import { ShipCornerManager } from './ShipCornerManager';
 import { GameContext } from './gameData';
-import { Card, ShipCard, Direction } from './Card';
+import { GameCard, ShipCard, Direction } from './Card';
 import { Position, PositionSystem } from './PositionSystem';
 import { ship } from './cardData';
 
 interface MovePlayerResult {
     playerPosition: Position;
     positionSystem: PositionSystem;
-    deck: Card[];
+    deck: GameCard[];
     lives: number;
     shipCard: ShipCard;
     hasPlacedCard: boolean;
@@ -18,13 +18,13 @@ interface MovePlayerResult {
 }
 
 interface ShuffleDeckResult {
-    deck: Card[];
+    deck: GameCard[];
 }
 
 interface PlaceCardResult {
     positionSystem: PositionSystem;
-    deck: Card[];
-    cardObj: Card;
+    deck: GameCard[];
+    cardObj: GameCard;
     lives: number;
 }
 
