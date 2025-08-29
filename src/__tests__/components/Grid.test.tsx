@@ -1,21 +1,36 @@
 import { render, screen } from '@testing-library/react';
-import Grid from '../../components/Grid';
+import { createActor } from 'xstate';
+import { Grid } from '../../components/Grid';
 import { PositionSystem, Position } from '../../core/PositionSystem';
+import { GridProps } from '../../components/Grid';
+import { createGameStateMachine } from '../../core/gameStateMachine';
+import { GameCard } from '../../core/Card';
+import { CARD_DATA } from '../../core/cardData';
 
 describe('Grid Component', () => {
-  const mockProps = {
-    positionSystem: new PositionSystem(),
-    onCellClick: jest.fn(),
-    state: {
-      matches: jest.fn().mockReturnValue(false)
-    },
+  // Создаем мок стейт машины
+  const mockStateMachine = createGameStateMachine();
+  const mockActor = createActor(mockStateMachine);
+  
+  // Создаем реальную карту для тестирования
+  const testCard = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+  
+  // Создаем позицию игрока
+  const playerPosition = new Position(0, 0);
+  
+  // Создаем мок стейт с правильным контекстом
+  const mockState = {
+    ...mockActor.getSnapshot(),
     context: {
-      playerPosition: new Position(0, 0),
-      shipCard: { 
-        position: new Position(1, 1),
-        direction: 'NW'
-      }
+      ...mockActor.getSnapshot().context,
+      playerPosition: playerPosition
     }
+  };
+  
+  const mockProps: GridProps = {
+    onCellClick: jest.fn(),
+    positionSystem: new PositionSystem(),
+    state: mockState,
   };
 
   beforeEach(() => {
@@ -50,10 +65,10 @@ describe('Grid Component', () => {
   test('renders cards in occupied positions', () => {
     const positionSystem = new PositionSystem();
     const pos = new Position(0, 0);
-    positionSystem.setPosition(pos, { id: 'card1', type: 'card' });
+    positionSystem.setPosition(pos, testCard);
     
     render(<Grid {...mockProps} positionSystem={positionSystem} />);
-    const card = screen.getByTestId('card-card1');
+    const card = screen.getByTestId(`card-${testCard.getCurrentId()}`);
     expect(card).toBeInTheDocument();
   });
 }); 

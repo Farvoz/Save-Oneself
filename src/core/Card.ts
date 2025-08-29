@@ -115,8 +115,6 @@ export class GameCard {
     }
 }
 
-export type Card = GameCard;
-
 export class ShipCard extends GameCard {
     position: Position;
     cornerManager: ShipCornerManager;

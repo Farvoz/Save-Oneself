@@ -74,7 +74,7 @@ describe('Game Rules', () => {
     describe('canFlipCard', () => {
         it('should not allow flipping front cards', () => {
             const card = new GameCard(CARD_DATA.vines.front, CARD_DATA.vines.front);
-            card.flip();
+            card.flip(mockContext);
             expect(canFlipCard(mockContext, card)).toBe(false);
         });
 
@@ -98,7 +98,7 @@ describe('Game Rules', () => {
             // Создаем карту flint, размещаем её на позиции (2, 2) и переворачиваем
             const torchCard = new GameCard(CARD_DATA.flint.back, CARD_DATA.flint.front);
             mockContext.positionSystem.setPosition(new Position(2, 2), torchCard);
-            torchCard.flip();
+            torchCard.flip(mockContext);
 
             // Теперь игрок находится на карте higher-ground, поэтому карту можно перевернуть
             expect(canFlipCard(mockContext, higherGroundCard)).toBe(true);

@@ -1,18 +1,18 @@
 import React from 'react';
-import Card from './Card';
+import { Card } from './Card';
 import './Grid.css';
 import { isPlayerValidPosition, canFlipCard } from '../core/gameRules';
 import { Position, PositionSystem } from '../core/PositionSystem';
 import { GameState } from '../core/gameData';
 
-interface GridProps {
+export interface GridProps {
     onCellClick: (row: number, col: number) => void;
     positionSystem: PositionSystem;
-    state: GameState;
-    context: GameState['context'];
+    state: GameState;   
 }
 
-const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, context }) => {
+export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }) => {
+    const context = state.context;
     const renderGridCell = (row: number, col: number): React.ReactNode => {
         const pos = new Position(row, col);
         const card = positionSystem.getPosition(pos);
@@ -74,5 +74,3 @@ const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, context
         </div>
     );
 };
-
-export default Grid; 

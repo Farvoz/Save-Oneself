@@ -1,11 +1,10 @@
 import React from 'react';
 import { INITIAL_GAME_DECK } from '../core/gameData';
 import './Card.css';
-import type { Card } from '../core/Card';
-import { ShipCard } from '../core/Card';
+import { GameCard, ShipCard } from '../core/Card';
 
 interface CardProps {
-    card: Card;
+    card: GameCard;
     row: number;
     col: number;
     isPlayerPosition: boolean;
@@ -15,7 +14,7 @@ interface CardProps {
     isFlippable: boolean;
 }
 
-const Card: React.FC<CardProps> = ({ 
+export const Card: React.FC<CardProps> = ({ 
     card, 
     row,
     col, 
@@ -124,5 +123,3 @@ const getRequirementsText = (requirements: string): string => {
 
     return `нужна ${emoji}`;
 };
-
-export default Card; 

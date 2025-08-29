@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useActorRef, useSelector } from '@xstate/react';
-import Grid from './Grid';
-import Counters from './Counters';
+import { Grid } from './Grid';
+import Counters from './Counters';  
 import GameOver from './GameOver';
 import { createGameStateMachine } from '../core/gameStateMachine';
 import { isPlayerValidPosition, calculateScore } from '../core/gameRules';
@@ -65,7 +65,6 @@ const Game: React.FC = () => {
                 onCellClick={handleCellClick} 
                 positionSystem={context.positionSystem} 
                 state={state}
-                context={context}
             />
             <GameOver
                 message={context.gameOverMessage}
