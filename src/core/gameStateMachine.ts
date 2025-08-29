@@ -181,14 +181,11 @@ export const createGameStateMachine = () => {
                                 actions: [
                                     assign(({ context, event }) => {
                                         const card = context.positionSystem.getPosition(new Position(event.row, event.col));
-                                        if (card) {
-                                            card.flip();
-                                        }
-                                        return context;
+                                        return card ? card.flip(context) : context;
                                     }),
                                     ({ event }) => gameLogger.info('Карта перевернута на позиции', { row: event.row, col: event.col })
                                 ],
-                                target: 'checkingFlipEffects'
+                                target: 'shipMoving'
                             },
                             SKIP_PHASE: {
                                 target: 'shipMoving',
@@ -196,20 +193,6 @@ export const createGameStateMachine = () => {
                                     gameLogger.info('Card flip phase skipped');
                                 }
                             }
-                        }
-                    },
-                    // Проверяем эффекты при перевороте карты
-                    checkingFlipEffects: {
-                        entry: [
-                            assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition!);
-                                if (!card) return context;
-                                // Вызов обработчика onFlip только для текущей карты
-                                return applyCardHandlerForCurrentCard(context, 'onFlip', context.playerPosition!);
-                            })
-                        ],
-                        after: {
-                            0: { target: 'shipMoving' }
                         }
                     },
                     shipMoving: {

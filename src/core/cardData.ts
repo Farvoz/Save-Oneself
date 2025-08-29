@@ -33,7 +33,11 @@ export const CARD_DATA: CardData = {
             score: 2,
             type: 'front' as CardType,
             emoji: '🏠',
-            description: 'Защищает от шторма'
+            description: 'Защищает от шторма',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 2);
+                return { ...context, lives };
+            }
         }
     },
     hook: {
@@ -49,7 +53,11 @@ export const CARD_DATA: CardData = {
             id: 'fish',
             lives: 3,
             type: 'front' as CardType,
-            emoji: '🐟'
+            emoji: '🐟',
+            onFlip: (context) => {
+                const { lives } = updateLives(context.lives, 3);
+                return { ...context, lives };
+            }
         }
     },
     water: {
@@ -242,7 +250,7 @@ export const CARD_DATA: CardData = {
                 if (context.positionSystem.countNonShipCards() === 13) {
                     const stormResult = context.positionSystem.findCardById('storm');
                     if (stormResult) {
-                        stormResult.card.flip();
+                        stormResult.card.flip(context);
                     }
                 }
                 return context;
@@ -255,18 +263,20 @@ export const CARD_DATA: CardData = {
             emoji: '🌪️',
             description: 'Уничтожает убежище и костер, а затем переворачивается обратно',
             onFlip: (context) => {
+                const { lives } = updateLives(context.lives, -3);
+
                 // tornado flips back, and also flips shelter and lit beacon back
                 if (context.positionSystem.countNonShipCards() === 13) {
                     // flip tornado back
                     const tornadoCard = context.positionSystem.getPosition(context.playerPosition!);
-                    if (tornadoCard) tornadoCard.flip();
+                    if (tornadoCard) tornadoCard.flip(context);
                     // flip shelter and lit beacon back
                     const shelterResult = context.positionSystem.findCardById('shelter');
                     const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
-                    if (shelterResult) shelterResult.card.flip();
-                    if (litBeaconResult) litBeaconResult.card.flip();
+                    if (shelterResult) shelterResult.card.flip(context);
+                    if (litBeaconResult) litBeaconResult.card.flip(context);
                 }
-                return context;
+                return { ...context, lives };
             }
         }
     },
@@ -283,7 +293,7 @@ export const CARD_DATA: CardData = {
                     context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
                     // flip the mirage card after swap
                     const card = context.positionSystem.getPosition(farthestPos);
-                    if (card) card.flip();
+                    if (card) card.flip(context);
                 }
                 return { ...context, positionSystem: context.positionSystem };
             }
@@ -330,7 +340,7 @@ export const CARD_DATA: CardData = {
                     context.positionSystem.removePosition(context.shipCard.position);
                     // flip the pirates card
                     const piratesCard = context.positionSystem.getPosition(context.playerPosition!);
-                    if (piratesCard) piratesCard.flip();
+                    if (piratesCard) piratesCard.flip(context);
                     return {
                         ...context,
                         positionSystem: context.positionSystem,
@@ -371,7 +381,7 @@ export const CARD_DATA: CardData = {
                     // flip the other map card
                     const otherMapId = 'map-c';
                     const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip();
+                    if (otherMapResult) otherMapResult.card.flip(context);
                     // add 1 life
                     const { lives } = updateLives(context.lives, 1);
                     return { ...context, lives };
@@ -400,7 +410,7 @@ export const CARD_DATA: CardData = {
                     // flip the other map card
                     const otherMapId = 'map-r';
                     const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip();
+                    if (otherMapResult) otherMapResult.card.flip(context);
                     // add 1 life
                     const { lives } = updateLives(context.lives, 1);
                     return { ...context, lives };
