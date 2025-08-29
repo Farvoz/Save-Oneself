@@ -181,7 +181,23 @@ export const CARD_DATA: CardData = {
             score: 1,
             type: 'front' as CardType,
             emoji: '🚢',
-            description: 'Корабль после угла поплывет дальше, но только один раз'
+            description: 'Корабль после угла поплывет дальше, но только один раз',
+            onBeforeShipMove: (context) => {
+                if (!context.shipCard?.position || !context.shipCard?.getCurrentDirection()) {
+                    return context;
+                }
+
+                const isAtCorner = context.shipCard.cornerManager?.isFinalCornerShipPosition(context.shipCard.position) ?? false;
+
+                if (!context.shipCard.hasTurned && isAtCorner && context.shipCard.cornerManager) {
+                    // Корабль на углу и еще не поворачивал - меняем направление
+                    const newDirection = context.shipCard.cornerManager.getNextDirection();
+                    context.shipCard.direction = newDirection;
+                    context.shipCard.hasTurned = true;
+                }
+
+                return context;
+            }
         }
     },
     rocks: {

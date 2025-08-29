@@ -28,6 +28,10 @@ export type CardSide = {
      */
     onFlip?: (context: GameContext, event?: GameEvent) => GameContext;
     /**
+     * Вызывается перед движением корабля
+     */
+    onBeforeShipMove?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
      * Вызывается при движении корабля
      */
     onShipMove?: (context: GameContext, event?: GameEvent) => GameContext;

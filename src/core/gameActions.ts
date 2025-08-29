@@ -129,60 +129,21 @@ export const placeShip = (positionSystem: PositionSystem, direction: Direction):
     };
 };
 
-// Handle ship-sighted card effect
-export const handleShipSightedEffect = (context: GameContext): { newDirection: Direction, hasTurned: boolean } => {
-    const hasShipSighted = context.positionSystem.findCardById('ship-sighted');
-    const isAtCorner = context.shipCard?.cornerManager?.isFinalCornerShipPosition(context.shipCard.position!) ?? false;
-
-    if (hasShipSighted && !context.shipCard?.hasTurned && isAtCorner && context.shipCard?.cornerManager) {
-        return {
-            newDirection: context.shipCard.cornerManager.getNextDirection(),
-            hasTurned: true
-        };
-    }
-
-    return {
-        newDirection: context.shipCard!.getCurrentDirection()!,
-        hasTurned: Boolean(context.shipCard?.hasTurned || (hasShipSighted && isAtCorner))
-    };
-};
-
 // Move the ship
 export const moveShip = (context: GameContext): MoveShipResult => {
-    if (!context.shipCard?.position || !context.shipCard?.getCurrentDirection()) {
-        return {
-            shipCard: context.shipCard!,
-            positionSystem: context.positionSystem
-        };
-    }
-
-    // Если корабль должен пропустить ход, просто сбрасываем флаг
-    if (context.shipCard.skipMove) {
-        context.shipCard.skipMove = false;
-
-        return {
-            shipCard: context.shipCard,
-            positionSystem: context.positionSystem
-        };
-    }
-
-    const shipPos = context.shipCard.position;
-
-    // Handle ship-sighted effect
-    const { newDirection, hasTurned } = handleShipSightedEffect(context);
+    const shipPos = context.shipCard!.position!;
+    const currentDirection = context.shipCard!.getCurrentDirection()!;
 
     // Смещаем корабль в новое положение
-    const newPosition = context.shipCard.cornerManager!.getNextShipPosition(shipPos, newDirection);
+    const newPosition = context.shipCard!.cornerManager!.getNextShipPosition(shipPos, currentDirection);
 
-    // Обновляем все значения
-    context.shipCard.position = newPosition;
-    context.shipCard.direction = newDirection;
-    context.shipCard.hasTurned = hasTurned;
+    // Обновляем позицию корабля
+    context.shipCard!.position = newPosition;
 
     context.positionSystem.swapPositions(shipPos, newPosition);
 
     return {
-        shipCard: context.shipCard,
+        shipCard: context.shipCard!,
         positionSystem: context.positionSystem
     };
 };

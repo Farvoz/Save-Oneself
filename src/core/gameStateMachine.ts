@@ -197,7 +197,24 @@ export const createGameStateMachine = () => {
                     },
                     shipMoving: {
                         entry: [
-                            assign(({ context }) => moveShip(context)),
+                            assign(({ context }) => {
+                                // Проверяем, можно ли двигать корабль
+                                if (!context.shipCard?.position || !context.shipCard?.getCurrentDirection()) {
+                                    return context;
+                                }
+
+                                // Если корабль должен пропустить ход, просто сбрасываем флаг
+                                if (context.shipCard.skipMove) {
+                                    context.shipCard.skipMove = false;
+                                    return context;
+                                }
+
+                                // Применяем эффекты перед движением корабля (например, телескоп)
+                                const contextWithEffects = applyCardHandlers(context, 'onBeforeShipMove');
+                                
+                                // Двигаем корабль
+                                return moveShip(contextWithEffects);
+                            }),
                             ({ context: { shipCard } }) => shipCard?.position 
                                 ? gameLogger.info('Корабль перемещён на позицию', { position: shipCard.position }) 
                                 : gameLogger.info('Корабль не перемещён')
