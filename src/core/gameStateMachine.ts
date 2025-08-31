@@ -1,7 +1,6 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { hasFlippableCards, checkVictory, checkDefeat } from './gameRules';
-import { shuffleDeck, movePlayer, moveShip, updateLives, placeCard, placeShip } from './gameActions';
+import { shuffleDeck, movePlayer, moveShip, updateLives, placeCard, placeShip, hasFlippableCards, checkVictory, checkDefeat } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
 import type { GameContext } from './gameData';
@@ -199,7 +198,8 @@ export const createGameStateMachine = () => {
                         entry: [
                             assign(({ context }) => {
                                 // Проверяем, можно ли двигать корабль
-                                if (!context.shipCard?.position || !context.shipCard?.getCurrentDirection()) {
+                                const shipPos = context.positionSystem.getShipPosition();
+                                if (!shipPos || !context.shipCard?.getCurrentDirection()) {
                                     return context;
                                 }
 
@@ -213,11 +213,16 @@ export const createGameStateMachine = () => {
                                 const contextWithEffects = applyCardHandlers(context, 'onBeforeShipMove');
                                 
                                 // Двигаем корабль
-                                return moveShip(contextWithEffects);
+                                return moveShip(contextWithEffects.shipCard!, contextWithEffects.positionSystem);
                             }),
-                            ({ context: { shipCard } }) => shipCard?.position 
-                                ? gameLogger.info('Корабль перемещён на позицию', { position: shipCard.position }) 
-                                : gameLogger.info('Корабль не перемещён')
+                            ({ context: { positionSystem } }) => {
+                                const shipPos = positionSystem.getShipPosition();
+                                if (shipPos) {
+                                    gameLogger.info('Корабль перемещён на позицию', { position: shipPos });
+                                } else {
+                                    gameLogger.info('Корабль не перемещён');
+                                }
+                            }
                         ],
                         after: {
                             500: [

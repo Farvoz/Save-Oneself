@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 import { useActorRef, useSelector } from '@xstate/react';
+
 import { Grid } from './Grid';
 import Counters from './Counters';  
 import GameOver from './GameOver';
-import { createGameStateMachine } from '../core/gameStateMachine';
-import { isPlayerValidPosition, calculateScore } from '../core/gameRules';
-import { Position } from '../core/PositionSystem';
-import { GameState } from '../core/gameData';
+import { createGameStateMachine, isPlayerValidPosition, calculateScore, Position, GameState } from '../core';
 
 const machine = createGameStateMachine();
 

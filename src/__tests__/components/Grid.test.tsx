@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { createActor } from 'xstate';
+
 import { Grid } from '../../components/Grid';
 import { PositionSystem, Position } from '../../core/PositionSystem';
 import { GridProps } from '../../components/Grid';
 import { createGameStateMachine } from '../../core/gameStateMachine';
-import { GameCard } from '../../core/Card';
-import { CARD_DATA, ship } from '../../core/cardData';
+import { GameCard, ShipCard } from '../../core';
 import { ShipCornerManager } from '../../core/ShipCornerManager';
-import { ShipCard } from '../../core/Card';
+import { CARD_DATA, ship } from '../../core/cardData';
 
 describe('Grid Component', () => {
   // Создаем мок стейт машины
@@ -92,7 +92,7 @@ describe('Grid Component', () => {
       ...mockState,
       context: {
         ...mockState.context,
-        shipCard: new ShipCard(ship, 'NE', new Position(1, 1), new ShipCornerManager('NE', positionSystem.getBounds()))
+        shipCard: new ShipCard(ship, 'NE', new ShipCornerManager('NE', positionSystem.getBounds()))
       }
     };
     

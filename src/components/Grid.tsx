@@ -1,9 +1,8 @@
 import React from 'react';
+
 import { Card } from './Card';
 import './Grid.css';
-import { isPlayerValidPosition } from '../core/gameRules';
-import { Position, PositionSystem } from '../core/PositionSystem';
-import { GameState } from '../core/gameData';
+import { Position, PositionSystem, isPlayerValidPosition, GameState } from '../core';
 
 export interface GridProps {
     onCellClick: (row: number, col: number) => void;
@@ -23,7 +22,6 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }
         // Add coastline logic - use positionSystem to find ship position for consistency
         let isCoastline = false;
         if (context.shipCard?.direction) {
-            // Find ship position from positionSystem instead of context.shipCard.position
             const shipCardFromSystem = positionSystem.findAllBy(card => card.getCurrentType() === 'ship')[0];
             if (shipCardFromSystem) {
                 const shipPos = shipCardFromSystem.position;

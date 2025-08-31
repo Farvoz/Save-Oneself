@@ -44,6 +44,19 @@ export class PositionSystem {
         this.occupiedPositions = new Map();
     }
 
+    // Методы для работы с позицией корабля
+    getShipPosition(): Position | null {
+        const shipResults = this.findAllBy(card => card.getCurrentType() === 'ship');
+        return shipResults.length > 0 ? shipResults[0].position : null;
+    }
+
+    removeShipPosition(): void {
+        const shipResults = this.findAllBy(card => card.getCurrentType() === 'ship');
+        if (shipResults.length > 0) {
+            this.removePosition(shipResults[0].position);
+        }
+    }
+
     setPosition(pos: Position, value: GameCard): void {
         if (value === undefined) {
             throw new Error('Value is undefined');
@@ -130,7 +143,12 @@ export class PositionSystem {
         let maxDistance = -1;
         let farthestPosition: Position | null = null;
 
-        for (const posStr of this.occupiedPositions.keys()) {
+        for (const [posStr, card] of this.occupiedPositions.entries()) {
+            // Исключаем карты корабля из поиска
+            if (card.getCurrentType() === 'ship') {
+                continue;
+            }
+            
             const pos = Position.fromString(posStr);
             const distance = fromPos.distanceTo(pos);
             

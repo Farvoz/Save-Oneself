@@ -70,9 +70,9 @@ describe('Game Actions', () => {
       positionSystem.setPosition(new Position(0, 1), card2);
       
       const result = placeShip(positionSystem, 'NW');
-      expect(result.shipCard.position).toBeDefined();
+      expect(result.positionSystem.getShipPosition()).toBeDefined();
       expect(result.positionSystem.countNonShipCards()).toBe(2); // 2 cards + ship
-      expect(result.shipCard.position).toEqual(new Position(-1, -1));
+      expect(result.positionSystem.getShipPosition()).toEqual(new Position(-1, -1));
     });
   });
 });

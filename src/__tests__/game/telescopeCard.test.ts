@@ -1,7 +1,8 @@
 import { Position, PositionSystem } from '../../core/PositionSystem';
 import { ShipCornerManager } from '../../core/ShipCornerManager';
 import { GameContext } from '../../core/gameData';
-import { Direction, ShipCard } from '../../core/Card';
+import { Direction } from '../../core/Card';
+import { ShipCard } from '../../core/ShipCard';
 import { CARD_DATA, ship } from '../../core/cardData';
 
 describe('Telescope Card (ship-sighted)', () => {
@@ -23,7 +24,6 @@ describe('Telescope Card (ship-sighted)', () => {
         shipCard = new ShipCard(
             ship,
             'NW',
-            new Position(0, 0),
             new ShipCornerManager('NW', bounds)
         );
 
@@ -43,9 +43,9 @@ describe('Telescope Card (ship-sighted)', () => {
 
     describe('onShipMove handler', () => {
         it('should not change ship direction when ship has no position', () => {
-            // Убираем позицию корабля
-            const originalPosition = shipCard.position;
-            shipCard.position = undefined as unknown as Position;
+            // Убираем позицию корабля из positionSystem
+            const originalPosition = positionSystem.getShipPosition();
+            positionSystem.removeShipPosition();
             
             const originalDirection = shipCard.getCurrentDirection();
             const originalHasTurned = shipCard.hasTurned;
@@ -57,7 +57,9 @@ describe('Telescope Card (ship-sighted)', () => {
             expect(result.shipCard!.hasTurned).toBe(originalHasTurned);
             
             // Восстанавливаем позицию
-            shipCard.position = originalPosition;
+            if (originalPosition) {
+                positionSystem.setPosition(originalPosition, shipCard);
+            }
         });
 
         it('should not change ship direction when ship has no direction', () => {
@@ -77,8 +79,9 @@ describe('Telescope Card (ship-sighted)', () => {
         });
 
         it('should not change ship direction when ship is not at corner', () => {
-            // Корабль не на углу
-            shipCard.position = new Position(1, 1);
+            // Корабль не на углу - устанавливаем позицию в центр
+            const centerPosition = new Position(1, 1);
+            positionSystem.setPosition(centerPosition, shipCard);
             
             const originalDirection = shipCard.getCurrentDirection();
             const originalHasTurned = shipCard.hasTurned;
@@ -93,7 +96,8 @@ describe('Telescope Card (ship-sighted)', () => {
         it('should not change ship direction when ship has already turned', () => {
             // Корабль уже поворачивал
             shipCard.hasTurned = true;
-            shipCard.position = new Position(0, 5); // На финальной угловой позиции для NW
+            const cornerPosition = new Position(0, 5); // На финальной угловой позиции для NW
+            positionSystem.setPosition(cornerPosition, shipCard);
             
             const originalDirection = shipCard.getCurrentDirection();
 
@@ -106,7 +110,8 @@ describe('Telescope Card (ship-sighted)', () => {
 
         it('should change ship direction when ship is at corner and has not turned', () => {
             // Корабль на финальной угловой позиции и еще не поворачивал
-            shipCard.position = new Position(0, 5); // Финальная угловая позиция для NW
+            const cornerPosition = new Position(0, 5); // Финальная угловая позиция для NW
+            positionSystem.setPosition(cornerPosition, shipCard);
             shipCard.hasTurned = false;
             
             const originalDirection = shipCard.getCurrentDirection();
@@ -122,7 +127,8 @@ describe('Telescope Card (ship-sighted)', () => {
 
         it('should only turn ship once even if called multiple times', () => {
             // Корабль на финальной угловой позиции и еще не поворачивал
-            shipCard.position = new Position(0, 5); // Финальная угловая позиция для NW
+            const cornerPosition = new Position(0, 5); // Финальная угловой позиции для NW
+            positionSystem.setPosition(cornerPosition, shipCard);
             shipCard.hasTurned = false;
             
             const firstNewDirection = shipCard.cornerManager!.getNextDirection();
@@ -143,12 +149,15 @@ describe('Telescope Card (ship-sighted)', () => {
             const seShipCard = new ShipCard(
                 ship,
                 'SE',
-                new Position(3, -2), // Финальная угловая позиция для SE
                 new ShipCornerManager('SE', { minRow: 1, maxRow: 2, minCol: 1, maxCol: 2 })
             );
             
             mockContext.shipCard = seShipCard;
             seShipCard.hasTurned = false;
+
+            // Помещаем корабль на финальную угловую позицию для SE
+            const finalCornerPosition = new Position(3, -2); // maxRow + 1, bottomLeft[1] - 1
+            mockContext.positionSystem.setPosition(finalCornerPosition, seShipCard);
 
             const originalDirection = seShipCard.getCurrentDirection();
             const expectedNewDirection = seShipCard.cornerManager!.getNextDirection();
@@ -163,7 +172,8 @@ describe('Telescope Card (ship-sighted)', () => {
 
         it('should return the same context when no changes are made', () => {
             // Корабль не на углу
-            shipCard.position = new Position(1, 1);
+            const centerPosition = new Position(1, 1);
+            positionSystem.setPosition(centerPosition, shipCard);
             
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
@@ -172,7 +182,8 @@ describe('Telescope Card (ship-sighted)', () => {
 
         it('should return modified context when ship direction is changed', () => {
             // Корабль на финальной угловой позиции и еще не поворачивал
-            shipCard.position = new Position(0, 5); // Финальная угловая позиция для NW
+            const cornerPosition = new Position(0, 5); // Финальная угловая позиция для NW
+            positionSystem.setPosition(cornerPosition, shipCard);
             shipCard.hasTurned = false;
 
             // Вызываем обработчик

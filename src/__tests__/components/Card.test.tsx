@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+
 import { Card } from '../../components/Card';
-import { GameCard } from '../../core/Card';
+import { GameCard } from '../../core';
 
 describe('Card Component', () => {
   const backSide = {

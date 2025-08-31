@@ -2,7 +2,8 @@ import { StateFrom } from 'xstate';
 import { createGameStateMachine } from './gameStateMachine';
 import { PositionSystem, Position } from './PositionSystem';
 import { CARD_DATA } from './cardData';
-import { GameCard, CardSide, ShipCard } from './Card';
+import { GameCard, CardSide } from './Card';
+import { ShipCard } from './ShipCard';
 
 export { CARD_DATA };
 

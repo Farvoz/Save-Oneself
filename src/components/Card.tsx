@@ -1,6 +1,6 @@
 import React from 'react';
 import './Card.css';
-import { GameCard, ShipCard } from '../core/Card';
+import { GameCard, ShipCard } from '../core';
 
 interface CardProps {
     card: GameCard;
