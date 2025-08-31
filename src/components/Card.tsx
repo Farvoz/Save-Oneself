@@ -1,5 +1,4 @@
 import React from 'react';
-import { INITIAL_GAME_DECK } from '../core/gameData';
 import './Card.css';
 import { GameCard, ShipCard } from '../core/Card';
 
@@ -73,9 +72,9 @@ export const Card: React.FC<CardProps> = ({
                         {card.getCurrentScore()} ⭐
                     </div>
                 )}
-                {card.getCurrentType() === 'back' && card.getRequirements() && (
+                {card.getCurrentType() === 'back' && card.getRequirementsText() && (
                     <div className="card-requirements">
-                        {getRequirementsText(card.getRequirements()!)}
+                        {card.getRequirementsText()}
                     </div>
                 )}
                 {card.getCurrentId() && (
@@ -94,32 +93,4 @@ const getCardBackground = (cardObj: GameCard): string => {
     if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
     if (cardObj.getCurrentType() === 'front') return '#E8F5E9';
     return '#F5F5DC';
-};
-
-const getRequirementsText = (requirements: string): string => {
-    if (requirements === '_ship-set-sail') {
-        return 'нужен корабль на паузе';
-    }
-
-    if (requirements === 'higher-ground') { 
-        return 'нужно быть на ⛰️';
-    }
-
-    if (requirements === '_13-turn') {
-        return '13 карта';
-    }
-
-    if (requirements === '_map') {
-        return 'найти пересечение';
-    }
-
-    if (requirements === '_ship-sailing') {
-        return 'ждать отплытие';
-    }
-
-    // Find required card from both decks
-    const requiredCard = [...INITIAL_GAME_DECK].find(card => card.getCurrentId() === requirements);
-    const emoji = requiredCard ? requiredCard.getCurrentEmoji() : '❓';
-
-    return `нужна ${emoji}`;
 };

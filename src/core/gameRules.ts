@@ -1,6 +1,5 @@
 import { GameContext } from './gameData';
 import { Position } from './PositionSystem';
-import { GameCard } from './Card';
 
 // Файл с игровыми предикатами
 
@@ -32,47 +31,10 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
     return true;
 };
 
-// Check if a card can be flipped
-export const canFlipCard = (context: GameContext, card: GameCard): boolean => {
-    if (card.getCurrentType() === 'front') return false;
-    
-    const requirements = card.getRequirements();
-    if (requirements) {
-        if (requirements === '_ship-set-sail') {
-            return context.shipCard?.direction !== undefined && context.shipCard?.skipMove;
-        }
-        
-        // Check if player is on higher-ground when required
-        if (requirements === 'higher-ground' || card.getCurrentId() === 'higher-ground') {
-            const playerCard = context.positionSystem.getPosition(context.playerPosition!);
-            if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
-                return false;
-            }
-        }
-
-        // Check map card requirements
-        if (requirements === '_map') {
-            // Both map cards must be on the board
-            const mapRResult = context.positionSystem.findCardById('map-r');
-            const mapCResult = context.positionSystem.findCardById('map-c');
-
-            if (!mapRResult || !mapCResult) return false;
-
-            // Player must be at the intersection of map-r row and map-c column
-            return mapRResult.position.row === context.playerPosition!.row && 
-                   mapCResult.position.col === context.playerPosition!.col;
-        }
-        
-        return context.positionSystem.findCardById(requirements) !== null;
-    }
-    
-    return true;
-};
-
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context: GameContext): boolean => {
     for (const [, card] of context.positionSystem.occupiedPositions) {
-        if (canFlipCard(context, card) && card.getCurrentType() !== 'ship') {
+        if (card.canFlip(context) && card.getCurrentType() !== 'ship') {
             return true;
         }
     }
@@ -98,13 +60,20 @@ export const checkVictory = (context: GameContext): boolean => {
         const msgPos = messageResult.position;
         
         // Check if message card is not in a corner
-        if (!context.shipCard?.cornerManager?.isCornerCard(msgPos)) {
+        if (!context.shipCard?.cornerManager?.isIslandCornerCard(msgPos)) {
             const isAdjacent = context.positionSystem.isAdjacent(shipPos, msgPos);
             messageVictory = isAdjacent;
         }
     }
     
     return sosVictory || beaconVictory || messageVictory;
+};
+
+// Check if the game is lost (ship is out of bounds)
+export const checkDefeat = (context: GameContext): boolean => {
+    return context.shipCard?.cornerManager 
+        ? context.shipCard.cornerManager.isShipOutOfBounds(context.shipCard.position!) 
+        : false;
 };
 
 // Calculate final score

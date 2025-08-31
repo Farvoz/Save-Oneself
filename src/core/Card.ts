@@ -11,6 +11,7 @@ export type CardSide = {
     lives?: number;
     direction?: Direction;
     requirements?: string;
+    requirementsText?: string;
     type: CardType;
     emoji: string;
     description?: string;
@@ -39,6 +40,10 @@ export type CardSide = {
      * Вызывается при начале раунда
      */
     onRoundStart?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
+     * Проверяет, можно ли перевернуть карту
+     */
+    canFlip?: (context: GameContext) => boolean;
 };
 
 export class GameCard {
@@ -72,6 +77,10 @@ export class GameCard {
 
     getRequirements(): string | undefined {
         return this.backSide.requirements;
+    }
+
+    getRequirementsText(): string | undefined {
+        return this.backSide.requirementsText;
     }
 
     getBackId(): string {
@@ -116,6 +125,24 @@ export class GameCard {
 
     getCurrentFrontId(): string {
         return this.frontSide.id;
+    }
+
+    /**
+     * Проверяет, можно ли перевернуть карту
+     */
+    canFlip(context: GameContext): boolean {
+        if (this.getCurrentType() === 'front') return false;
+        
+        // Если есть кастомная логика, используем её
+        if (this.backSide.canFlip) {
+            return this.backSide.canFlip(context);
+        }
+        
+        const requirements = this.getRequirements();
+        if (!requirements) return false;
+        
+        // Проверяем базовые требования (карты на поле)
+        return context.positionSystem.findCardById(requirements) !== null;
     }
 }
 

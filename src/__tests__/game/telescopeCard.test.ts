@@ -98,7 +98,7 @@ describe('Telescope Card (ship-sighted)', () => {
             const originalDirection = shipCard.getCurrentDirection();
 
             // Вызываем обработчик
-            const result = CARD_DATA.telescope.front.onShipMove!(mockContext);
+            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
             expect(result.shipCard!.getCurrentDirection()).toBe(originalDirection);
             expect(result.shipCard!.hasTurned).toBe(true);

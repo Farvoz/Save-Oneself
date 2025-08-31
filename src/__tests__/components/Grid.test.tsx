@@ -5,7 +5,9 @@ import { PositionSystem, Position } from '../../core/PositionSystem';
 import { GridProps } from '../../components/Grid';
 import { createGameStateMachine } from '../../core/gameStateMachine';
 import { GameCard } from '../../core/Card';
-import { CARD_DATA } from '../../core/cardData';
+import { CARD_DATA, ship } from '../../core/cardData';
+import { ShipCornerManager } from '../../core/ShipCornerManager';
+import { ShipCard } from '../../core/Card';
 
 describe('Grid Component', () => {
   // Создаем мок стейт машины
@@ -70,5 +72,42 @@ describe('Grid Component', () => {
     render(<Grid {...mockProps} positionSystem={positionSystem} />);
     const card = screen.getByTestId(`card-${testCard.getCurrentId()}`);
     expect(card).toBeInTheDocument();
+  });
+
+  test('renders coastline based on ship position from positionSystem', () => {
+    const positionSystem = new PositionSystem();
+    
+    // Создаем корабль в позиции (1, 1) с направлением NE
+    const shipCard = new GameCard(ship, ship);
+    shipCard.getCurrentSide = () => ({
+      ...ship,
+      direction: 'NE',
+      type: 'ship'
+    });
+    
+    positionSystem.setPosition(new Position(1, 1), shipCard);
+    
+    // Создаем мок стейт с shipCard
+    const mockStateWithShip = {
+      ...mockState,
+      context: {
+        ...mockState.context,
+        shipCard: new ShipCard(ship, 'NE', new Position(1, 1), new ShipCornerManager('NE', positionSystem.getBounds()))
+      }
+    };
+    
+    render(<Grid {...mockProps} positionSystem={positionSystem} state={mockStateWithShip} />);
+    
+    // Проверяем, что coastline отображается в правильном столбце (col === 1)
+    const coastlineCells = screen.getAllByTestId(/^grid-cell-\d+-1$/);
+    coastlineCells.forEach(cell => {
+      expect(cell).toHaveClass('coastline');
+    });
+    
+    // Проверяем, что другие столбцы не имеют coastline
+    const nonCoastlineCells = screen.getAllByTestId(/^grid-cell-\d+-0$/);
+    nonCoastlineCells.forEach(cell => {
+      expect(cell).not.toHaveClass('coastline');
+    });
   });
 }); 

@@ -1,6 +1,6 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './gameData';
-import { hasFlippableCards, canFlipCard, checkVictory } from './gameRules';
+import { hasFlippableCards, checkVictory, checkDefeat } from './gameRules';
 import { shuffleDeck, movePlayer, moveShip, updateLives, placeCard, placeShip } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
@@ -176,7 +176,7 @@ export const createGameStateMachine = () => {
                             FLIP_CARD: {
                                 guard: ({ context, event }) => {
                                     const card = context.positionSystem.getPosition(new Position(event.row, event.col));
-                                    return Boolean(card && canFlipCard(context, card));
+                                    return Boolean(card && card.canFlip(context));
                                 },
                                 actions: [
                                     assign(({ context, event }) => {
@@ -231,9 +231,7 @@ export const createGameStateMachine = () => {
                                 },
                                 {             
                                     target: 'gameOver',
-                                    guard: ({ context }) => context.shipCard?.cornerManager 
-                                        ? context.shipCard.cornerManager.isShipOutOfBounds(context.shipCard!.position!) 
-                                        : false,
+                                    guard: ({ context }) => checkDefeat(context),
                                     actions: assign({
                                         gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.',
                                         isVictory: false

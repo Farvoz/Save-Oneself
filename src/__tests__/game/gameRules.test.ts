@@ -5,7 +5,6 @@ import { GameCard, ShipCard } from '../../core/Card';
 import { CARD_DATA } from '../../core/cardData';
 import {
     isPlayerValidPosition,
-    canFlipCard,
     hasFlippableCards,
     checkVictory,
     calculateScore
@@ -68,40 +67,6 @@ describe('Game Rules', () => {
             mockContext.playerPosition = new Position(0, 0);
             const pos = new Position(2, 2);
             expect(isPlayerValidPosition(mockContext, pos)).toBe(false);
-        });
-    });
-
-    describe('canFlipCard', () => {
-        it('should not allow flipping front cards', () => {
-            const card = new GameCard(CARD_DATA.vines.front, CARD_DATA.vines.front);
-            card.flip(mockContext);
-            expect(canFlipCard(mockContext, card)).toBe(false);
-        });
-
-        it('should check ship-set-sail requirements', () => {
-            const card = new GameCard(CARD_DATA.bottle.back, CARD_DATA.bottle.front);
-            mockContext.shipCard!.direction = 'NW';
-            mockContext.shipCard!.skipMove = true;
-            expect(canFlipCard(mockContext, card)).toBe(true);
-        });
-
-        it('should check higher-ground requirements', () => {
-            // Создаем карту higher-ground и размещаем её на позиции игрока
-            const higherGroundCard = new GameCard(CARD_DATA.higherGround.back, CARD_DATA.higherGround.front);
-            mockContext.positionSystem.setPosition(new Position(1, 1), higherGroundCard);
-
-            // Теперь игрок находится где-то не на higher-ground, поэтому карту нельзя перевернуть
-            expect(canFlipCard(mockContext, higherGroundCard)).toBe(false);
-
-            mockContext.playerPosition = new Position(1, 1);
-            
-            // Создаем карту flint, размещаем её на позиции (2, 2) и переворачиваем
-            const torchCard = new GameCard(CARD_DATA.flint.back, CARD_DATA.flint.front);
-            mockContext.positionSystem.setPosition(new Position(2, 2), torchCard);
-            torchCard.flip(mockContext);
-
-            // Теперь игрок находится на карте higher-ground, поэтому карту можно перевернуть
-            expect(canFlipCard(mockContext, higherGroundCard)).toBe(true);
         });
     });
 

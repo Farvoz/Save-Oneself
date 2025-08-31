@@ -101,10 +101,12 @@ export const placeCard = (context: GameContext, pos: Position): PlaceCardResult 
     const newDeck = context.deck.slice(0, -1);
     const newLives = context.lives;
 
-    context.positionSystem.setPosition(pos, cardObj);
+    // Клонируем positionSystem и добавляем новую карту
+    const newPositionSystem = context.positionSystem.clone();
+    newPositionSystem.setPosition(pos, cardObj);
     
     return {
-        positionSystem: context.positionSystem,
+        positionSystem: newPositionSystem,
         deck: newDeck,
         cardObj,
         lives: newLives
@@ -121,11 +123,13 @@ export const placeShip = (positionSystem: PositionSystem, direction: Direction):
 
     const newShipCard = new ShipCard(ship, direction, shipPosition, cornerManager);
 
-    positionSystem.setPosition(shipPosition, newShipCard);
+    // Клонируем positionSystem и добавляем корабль
+    const newPositionSystem = positionSystem.clone();
+    newPositionSystem.setPosition(shipPosition, newShipCard);
 
     return {
         shipCard: newShipCard,
-        positionSystem
+        positionSystem: newPositionSystem
     };
 };
 
@@ -137,14 +141,28 @@ export const moveShip = (context: GameContext): MoveShipResult => {
     // Смещаем корабль в новое положение
     const newPosition = context.shipCard!.cornerManager!.getNextShipPosition(shipPos, currentDirection);
 
-    // Обновляем позицию корабля
-    context.shipCard!.position = newPosition;
+    // Создаем новый объект shipCard с обновленной позицией
+    const newShipCard = new ShipCard(
+        context.shipCard!.getCurrentSide(), 
+        currentDirection, 
+        newPosition, 
+        context.shipCard!.cornerManager!
+    );
+    
+    // Копируем состояние skipMove и hasTurned
+    newShipCard.skipMove = context.shipCard!.skipMove;
+    newShipCard.hasTurned = context.shipCard!.hasTurned;
 
-    context.positionSystem.swapPositions(shipPos, newPosition);
+    // Обновляем positionSystem
+    const newPositionSystem = context.positionSystem.clone();
+    
+    // Удаляем корабль со старой позиции и устанавливаем на новую
+    newPositionSystem.removePosition(shipPos);
+    newPositionSystem.setPosition(newPosition, newShipCard);
 
     return {
-        shipCard: context.shipCard!,
-        positionSystem: context.positionSystem
+        shipCard: newShipCard,
+        positionSystem: newPositionSystem
     };
 };
 

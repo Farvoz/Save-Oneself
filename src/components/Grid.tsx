@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from './Card';
 import './Grid.css';
-import { isPlayerValidPosition, canFlipCard } from '../core/gameRules';
+import { isPlayerValidPosition } from '../core/gameRules';
 import { Position, PositionSystem } from '../core/PositionSystem';
 import { GameState } from '../core/gameData';
 
@@ -18,13 +18,15 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }
         const card = positionSystem.getPosition(pos);
         const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, pos);
         const isPlayerPosition = context.playerPosition && context.playerPosition.equals(pos);
-        const isFlippable = card && state.matches('playing.checkingFlippable') && canFlipCard(context, card);
+        const isFlippable = card && state.matches('playing.checkingFlippable') && card.canFlip(context);
 
-        // Add coastline logic
+        // Add coastline logic - use positionSystem to find ship position for consistency
         let isCoastline = false;
         if (context.shipCard?.direction) {
-            const shipPos = context.shipCard.position;
-            if (shipPos) {
+            // Find ship position from positionSystem instead of context.shipCard.position
+            const shipCardFromSystem = positionSystem.findAllBy(card => card.getCurrentType() === 'ship')[0];
+            if (shipCardFromSystem) {
+                const shipPos = shipCardFromSystem.position;
                 switch (context.shipCard.direction) {
                     case 'NE':
                         isCoastline = col === shipPos.col;

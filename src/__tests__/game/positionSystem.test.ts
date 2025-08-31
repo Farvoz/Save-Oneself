@@ -107,6 +107,26 @@ describe('PositionSystem', () => {
     });
   });
 
+  test('should get bounds with negative positions', () => {
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);
+    const card3 = new GameCard(CARD_DATA.water.back, CARD_DATA.water.front);
+    
+    positionSystem.setPosition(new Position(-2, -1), card1);
+    positionSystem.setPosition(new Position(1, 3), card2);
+    positionSystem.setPosition(new Position(-1, 2), card3);
+
+    const bounds = positionSystem.getBounds();
+    expect(bounds).toEqual({
+      minRow: -2,
+      maxRow: 1,
+      minCol: -1,
+      maxCol: 3,
+      width: 5,
+      height: 4
+    });
+  });
+
   test('should find card by id', () => {
     const pos = new Position(1, 2);
     const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);

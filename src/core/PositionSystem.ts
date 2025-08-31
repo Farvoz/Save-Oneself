@@ -179,4 +179,13 @@ export class PositionSystem {
     countNonShipCards(): number {
         return this.findAllBy(card => card.getCurrentType() !== 'ship').length;
     }
+
+    // Клонирует PositionSystem
+    clone(): PositionSystem {
+        const cloned = new PositionSystem();
+        for (const [posStr, card] of this.occupiedPositions.entries()) {
+            cloned.occupiedPositions.set(posStr, card);
+        }
+        return cloned;
+    }
 } 

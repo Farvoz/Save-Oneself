@@ -9,7 +9,7 @@ interface Bounds {
     maxCol: number;
 }
 
-interface CornerCoordinates {
+interface islandBounds {
     topLeft: [number, number];
     topRight: [number, number];
     bottomLeft: [number, number];
@@ -19,16 +19,17 @@ interface CornerCoordinates {
 // Является частью ShipCard
 export class ShipCornerManager {
     private direction: ShipDirection;
+    // Это граница поля на момент создания ShipCornerManager. Не учитывается карта корабля.
     private bounds: Bounds;
-    private cornerCoordinates: CornerCoordinates;
+    private islandBounds: islandBounds;
 
     constructor(direction: ShipDirection, bounds: Bounds) {
         this.direction = direction;
         this.bounds = bounds;
-        this.cornerCoordinates = this.calculateCornerCoordinates();
+        this.islandBounds = this.calculateIslandBounds();
     }
 
-    private calculateCornerCoordinates(): CornerCoordinates {
+    private calculateIslandBounds(): islandBounds {
         const { minRow, maxRow, minCol, maxCol } = this.bounds;
         
         switch(this.direction) {
@@ -64,7 +65,7 @@ export class ShipCornerManager {
     }
 
     isFinalCornerShipPosition(pos: Position): boolean {
-        const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
         
         switch(this.direction) {
             case 'NE': return bottomRight[0] + 1 === pos.row;
@@ -74,8 +75,8 @@ export class ShipCornerManager {
         }
     }
 
-    isCornerCard(pos: Position): boolean {
-        const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
+    isIslandCornerCard(pos: Position): boolean {
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
 
         return pos.equals(new Position(topLeft[0], topLeft[1])) ||
                pos.equals(new Position(topRight[0], topRight[1])) ||
@@ -84,7 +85,7 @@ export class ShipCornerManager {
     }
 
     isPlayerValidPosition(pos: Position): boolean {
-        const { topLeft, bottomLeft, bottomRight } = this.cornerCoordinates;
+        const { topLeft, bottomLeft, bottomRight } = this.islandBounds;
 
         return !(pos.row < topLeft[0] || 
                 pos.row > bottomLeft[0] || 
@@ -129,7 +130,7 @@ export class ShipCornerManager {
     isShipOutOfBounds(shipPosition: Position | null): boolean {
         if (!shipPosition) return false;
 
-        const { topLeft, topRight, bottomLeft, bottomRight } = this.cornerCoordinates;
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
         
         const minRow = Math.min(topLeft[0], bottomLeft[0]);
         const maxRow = Math.max(topRight[0], bottomRight[0]);

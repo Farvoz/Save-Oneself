@@ -19,6 +19,7 @@ export const CARD_DATA: CardData = {
             id: 'vines',
             direction: 'SW' as Direction,
             requirements: 'palm-trees',
+            requirementsText: 'нужна 🌴',
             type: 'back' as CardType,
             emoji: '🌿',
             description: 'Позволяет сделать убежище',
@@ -45,6 +46,7 @@ export const CARD_DATA: CardData = {
             id: 'hook',
             direction: 'NE' as Direction,
             requirements: 'water',
+            requirementsText: 'нужна 💧',
             type: 'back' as CardType,
             emoji: '🎣',
             description: 'Позволяет добыть рыбу'
@@ -65,6 +67,7 @@ export const CARD_DATA: CardData = {
             id: 'water',
             lives: 2,
             requirements: 'telescope',
+            requirementsText: 'нужна 🔭',
             type: 'back' as CardType,
             emoji: '💧',
             description: 'Позволяет освежиться',
@@ -88,6 +91,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'flint',
             requirements: 'vines',
+            requirementsText: 'нужна 🌿',
             type: 'back' as CardType,
             emoji: '⚡',
             description: 'Позволяет сделать огонь'
@@ -104,6 +108,7 @@ export const CARD_DATA: CardData = {
             id: 'palm-trees',
             direction: 'SE' as Direction,
             requirements: 'rocks',
+            requirementsText: 'нужна 🧱',
             type: 'back' as CardType,
             emoji: '🌴',
             description: 'Позволяет добыть кокосы'
@@ -124,6 +129,7 @@ export const CARD_DATA: CardData = {
             id: 'sticks',
             direction: 'NW' as Direction,
             requirements: 'flint',
+            requirementsText: 'нужна ⚡',
             type: 'back' as CardType,
             emoji: '🥢',
             description: 'Позволяет сделать копье для охоты'
@@ -139,10 +145,13 @@ export const CARD_DATA: CardData = {
     bottle: {
         back: {
             id: 'bottle',
-            requirements: '_ship-set-sail',
+            requirementsText: 'нужен корабль на паузе',
             type: 'back' as CardType,
             emoji: '🍾',
-            description: 'Позволяет отправить сообщение, если не угловая карта'
+            description: 'Позволяет отправить сообщение, если не угловая карта',
+            canFlip: (context) => {
+                return context.shipCard?.direction !== undefined && context.shipCard?.skipMove;
+            }
         },
         front: {
             id: 'message',
@@ -156,6 +165,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'higher-ground',
             requirements: 'torch',
+            requirementsText: 'нужна 🕯️',
             type: 'back' as CardType,
             emoji: '⛰️',
             description: 'Здесь доступно много действий'
@@ -171,10 +181,18 @@ export const CARD_DATA: CardData = {
     telescope: {
         back: {
             id: 'telescope',
-            requirements: 'higher-ground',
+            requirementsText: 'нужно быть на ⛰️',
             type: 'back' as CardType,
             emoji: '🔭',
-            description: 'Позволяет увидеть полное движение корабля'
+            description: 'Позволяет увидеть полное движение корабля',
+            canFlip: (context) => {
+                // Проверяем, что игрок находится на higher-ground
+                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
+                    return false;
+                }
+                return true;
+            }
         },
         front: {
             id: 'ship-sighted',
@@ -203,10 +221,18 @@ export const CARD_DATA: CardData = {
     rocks: {
         back: {
             id: 'rocks',
-            requirements: 'higher-ground',
+            requirementsText: 'нужно быть на ⛰️',
             type: 'back' as CardType,
             emoji: '🧱',
-            description: 'Позволяет выложить SOS в ряд'
+            description: 'Позволяет выложить SOS в ряд',
+            canFlip: (context) => {
+                // Проверяем, что игрок находится на higher-ground
+                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
+                    return false;
+                }
+                return true;
+            }
         },
         front: {
             id: 'sos',
@@ -221,6 +247,7 @@ export const CARD_DATA: CardData = {
             id: 'pig',
             lives: -2,
             requirements: 'spear',
+            requirementsText: 'нужна 🗡️',
             type: 'back' as CardType,
             emoji: '🐷',
             description: 'После добычи, даёт мясо',
@@ -249,7 +276,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'storm',
             lives: -2,
-            requirements: '_13-turn',
+            requirementsText: '13 карта',
             type: 'back' as CardType,
             emoji: '🌧️',
             description: 'Можно защититься в убежище',
@@ -299,7 +326,7 @@ export const CARD_DATA: CardData = {
     mirage: {
         back: {
             id: 'mirage',
-            requirements: '_swap',
+            requirementsText: 'найти пересечение',
             type: 'back' as CardType,
             emoji: '🌫️',
             description: 'Сразу же заменяет самую дальнюю карту и переворачивается',
@@ -347,7 +374,7 @@ export const CARD_DATA: CardData = {
     pirates: {
         back: {
             id: 'pirates',
-            requirements: '_ship-sailing',
+            requirementsText: 'ждать отплытие',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
             description: 'Срабатывает, когда корабль уже плывет',
@@ -380,10 +407,20 @@ export const CARD_DATA: CardData = {
     mapRow: {
         back: {
             id: 'map-r',
-            requirements: '_map',
             type: 'back' as CardType,
             emoji: '👈🗺️👉',
-            description: 'Сокровище где-то в этом ряду'
+            description: 'Сокровище где-то в этом ряду',
+            canFlip: (context) => {
+                // Both map cards must be on the board
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapCResult = context.positionSystem.findCardById('map-c');
+
+                if (!mapRResult || !mapCResult) return false;
+
+                // Player must be at the intersection of map-r row and map-c column
+                return mapRResult.position.row === context.playerPosition!.row && 
+                       mapCResult.position.col === context.playerPosition!.col;
+            }
         },
         front: {
             id: 'rum',
@@ -409,10 +446,20 @@ export const CARD_DATA: CardData = {
     mapCol: {
         back: {
             id: 'map-c',
-            requirements: '_map',
             type: 'back' as CardType,
             emoji: '👇🗺️☝️',
-            description: 'Сокровище где-то в этой колонке'
+            description: 'Сокровище где-то в этой колонке',
+            canFlip: (context) => {
+                // Both map cards must be on the board
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapCResult = context.positionSystem.findCardById('map-c');
+
+                if (!mapRResult || !mapCResult) return false;
+
+                // Player must be at the intersection of map-r row and map-c column
+                return mapRResult.position.row === context.playerPosition!.row && 
+                       mapCResult.position.col === context.playerPosition!.col;
+            }
         },
         front: {
             id: 'treasure',
