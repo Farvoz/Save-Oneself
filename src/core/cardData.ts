@@ -382,14 +382,16 @@ export const CARD_DATA: CardData = {
             emoji: '🏴‍☠️',
             description: 'Срабатывает, когда корабль уже плывет',
             onBeforeShipMove: (context) => {
-                if (context.shipCard && !context.shipCard.getCurrentSide().skipMove) {
-                    context.positionSystem.removeShipPosition();
+                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                if (context.shipCard && !context.shipCard.skipMove && playerCard?.getCurrentId() === 'pirates') {
                     // flip the pirates card
-                    const piratesCard = context.positionSystem.getPosition(context.playerPosition!);
-                    if (piratesCard) piratesCard.flip(context);
+                    const newContext = playerCard!.flip(context);
+
+                    newContext.positionSystem.removeShipPosition();
+
                     return {
-                        ...context,
-                        positionSystem: context.positionSystem,
+                        ...newContext,
+                        positionSystem: newContext.positionSystem,
                         shipCard: undefined
                     };
                 }

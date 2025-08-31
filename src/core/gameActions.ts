@@ -55,22 +55,19 @@ export const movePlayer = (context: GameContext, newPosition: Position): MovePla
     const card = newPositionSystem.getPosition(newPosition);
 
     // если карта не существует, то placeCard
-    if (!card) {
-        // если колода пуста, то игра окончена
-        if (context.deck.length === 0) {
-            return {
-                gameOverMessage: 'Игра окончена! Колода пуста.',
-                isVictory: false,
-                playerPosition: newPosition,
-                positionSystem: newPositionSystem,
-                deck: newDeck,
-                lives: newLives,
-                shipCard: newShipCard!,
-                hasPlacedCard,
-                movesLeft,
-                hasMoved: true
-            };
-        }
+    if (!card && context.deck.length === 0) {
+        return {
+            gameOverMessage: 'Игра окончена! Колода пуста.',
+            isVictory: false,
+            playerPosition: newPosition,
+            positionSystem: newPositionSystem,
+            deck: newDeck,
+            lives: newLives,
+            shipCard: newShipCard!,
+            hasPlacedCard,
+            movesLeft,
+            hasMoved: true
+        };
     }
 
     // Уменьшаем количество оставшихся ходов

@@ -92,7 +92,7 @@ export const createGameStateMachine = () => {
                                 };
 
                                 // Проверяем необходимость размещения корабля
-                                if (cardObj.getCurrentDirection() && !context.shipCard?.getCurrentDirection()) {
+                                if (cardObj.getCurrentDirection() && !context.shipCard) {
                                     const { shipCard, positionSystem: newPositionSystem } = placeShip(positionSystem, cardObj.getCurrentDirection()!);
                                     newContext = {
                                         ...newContext,
@@ -197,6 +197,9 @@ export const createGameStateMachine = () => {
                     shipMoving: {
                         entry: [
                             assign(({ context }) => {
+                                // Применяем эффекты перед движением корабля (например, телескоп)
+                                const contextWithEffects = applyCardHandlers(context, 'onBeforeShipMove');
+
                                 // Проверяем, можно ли двигать корабль
                                 const shipPos = context.positionSystem.getShipPosition();
                                 if (!shipPos || !context.shipCard?.getCurrentDirection()) {
@@ -208,9 +211,6 @@ export const createGameStateMachine = () => {
                                     context.shipCard.skipMove = false;
                                     return context;
                                 }
-
-                                // Применяем эффекты перед движением корабля (например, телескоп)
-                                const contextWithEffects = applyCardHandlers(context, 'onBeforeShipMove');
                                 
                                 // Двигаем корабль
                                 return moveShip(contextWithEffects.shipCard!, contextWithEffects.positionSystem);

@@ -59,12 +59,9 @@ export class GameCard {
     flip(context: GameContext) {
         this.isFlipped = !this.isFlipped;
         
-        // Если передан контекст, вызываем обработчик onFlip
-        if (context) {
-            const side = this.getCurrentSide();
-            if (side && typeof side.onFlip === 'function') {
-                return side.onFlip(context);
-            }
+        const side = this.getCurrentSide();
+        if (side && typeof side.onFlip === 'function') {
+            return side.onFlip(context);
         }
 
         return context;
