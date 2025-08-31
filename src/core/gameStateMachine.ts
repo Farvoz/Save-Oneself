@@ -92,11 +92,10 @@ export const createGameStateMachine = () => {
                                 };
 
                                 // Проверяем необходимость размещения корабля
-                                if (cardObj.getCurrentDirection() && !context.shipCard) {
-                                    const { shipCard, positionSystem: newPositionSystem } = placeShip(positionSystem, cardObj.getCurrentDirection()!);
+                                if (cardObj.getCurrentDirection() && !context.positionSystem.getShipCard()) {
+                                    const { positionSystem: newPositionSystem } = placeShip(positionSystem, cardObj.getCurrentDirection()!);
                                     newContext = {
                                         ...newContext,
-                                        shipCard,
                                         positionSystem: newPositionSystem
                                     };
                                 }
@@ -202,18 +201,19 @@ export const createGameStateMachine = () => {
 
                                 // Проверяем, можно ли двигать корабль
                                 const shipPos = context.positionSystem.getShipPosition();
-                                if (!shipPos || !context.shipCard?.getCurrentDirection()) {
+                                const shipCard = context.positionSystem.getShipCard();
+                                if (!shipPos || !shipCard?.getCurrentDirection()) {
                                     return context;
                                 }
 
                                 // Если корабль должен пропустить ход, просто сбрасываем флаг
-                                if (context.shipCard.skipMove) {
-                                    context.shipCard.skipMove = false;
+                                if (shipCard.skipMove) {
+                                    shipCard.skipMove = false;
                                     return context;
                                 }
                                 
                                 // Двигаем корабль
-                                return moveShip(contextWithEffects.shipCard!, contextWithEffects.positionSystem);
+                                return moveShip(shipCard, contextWithEffects.positionSystem);
                             }),
                             ({ context: { positionSystem } }) => {
                                 const shipPos = positionSystem.getShipPosition();

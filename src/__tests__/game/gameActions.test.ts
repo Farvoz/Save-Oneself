@@ -17,7 +17,6 @@ describe('Game Actions', () => {
       positionSystem: new PositionSystem(),
       deck: [...INITIAL_GAME_DECK],
       lives: 3,
-      shipCard: undefined,
       hasPlacedCard: false,
       movesLeft: 3,
       hasMoved: false,

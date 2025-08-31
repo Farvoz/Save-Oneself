@@ -78,12 +78,7 @@ describe('Grid Component', () => {
     const positionSystem = new PositionSystem();
     
     // Создаем корабль в позиции (1, 1) с направлением NE
-    const shipCard = new GameCard(ship, ship);
-    shipCard.getCurrentSide = () => ({
-      ...ship,
-      direction: 'NE',
-      type: 'ship'
-    });
+    const shipCard = new ShipCard(ship, 'NE', new ShipCornerManager('NE', positionSystem.getBounds()));
     
     positionSystem.setPosition(new Position(1, 1), shipCard);
     
@@ -92,7 +87,6 @@ describe('Grid Component', () => {
       ...mockState,
       context: {
         ...mockState.context,
-        shipCard: new ShipCard(ship, 'NE', new ShipCornerManager('NE', positionSystem.getBounds()))
       }
     };
     

@@ -200,7 +200,6 @@ checkingFlippable → shipMoving → checkingShipEffects → startOfRound
 - `playerPosition` - текущая позиция игрока
 - `deck` - колода карт тыльной стороны
 - `frontDeck` - колода карт лицевой стороны
-- `shipCard` - информация о корабле
 - `hasPlacedCard` - флаг размещения карты в текущем раунде
 - `movesLeft` - количество оставшихся ходов
 - `hasMoved` - флаг перемещения в текущем раунде

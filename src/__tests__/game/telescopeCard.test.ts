@@ -27,12 +27,13 @@ describe('Telescope Card (ship-sighted)', () => {
             new ShipCornerManager('NW', bounds)
         );
 
+        positionSystem.setPosition(new Position(0,0), shipCard)
+
         mockContext = {
             playerPosition: new Position(0, 0),
             hasPlacedCard: false,
             lives: 3,
             positionSystem: positionSystem,
-            shipCard: shipCard,
             hasMoved: false,
             gameOverMessage: null,
             isVictory: false,
@@ -53,8 +54,13 @@ describe('Telescope Card (ship-sighted)', () => {
             // Вызываем обработчик
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            expect(result.shipCard!.getCurrentDirection()).toBe(originalDirection);
-            expect(result.shipCard!.hasTurned).toBe(originalHasTurned);
+            // Проверяем, что корабль не найден в positionSystem
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard).toBeNull();
+            
+            // Проверяем, что оригинальный корабль не изменился
+            expect(shipCard.getCurrentDirection()).toBe(originalDirection);
+            expect(shipCard.hasTurned).toBe(originalHasTurned);
             
             // Восстанавливаем позицию
             if (originalPosition) {
@@ -70,9 +76,10 @@ describe('Telescope Card (ship-sighted)', () => {
             const originalHasTurned = shipCard.hasTurned;
 
             // Вызываем обработчик
-            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
+            CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            expect(result.shipCard!.hasTurned).toBe(originalHasTurned);
+            // Проверяем, что оригинальный корабль не изменился
+            expect(shipCard.hasTurned).toBe(originalHasTurned);
             
             // Восстанавливаем направление
             shipCard.direction = originalDirection;
@@ -89,8 +96,9 @@ describe('Telescope Card (ship-sighted)', () => {
             // Вызываем обработчик
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            expect(result.shipCard!.getCurrentDirection()).toBe(originalDirection);
-            expect(result.shipCard!.hasTurned).toBe(originalHasTurned);
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(originalHasTurned);
         });
 
         it('should not change ship direction when ship has already turned', () => {
@@ -104,12 +112,14 @@ describe('Telescope Card (ship-sighted)', () => {
             // Вызываем обработчик
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            expect(result.shipCard!.getCurrentDirection()).toBe(originalDirection);
-            expect(result.shipCard!.hasTurned).toBe(true);
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
 
         it('should change ship direction when ship is at corner and has not turned', () => {
             // Корабль на финальной угловой позиции и еще не поворачивал
+            // Для NW: topRight[1] + 1 = 4 + 1 = 5, row = 0
             const cornerPosition = new Position(0, 5); // Финальная угловая позиция для NW
             positionSystem.setPosition(cornerPosition, shipCard);
             shipCard.hasTurned = false;
@@ -117,12 +127,16 @@ describe('Telescope Card (ship-sighted)', () => {
             const originalDirection = shipCard.getCurrentDirection();
             const expectedNewDirection = shipCard.cornerManager!.getNextDirection();
 
+            // Проверяем, что это действительно финальная позиция
+            expect(shipCard.cornerManager!.isFinalCornerShipPosition(cornerPosition)).toBe(true);
+
             // Вызываем обработчик
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            expect(result.shipCard!.getCurrentDirection()).toBe(expectedNewDirection);
-            expect(result.shipCard!.getCurrentDirection()).not.toBe(originalDirection);
-            expect(result.shipCard!.hasTurned).toBe(true);
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(expectedNewDirection);
+            expect(resultShipCard!.getCurrentDirection()).not.toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
 
         it('should only turn ship once even if called multiple times', () => {
@@ -135,13 +149,15 @@ describe('Telescope Card (ship-sighted)', () => {
 
             // Первый вызов - корабль поворачивает
             let result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
-            expect(result.shipCard!.getCurrentDirection()).toBe(firstNewDirection);
-            expect(result.shipCard!.hasTurned).toBe(true);
+            let resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(firstNewDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
 
             // Второй вызов - корабль не поворачивает
             result = CARD_DATA.telescope.front.onBeforeShipMove!(result);
-            expect(result.shipCard!.getCurrentDirection()).toBe(firstNewDirection); // Направление не изменилось
-            expect(result.shipCard!.hasTurned).toBe(true);
+            resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(firstNewDirection); // Направление не изменилось
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
 
         it('should work with different ship directions', () => {
@@ -149,38 +165,44 @@ describe('Telescope Card (ship-sighted)', () => {
             const seShipCard = new ShipCard(
                 ship,
                 'SE',
-                new ShipCornerManager('SE', { minRow: 1, maxRow: 2, minCol: 1, maxCol: 2 })
+                new ShipCornerManager('SE', {
+                    minRow: 1,
+                    maxRow: 2,
+                    minCol: 1,
+                    maxCol: 2
+                })
             );
-            
-            mockContext.shipCard = seShipCard;
+
+            // Находим правильную финальную позицию для SE
+            // Согласно ShipCornerManager.isFinalCornerShipPosition для SE: bottomLeft[1] - 1 === pos.col
+            // bottomLeft для SE: [maxRow, maxCol - 3] = [2, 2 - 3] = [2, -1]
+            // Финальная позиция: col = -1 - 1 = -2, row = 2
+            const cornerPosition = new Position(2, -2);
+            positionSystem.setPosition(cornerPosition, seShipCard);
             seShipCard.hasTurned = false;
 
-            // Помещаем корабль на финальную угловую позицию для SE
-            const finalCornerPosition = new Position(3, -2); // maxRow + 1, bottomLeft[1] - 1
-            mockContext.positionSystem.setPosition(finalCornerPosition, seShipCard);
+            // Проверяем, что это действительно финальная позиция
+            expect(seShipCard.cornerManager!.isFinalCornerShipPosition(cornerPosition)).toBe(true);
 
             const originalDirection = seShipCard.getCurrentDirection();
             const expectedNewDirection = seShipCard.cornerManager!.getNextDirection();
 
+            // Создаем новый контекст с SE кораблем
+            const seMockContext = {
+                ...mockContext,
+                positionSystem: positionSystem
+            };
+
             // Вызываем обработчик
-            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
+            const result = CARD_DATA.telescope.front.onBeforeShipMove!(seMockContext);
 
-            expect(result.shipCard!.getCurrentDirection()).toBe(expectedNewDirection);
-            expect(result.shipCard!.getCurrentDirection()).not.toBe(originalDirection);
-            expect(result.shipCard!.hasTurned).toBe(true);
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(expectedNewDirection);
+            expect(resultShipCard!.getCurrentDirection()).not.toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
 
-        it('should return the same context when no changes are made', () => {
-            // Корабль не на углу
-            const centerPosition = new Position(1, 1);
-            positionSystem.setPosition(centerPosition, shipCard);
-            
-            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
-
-            expect(result).toBe(mockContext);
-        });
-
-        it('should return modified context when ship direction is changed', () => {
+        it('should handle ship direction changes correctly', () => {
             // Корабль на финальной угловой позиции и еще не поворачивал
             const cornerPosition = new Position(0, 5); // Финальная угловая позиция для NW
             positionSystem.setPosition(cornerPosition, shipCard);
@@ -189,10 +211,9 @@ describe('Telescope Card (ship-sighted)', () => {
             // Вызываем обработчик
             const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            // Обработчик изменяет объект корабля напрямую, поэтому контекст остается тем же
-            expect(result).toBe(mockContext);
-            expect(result.shipCard!.hasTurned).toBe(true);
-            expect(result.shipCard!.getCurrentDirection()).toBe('NE'); // Направление изменилось с NW на NE
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.hasTurned).toBe(true);
+            expect(resultShipCard!.getCurrentDirection()).toBe('NE'); // Направление изменилось с NW на NE
         });
     });
 });

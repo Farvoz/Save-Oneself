@@ -27,12 +27,14 @@ describe('Game Rules', () => {
             new ShipCornerManager('NW', bounds)
         );
 
+        const positionSystem = new PositionSystem();
+        positionSystem.setPosition(new Position(0, 0), shipCard);
+        
         mockContext = {
             playerPosition: new Position(0, 0),
             hasPlacedCard: false,
             lives: 3,
-            positionSystem: new PositionSystem(),
-            shipCard: shipCard,
+            positionSystem: positionSystem,
             hasMoved: false,
             gameOverMessage: null,
             isVictory: false,
@@ -78,15 +80,18 @@ describe('Game Rules', () => {
 
     describe('checkVictory', () => {
         it('should return false when ship has no position', () => {
-            mockContext.shipCard = undefined;
+            mockContext.positionSystem.removeShipPosition();
             expect(checkVictory(mockContext)).toBe(false);
         });
 
         it('should detect SOS victory condition', () => {
             const sosPos = new Position(1, 1);
             const shipPos = new Position(1, 0);
-            mockContext.positionSystem.setPosition(shipPos, mockContext.shipCard!);
-            const sosCard = new GameCard(CARD_DATA.rocks.front, CARD_DATA.rocks.front);
+            const shipCard = mockContext.positionSystem.getShipCard();
+            mockContext.positionSystem.removeShipPosition();
+            mockContext.positionSystem.setPosition(shipPos, shipCard!);
+            const sosCard = new GameCard(CARD_DATA.rocks.back, CARD_DATA.rocks.front);
+            sosCard.flip(mockContext);
             mockContext.positionSystem.setPosition(sosPos, sosCard);
             expect(checkVictory(mockContext)).toBe(true);
         });
@@ -94,8 +99,11 @@ describe('Game Rules', () => {
         it('should detect beacon victory condition', () => {
             const beaconPos = new Position(1, 1);
             const shipPos = new Position(0, 1);
-            mockContext.positionSystem.setPosition(shipPos, mockContext.shipCard!);
-            const beaconCard = new GameCard(CARD_DATA.higherGround.front, CARD_DATA.higherGround.front);
+            const shipCard = mockContext.positionSystem.getShipCard();
+            mockContext.positionSystem.removeShipPosition();
+            mockContext.positionSystem.setPosition(shipPos, shipCard!);
+            const beaconCard = new GameCard(CARD_DATA.higherGround.back, CARD_DATA.higherGround.front);
+            beaconCard.flip(mockContext);
             mockContext.positionSystem.setPosition(beaconPos, beaconCard);
             expect(checkVictory(mockContext)).toBe(true);
         });
@@ -103,8 +111,10 @@ describe('Game Rules', () => {
         it('should detect message victory condition', () => {
             const messagePos = new Position(0, 1);
             const shipPos = new Position(-1, 1);
-            mockContext.positionSystem.setPosition(shipPos, mockContext.shipCard!);
-            const messageCard = new GameCard(CARD_DATA.bottle.front, CARD_DATA.bottle.front);
+            const shipCard = mockContext.positionSystem.getShipCard();
+            mockContext.positionSystem.setPosition(shipPos, shipCard!);
+            const messageCard = new GameCard(CARD_DATA.bottle.back, CARD_DATA.bottle.front);
+            messageCard.flip(mockContext);
             mockContext.positionSystem.setPosition(messagePos, messageCard);
             expect(checkVictory(mockContext)).toBe(true);
         });

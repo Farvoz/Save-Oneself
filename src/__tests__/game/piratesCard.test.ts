@@ -5,7 +5,7 @@ import { CARD_DATA, ship } from '../../core/cardData';
 describe('Pirates Card', () => {
     let piratesCard: GameCard;
     let mockContext: GameContext;
-    let mockShipCard: ShipCard;
+    let mockShipCard;
 
     beforeEach(() => {
         piratesCard = new GameCard(CARD_DATA.pirates.back, CARD_DATA.pirates.front);
@@ -19,10 +19,11 @@ describe('Pirates Card', () => {
         };
         const cornerManager = new ShipCornerManager('NE', bounds);
         mockShipCard = new ShipCard(ship, 'NE', cornerManager);
+
+        positionSystem.setPosition(new Position(0, 0), mockShipCard)
         
         mockContext = {
             positionSystem,
-            shipCard: mockShipCard,
             playerPosition: new Position(0, 0),
             lives: 3,
             deck: [],

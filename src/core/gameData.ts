@@ -3,7 +3,6 @@ import { createGameStateMachine } from './gameStateMachine';
 import { PositionSystem, Position } from './PositionSystem';
 import { CARD_DATA } from './cardData';
 import { GameCard, CardSide } from './Card';
-import { ShipCard } from './ShipCard';
 
 export { CARD_DATA };
 
@@ -17,7 +16,6 @@ export type GameContext = {
     gameOverMessage: string | null;
     isVictory: boolean;
     playerPosition?: Position;
-    shipCard?: ShipCard;
 };
 
 export type GameEvent =

@@ -150,7 +150,8 @@ export const CARD_DATA: CardData = {
             emoji: '🍾',
             description: 'Позволяет отправить сообщение, если не угловая карта',
             canFlip: (context) => {
-                return context.shipCard?.direction !== undefined && context.shipCard?.skipMove;
+                const shipCard = context.positionSystem.getShipCard();
+                return shipCard !== null && shipCard.skipMove;
             }
         },
         front: {
@@ -202,17 +203,18 @@ export const CARD_DATA: CardData = {
             description: 'Корабль после угла поплывет дальше, но только один раз',
             onBeforeShipMove: (context) => {
                 const shipPos = context.positionSystem.getShipPosition();
-                if (!shipPos || !context.shipCard?.getCurrentDirection()) {
+                const shipCard = context.positionSystem.getShipCard();
+                if (!shipPos || !shipCard?.getCurrentDirection()) {
                     return context;
                 }
 
-                const isAtCorner = context.shipCard.cornerManager?.isFinalCornerShipPosition(shipPos) ?? false;
+                const isAtCorner = shipCard.cornerManager?.isFinalCornerShipPosition(shipPos) ?? false;
 
-                if (!context.shipCard.hasTurned && isAtCorner && context.shipCard.cornerManager) {
+                if (!shipCard.hasTurned && isAtCorner && shipCard.cornerManager) {
                     // Корабль на углу и еще не поворачивал - меняем направление
-                    const newDirection = context.shipCard.cornerManager.getNextDirection();
-                    context.shipCard.direction = newDirection;
-                    context.shipCard.hasTurned = true;
+                    const newDirection = shipCard.cornerManager.getNextDirection();
+                    shipCard.direction = newDirection;
+                    shipCard.hasTurned = true;
                 }
 
                 return context;
@@ -355,18 +357,17 @@ export const CARD_DATA: CardData = {
                     const card = context.positionSystem.getPosition(adjPos);
                     return card && card.getCurrentId() === 'sea-serpent';
                 });
-                if (isAdjacent && context.shipCard?.cornerManager) {
-                    const extraPosition = context.shipCard.cornerManager.getNextShipPosition(
+                const shipCard = context.positionSystem.getShipCard();
+                if (isAdjacent && shipCard?.cornerManager) {
+                    const extraPosition = shipCard.cornerManager.getNextShipPosition(
                         shipPos,
-                        context.shipCard.getCurrentDirection()!
+                        shipCard.getCurrentDirection()!
                     );
-                    const extraShipCard = context.shipCard;
                     // Обновляем позицию корабля в positionSystem
-                    context.positionSystem.setPosition(extraPosition, extraShipCard);
+                    context.positionSystem.setPosition(extraPosition, shipCard);
                     context.positionSystem.swapPositions(shipPos, extraPosition);
                     return {
                         ...context,
-                        shipCard: extraShipCard,
                         positionSystem: context.positionSystem
                     };
                 }
@@ -383,7 +384,8 @@ export const CARD_DATA: CardData = {
             description: 'Срабатывает, когда корабль уже плывет',
             onBeforeShipMove: (context) => {
                 const playerCard = context.positionSystem.getPosition(context.playerPosition!);
-                if (context.shipCard && !context.shipCard.skipMove && playerCard?.getCurrentId() === 'pirates') {
+                const shipCard = context.positionSystem.getShipCard();
+                if (shipCard && !shipCard.skipMove && playerCard?.getCurrentId() === 'pirates') {
                     // flip the pirates card
                     const newContext = playerCard!.flip(context);
 
@@ -391,8 +393,7 @@ export const CARD_DATA: CardData = {
 
                     return {
                         ...newContext,
-                        positionSystem: newContext.positionSystem,
-                        shipCard: undefined
+                        positionSystem: newContext.positionSystem
                     };
                 }
                 return context;

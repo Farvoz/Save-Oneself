@@ -10,7 +10,6 @@ interface MovePlayerResult {
     positionSystem: PositionSystem;
     deck: GameCard[];
     lives: number;
-    shipCard: ShipCard;
     hasPlacedCard: boolean;
     movesLeft: number;
     hasMoved: boolean;
@@ -48,7 +47,6 @@ export const movePlayer = (context: GameContext, newPosition: Position): MovePla
     const newPositionSystem = context.positionSystem;
     const newDeck = context.deck;
     const newLives = context.lives;
-    const newShipCard = context.shipCard;
     const hasPlacedCard = context.hasPlacedCard;
     let movesLeft = context.movesLeft;
 
@@ -63,7 +61,6 @@ export const movePlayer = (context: GameContext, newPosition: Position): MovePla
             positionSystem: newPositionSystem,
             deck: newDeck,
             lives: newLives,
-            shipCard: newShipCard!,
             hasPlacedCard,
             movesLeft,
             hasMoved: true
@@ -79,7 +76,6 @@ export const movePlayer = (context: GameContext, newPosition: Position): MovePla
         positionSystem: newPositionSystem,
         deck: newDeck,
         lives: newLives,
-        shipCard: newShipCard!,
         hasPlacedCard,
         movesLeft,
         hasMoved: true
@@ -186,9 +182,10 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
         if (!isAdjacent) return false;
     }
     
-    if (context.shipCard?.cornerManager) {
+    const shipCard = context.positionSystem.getShipCard();
+    if (shipCard?.cornerManager) {
         // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
-        if (!context.shipCard.cornerManager.isPlayerValidPosition(pos)) {
+        if (!shipCard.cornerManager.isPlayerValidPosition(pos)) {
             return false;
         }
     }
@@ -230,7 +227,8 @@ export const checkVictory = (context: GameContext): boolean => {
         const msgPos = messageResult.position;
         
         // Check if message card is not in a corner
-        if (!context.shipCard?.cornerManager?.isIslandCornerCard(msgPos)) {
+        const shipCard = context.positionSystem.getShipCard();
+        if (!shipCard?.cornerManager?.isIslandCornerCard(msgPos)) {
             const isAdjacent = context.positionSystem.isAdjacent(shipPos, msgPos);
             messageVictory = isAdjacent;
         }
@@ -242,8 +240,9 @@ export const checkVictory = (context: GameContext): boolean => {
 // Check if the game is lost (ship is out of bounds)
 export const checkDefeat = (context: GameContext): boolean => {
     const shipPos = context.positionSystem.getShipPosition();
-    return context.shipCard?.cornerManager && shipPos
-        ? context.shipCard.cornerManager.isShipOutOfBounds(shipPos) 
+    const shipCard = context.positionSystem.getShipCard();
+    return shipCard?.cornerManager && shipPos
+        ? shipCard.cornerManager.isShipOutOfBounds(shipPos) 
         : false;
 };
 

@@ -1,4 +1,4 @@
-import { GameCard, CardSide, Direction } from "./Card";
+import { GameCard, CardSide, Direction, CardType } from "./Card";
 import { ShipCornerManager } from "./ShipCornerManager";
 
 export class ShipCard extends GameCard {
@@ -31,6 +31,10 @@ export class ShipCard extends GameCard {
 
     getCurrentDirection(): Direction {
         return this.direction;
+    }
+
+    getCurrentType(): CardType {
+        return 'ship';
     }
 
     get skipMove(): boolean {

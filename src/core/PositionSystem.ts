@@ -2,6 +2,7 @@
 // This system handles all position-related operations
 
 import { GameCard } from './Card';
+import { ShipCard } from './ShipCard';
 
 export class Position {
     row: number;
@@ -48,6 +49,11 @@ export class PositionSystem {
     getShipPosition(): Position | null {
         const shipResults = this.findAllBy(card => card.getCurrentType() === 'ship');
         return shipResults.length > 0 ? shipResults[0].position : null;
+    }
+
+    getShipCard(): ShipCard | null {
+        const shipResults = this.findAllBy(card => card.getCurrentType() === 'ship');
+        return shipResults.length > 0 ? shipResults[0].card as ShipCard : null;
     }
 
     removeShipPosition(): void {
