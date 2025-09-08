@@ -1,9 +1,9 @@
 import { createMachine, assign } from 'xstate';
-import { INITIAL_STATE } from './gameData';
-import { shuffleDeck, movePlayer, moveShip, updateLives, placeCard, placeShip, hasFlippableCards, checkVictory, checkDefeat } from './gameActions';
+import { INITIAL_STATE } from './initial';
+import { shuffleDeck, movePlayer, moveShip, decreaseLive, placeCard, placeShip, hasFlippableCards, checkVictory, checkDefeat } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
-import type { GameContext } from './gameData';
+import type { GameContext } from './initial';
 import type { CardSide } from './Card';
 
 export const createGameStateMachine = () => {
@@ -145,7 +145,7 @@ export const createGameStateMachine = () => {
                     },
                     decreasingLives: { 
                         entry: [
-                            assign(({ context }) => updateLives(context.lives, -1)),
+                            assign(({ context }) => decreaseLive(context.lives)),
                             ({ context: { lives } }) => gameLogger.info('Жизни уменьшены на 1', { lives })
                         ],
                         after: {

@@ -1,5 +1,4 @@
 import { Direction, CardType, CardSide } from './Card';
-import { updateLives } from './gameActions';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
     'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' | 'pirates' | 
@@ -10,6 +9,19 @@ type CardData = {
         back: CardSide;
         front: CardSide;
     }
+};
+
+interface UpdateLivesResult {
+    lives: number;
+}
+
+// Update lives (increase or decrease)
+export const updateLives = (oldLives: number, lives: number): UpdateLivesResult => {
+    const newLives = lives < 0 
+        ? Math.max(0, oldLives + lives)  // Decrease lives but not below 0
+        : Math.min(16, oldLives + lives); // Increase lives but not above 16
+    
+    return { lives: newLives };
 };
 
 // Card data objects

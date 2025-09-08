@@ -68,6 +68,15 @@ export class PositionSystem {
             throw new Error('Value is undefined');
         }
         
+        // Проверяем ограничения для кораблей с направлением через cornerManager
+        if (value.getCurrentType() === 'ship') {
+            const shipCard = value as ShipCard;
+            const isValidPosition = shipCard.cornerManager.isValidShipPosition(pos);
+            if (!isValidPosition) {
+                throw new Error(`Корабль с направлением ${shipCard.direction} может находиться только вдоль определенного берега`);
+            }
+        }
+        
         this.occupiedPositions.set(pos.toString(), value);
     }
 
@@ -212,4 +221,6 @@ export class PositionSystem {
         }
         return cloned;
     }
+
+    
 } 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { GameState } from '../core/gameData';
+import { GameState } from '../core/initial';
 import './Counters.css';
 
 type GamePhase = 'moving' | 'decreasingLives' | 'checkingFlippable' | 'shipMoving' | 'gameOver';

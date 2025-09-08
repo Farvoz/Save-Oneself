@@ -1,7 +1,7 @@
 export * from './PositionSystem';
 export * from './gameActions';
 export * from './gameStateMachine';
-export * from './gameData';
+export * from './initial';
 export * from './Card';
 export * from './ShipCard';
 

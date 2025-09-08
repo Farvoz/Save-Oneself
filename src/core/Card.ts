@@ -1,5 +1,4 @@
-import { ShipCornerManager } from "./ShipCornerManager";
-import type { GameContext, GameEvent } from "./gameData";
+import type { GameContext, GameEvent } from "./initial";
 
 export type Direction = 'NE' | 'SE' | 'SW' | 'NW';
 
@@ -15,10 +14,6 @@ export type CardSide = {
     emoji: string;
     description?: string;
     score?: number;
-    skipMove?: boolean;
-    hasTurned?: boolean;
-    cornerManager?: ShipCornerManager;
-    getEmoji?: () => string;
     /**
      * Вызывается при размещении карты на поле
      */

@@ -2,7 +2,7 @@ import { GameCard, GameContext, PositionSystem, Position, ShipCard } from '../..
 import { ShipCornerManager } from '../../core/ShipCornerManager';
 import { CARD_DATA, ship } from '../../core/cardData';
 
-describe('Pirates Card', () => {
+describe('Карта «Пираты»', () => {
     let piratesCard: GameCard;
     let mockContext: GameContext;
     let mockShipCard;
@@ -20,7 +20,9 @@ describe('Pirates Card', () => {
         const cornerManager = new ShipCornerManager('NE', bounds);
         mockShipCard = new ShipCard(ship, 'NE', cornerManager);
 
-        positionSystem.setPosition(new Position(0, 0), mockShipCard)
+        // Ставим корабль на валидную позицию для NE (правая кромка)
+        const startPos = mockShipCard.cornerManager.getStartShipPosition();
+        positionSystem.setPosition(startPos, mockShipCard)
         
         mockContext = {
             positionSystem,
@@ -35,8 +37,8 @@ describe('Pirates Card', () => {
         };
     });
 
-    describe('flip', () => {
-        it('should flip from pirates to compass', () => {
+    describe('переворот (flip)', () => {
+        it('должна переворачиваться с «пираты» на «компас»', () => {
             expect(piratesCard.getCurrentId()).toBe('pirates');
             expect(piratesCard.getCurrentEmoji()).toBe('🏴‍☠️');
             

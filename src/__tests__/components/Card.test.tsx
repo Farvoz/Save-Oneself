@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { Card } from '../../components/Card';
 import { GameCard } from '../../core';
 
-describe('Card Component', () => {
+describe('Компонент Card', () => {
   const backSide = {
     id: 'test-card',
     lives: 1,
@@ -29,19 +29,19 @@ describe('Card Component', () => {
     onClick: jest.fn(),
   };
 
-  test('renders card with correct background', () => {
+  test('отрисовывает карту с корректным фоном', () => {
     render(<Card card={mockCard} {...defaultProps} />);
     const cardElement = screen.getByTestId('card-test-card');
     expect(cardElement).toHaveStyle({ backgroundColor: '#F5F5DC' });
   });
 
-  test('renders card with lives indicator when applicable', () => {
+  test('отрисовывает индикатор жизней, когда применимо', () => {
     render(<Card card={mockCard} {...defaultProps} />);
     const livesIndicator = screen.getByText('1');
     expect(livesIndicator).toBeInTheDocument();
   });
 
-  test('renders card without lives indicator when lives is 0', () => {
+  test('не отображает индикатор жизней, когда жизней 0', () => {
     const back = { ...backSide, lives: 0 as number };
     const cardWithoutLives = new GameCard(back, frontSide);
     render(<Card card={cardWithoutLives} {...defaultProps} />);
@@ -49,7 +49,7 @@ describe('Card Component', () => {
     expect(livesIndicator).not.toBeInTheDocument();
   });
 
-  test('renders card with negative lives indicator', () => {
+  test('отрисовывает карту с отрицательным индикатором жизней', () => {
     const back = { ...backSide, lives: -1 as number };
     const negativeCard = new GameCard(back, frontSide);
     render(<Card card={negativeCard} {...defaultProps} />);
@@ -57,13 +57,13 @@ describe('Card Component', () => {
     expect(livesIndicator).toBeInTheDocument();
   });
 
-  test('applies correct CSS classes based on card type', () => {
+  test('применяет корректные CSS-классы в зависимости от типа карты', () => {
     render(<Card card={mockCard} {...defaultProps} />);
     const cardElement = screen.getByTestId('card-test-card');
     expect(cardElement).toHaveClass('card');
   });
 
-  test('renders card with additional classes when props are provided', () => {
+  test('отрисовывает карту с дополнительными классами при переданных пропсах', () => {
     render(<Card 
       card={mockCard} 
       {...defaultProps}

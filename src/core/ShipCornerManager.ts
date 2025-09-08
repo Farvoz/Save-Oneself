@@ -140,4 +140,57 @@ export class ShipCornerManager {
         return shipPosition.row < minRow - 1 || shipPosition.row > maxRow + 1 || 
                shipPosition.col < minCol - 1 || shipPosition.col > maxCol + 1;
     }
+
+    /**
+     * Возвращает угловую позицию относительно islandBounds
+     * @returns Position - угловая позиция в зависимости от направления корабля
+     */
+    getCornerPosition(): Position {
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
+        
+        switch(this.direction) {
+            case 'NW': 
+                return new Position(topRight[0], topRight[1]);
+            case 'NE': 
+                return new Position(bottomRight[0], bottomRight[1]);
+            case 'SW': 
+                return new Position(topLeft[0], topLeft[1]);
+            case 'SE': 
+                return new Position(bottomLeft[0], bottomLeft[1]);
+        }
+    }
+
+    /**
+     * Проверяет, что позиция корабля валидна: находится на орбите вокруг острова и не выходит за пределы.
+     * Валидная орбита — клетки непосредственно прилегающие к квадрату острова (рамка толщиной 1 клетка).
+     */
+    isValidShipPosition(pos: Position | null): boolean {
+        if (!pos) return false;
+
+        // Сначала быстрая проверка общих границ (рамка +1 вокруг острова)
+        if (this.isShipOutOfBounds(pos)) return false;
+
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
+
+        const minRow = Math.min(topLeft[0], bottomLeft[0]);
+        const maxRow = Math.max(topRight[0], bottomRight[0]);
+        const minCol = Math.min(topLeft[1], topRight[1]);
+        const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
+
+        // В зависимости от текущего направления валидна только соответствующая сторона орбиты
+        switch (this.direction) {
+            case 'NE':
+                // Движение вниз вдоль правой стороны острова
+                return pos.col === maxCol + 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
+            case 'SE':
+                // Движение влево вдоль нижней стороны острова
+                return pos.row === maxRow + 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
+            case 'SW':
+                // Движение вверх вдоль левой стороны острова
+                return pos.col === minCol - 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
+            case 'NW':
+                // Движение вправо вдоль верхней стороны острова
+                return pos.row === minRow - 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
+        }
+    }
 } 
