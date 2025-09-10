@@ -173,7 +173,7 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
     }
     
     const shipCard = context.positionSystem.getShipCard();
-    if (shipCard?.cornerManager) {
+    if (shipCard) {
         // Проверяем, не выходит ли позиция за пределы прямоугольника, образованного угловыми точками
         if (!shipCard.cornerManager.isPlayerValidPosition(pos)) {
             return false;
@@ -231,7 +231,7 @@ export const checkVictory = (context: GameContext): boolean => {
 export const checkDefeat = (context: GameContext): boolean => {
     const shipPos = context.positionSystem.getShipPosition();
     const shipCard = context.positionSystem.getShipCard();
-    return shipCard?.cornerManager && shipPos
+    return shipCard && shipPos
         ? shipCard.cornerManager.isShipOutOfBounds(shipPos) 
         : false;
 };

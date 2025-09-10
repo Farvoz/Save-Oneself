@@ -63,7 +63,7 @@ export class PositionSystem {
         }
     }
 
-    setPosition(pos: Position, value: GameCard): void {
+    setPosition(pos: Position, value: GameCard | ShipCard): void {
         if (value === undefined) {
             throw new Error('Value is undefined');
         }
@@ -73,7 +73,7 @@ export class PositionSystem {
             const shipCard = value as ShipCard;
             const isValidPosition = shipCard.cornerManager.isValidShipPosition(pos);
             if (!isValidPosition) {
-                throw new Error(`Корабль с направлением ${shipCard.direction} может находиться только вдоль определенного берега`);
+                throw new Error(`Корабль с направлением ${shipCard.getCurrentDirection()} может находиться только вдоль определенного берега`);
             }
         }
         

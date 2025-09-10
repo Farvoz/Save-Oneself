@@ -41,8 +41,8 @@ export type CardSide = {
 };
 
 export class GameCard {
-    protected backSide: CardSide;
-    protected frontSide: CardSide;
+    backSide: CardSide;
+    frontSide: CardSide;
     private isFlipped: boolean;
 
     constructor(backSide: CardSide, frontSide: CardSide) {

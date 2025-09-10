@@ -22,10 +22,10 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }
         // Add coastline logic - use positionSystem to find ship position for consistency
         let isCoastline = false;
         const shipCard = positionSystem.getShipCard();
-        if (shipCard?.direction) {
+        if (shipCard?.getCurrentDirection()) {
             const shipPos = positionSystem.getShipPosition();
             if (shipPos) {
-                switch (shipCard.direction) {
+                switch (shipCard.getCurrentDirection()) {
                     case 'NE':
                         isCoastline = col === shipPos.col;
                         break;

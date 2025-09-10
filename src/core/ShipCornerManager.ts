@@ -65,14 +65,9 @@ export class ShipCornerManager {
     }
 
     isFinalCornerShipPosition(pos: Position): boolean {
-        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
+        const cornerPosition = this.getCornerPosition();
         
-        switch(this.direction) {
-            case 'NE': return bottomRight[0] + 1 === pos.row;
-            case 'SE': return bottomLeft[1] - 1 === pos.col;
-            case 'SW': return topLeft[0] - 1 === pos.row;
-            case 'NW': return topRight[1] + 1 === pos.col;
-        }
+        return cornerPosition.row === pos.row && cornerPosition.col === pos.col;
     }
 
     isIslandCornerCard(pos: Position): boolean {
@@ -93,6 +88,10 @@ export class ShipCornerManager {
                 pos.col > bottomRight[1]);
     }
 
+    getCurrentDirection(): ShipDirection {
+        return this.direction;
+    }
+
     getNextDirection(): ShipDirection {
         switch(this.direction) {
             case 'NE': return 'SE';
@@ -100,6 +99,10 @@ export class ShipCornerManager {
             case 'SW': return 'NW';
             case 'NW': return 'NE';
         }
+    }
+
+    updateDirection(newDirection: ShipDirection): void {
+        this.direction = newDirection;
     }
 
     getStartShipPosition(): Position {
@@ -142,7 +145,7 @@ export class ShipCornerManager {
     }
 
     /**
-     * Возвращает угловую позицию относительно islandBounds
+     * Возвращает угловую позицию для корабля относительно islandBounds
      * @returns Position - угловая позиция в зависимости от направления корабля
      */
     getCornerPosition(): Position {
@@ -150,13 +153,13 @@ export class ShipCornerManager {
         
         switch(this.direction) {
             case 'NW': 
-                return new Position(topRight[0], topRight[1]);
+                return new Position(topRight[0] - 1, topRight[1] + 1);
             case 'NE': 
-                return new Position(bottomRight[0], bottomRight[1]);
+                return new Position(bottomRight[0] + 1, bottomRight[1] + 1);
             case 'SW': 
-                return new Position(topLeft[0], topLeft[1]);
+                return new Position(topLeft[0] - 1, topLeft[1] - 1);
             case 'SE': 
-                return new Position(bottomLeft[0], bottomLeft[1]);
+                return new Position(bottomLeft[0] + 1, bottomLeft[1] - 1);
         }
     }
 

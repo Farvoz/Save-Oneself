@@ -225,7 +225,7 @@ export const CARD_DATA: CardData = {
                 if (!shipCard.hasTurned && isAtCorner && shipCard.cornerManager) {
                     // Корабль на углу и еще не поворачивал - меняем направление
                     const newDirection = shipCard.cornerManager.getNextDirection();
-                    shipCard.direction = newDirection;
+                    shipCard.cornerManager.updateDirection(newDirection);
                     shipCard.hasTurned = true;
                 }
 
@@ -370,7 +370,7 @@ export const CARD_DATA: CardData = {
                     return card && card.getCurrentId() === 'sea-serpent';
                 });
                 const shipCard = context.positionSystem.getShipCard();
-                if (isAdjacent && shipCard?.cornerManager) {
+                if (isAdjacent && shipCard) {
                     const extraPosition = shipCard.cornerManager.getNextShipPosition(
                         shipPos,
                         shipCard.getCurrentDirection()!
