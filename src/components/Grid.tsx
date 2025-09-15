@@ -73,7 +73,7 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }
                 )
             )}
             <Tooltip 
-                text="Ты очутился на острове, который нужно исследовать. Начни отсюда!"
+                text="Ты очнулся на острове... Исследуй остров, чтобы с него выбраться. Начни отсюда!"
                 position={{ row: 0, col: 0 }}
                 visible={context.showStartTooltip && !context.playerPosition}
             />

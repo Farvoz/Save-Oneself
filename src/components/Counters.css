@@ -146,4 +146,39 @@
 .skip-phase:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+.help-links {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.help-link-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.help-link-text:hover {
+    background-color: #1976D2;
+    transform: scale(1.1);
+    text-decoration: none;
+    color: white;
+}
+
+.help-link-text:active {
+    transform: scale(0.95);
 } 

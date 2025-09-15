@@ -73,6 +73,10 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
                         </button>
                     )}
                 </div>
+                <div className="help-links">
+                    <a href="https://boardgamegeek.com/filepage/132096/marooned-rules" target="_blank" rel="noreferrer noopener" className="help-link-text" title="Правила игры">?</a>
+                    <a href="https://www.youtube.com/watch?v=WcO8Ln88VQU" target="_blank" rel="noreferrer noopener" className="help-link-text" title="Летсплей">▶</a>
+                </div>
             </div>
         </div>
     );
