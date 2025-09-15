@@ -109,6 +109,11 @@ export class PositionSystem {
         }
     }
 
+    moveShip(newPosition: Position): void {
+        const shipPos = this.getShipPosition();
+        this.swapPositions(shipPos!, newPosition);
+    }
+
     // Вычисляет границы поля, состоящего из карт и корабля
     getBounds(): { minRow: number; maxRow: number; minCol: number; maxCol: number; width: number; height: number } {
         let minRow = Infinity, maxRow = -Infinity;

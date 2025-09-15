@@ -16,6 +16,7 @@ export type GameContext = {
     gameOverMessage: string | null;
     isVictory: boolean;
     playerPosition?: Position;
+    showStartTooltip: boolean;
 };
 
 export type GameEvent =
@@ -42,5 +43,6 @@ export const INITIAL_STATE: GameContext = {
     isVictory: false,
     hasPlacedCard: false,
     movesLeft: 0,
-    hasMoved: false
+    hasMoved: false,
+    showStartTooltip: true
 }; 

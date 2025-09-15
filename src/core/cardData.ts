@@ -216,7 +216,7 @@ export const CARD_DATA: CardData = {
             onBeforeShipMove: (context) => {
                 const shipPos = context.positionSystem.getShipPosition();
                 const shipCard = context.positionSystem.getShipCard();
-                if (!shipPos || !shipCard?.getCurrentDirection()) {
+                if (!shipPos || !shipCard?.cornerManager.direction) {
                     return context;
                 }
 
@@ -225,7 +225,7 @@ export const CARD_DATA: CardData = {
                 if (!shipCard.hasTurned && isAtCorner && shipCard.cornerManager) {
                     // Корабль на углу и еще не поворачивал - меняем направление
                     const newDirection = shipCard.cornerManager.getNextDirection();
-                    shipCard.cornerManager.updateDirection(newDirection);
+                    shipCard.cornerManager.direction = newDirection;
                     shipCard.hasTurned = true;
                 }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Card } from './Card';
+import { Tooltip } from './Tooltip';
 import './Grid.css';
 import { Position, PositionSystem, isPlayerValidPosition, GameState } from '../core';
 
@@ -71,6 +72,11 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state }
                     renderGridCell(row, col)
                 )
             )}
+            <Tooltip 
+                text="Ты очутился на острове, который нужно исследовать. Начни отсюда!"
+                position={{ row: 0, col: 0 }}
+                visible={context.showStartTooltip && !context.playerPosition}
+            />
         </div>
     );
 };

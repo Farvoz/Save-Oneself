@@ -115,7 +115,7 @@ export const placeShip = (positionSystem: PositionSystem, direction: Direction):
     const cornerManager = new ShipCornerManager(direction, bounds);
     const shipPosition = cornerManager.getStartShipPosition();
 
-    const newShipCard = new ShipCard(ship, direction, cornerManager);
+    const newShipCard = new ShipCard(ship, cornerManager);
 
     // Клонируем positionSystem и добавляем корабль
     const newPositionSystem = positionSystem.clone();
@@ -135,27 +135,12 @@ export const moveShip = (shipCard: ShipCard, positionSystem: PositionSystem): Mo
     // Смещаем корабль в новое положение
     const newPosition = shipCard.cornerManager.getNextShipPosition(shipPos, currentDirection);
 
-    // Создаем новый объект shipCard
-    const newShipCard = new ShipCard(
-        shipCard.getCurrentSide(), 
-        currentDirection, 
-        shipCard.cornerManager
-    );
-    
-    // Копируем состояние skipMove и hasTurned
-    newShipCard.skipMove = shipCard.skipMove;
-    newShipCard.hasTurned = shipCard.hasTurned;
-
-    // Обновляем positionSystem
-    const newPositionSystem = positionSystem.clone();
-    
     // Удаляем корабль со старой позиции и устанавливаем на новую
-    newPositionSystem.removeShipPosition();
-    newPositionSystem.setPosition(newPosition, newShipCard);
+    positionSystem.moveShip(newPosition);
 
     return {
-        shipCard: newShipCard,
-        positionSystem: newPositionSystem
+        shipCard: shipCard,
+        positionSystem: positionSystem
     };
 };
 

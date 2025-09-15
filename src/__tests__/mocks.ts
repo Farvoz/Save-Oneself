@@ -32,7 +32,6 @@ export function getMockShipCard(
 ) {
     return new ShipCard(
         ship,
-        direction,
         new ShipCornerManager(direction, bounds)
     );
 }
@@ -59,7 +58,8 @@ export function getMockContext({
     gameOverMessage = null,
     isVictory = false,
     deck = [],
-    movesLeft = 1
+    movesLeft = 1,
+    showStartTooltip = false
 }: Partial<GameContext> = {}): GameContext {
     return {
         playerPosition,
@@ -70,6 +70,7 @@ export function getMockContext({
         gameOverMessage,
         isVictory,
         deck,
-        movesLeft
+        movesLeft,
+        showStartTooltip
     };
 }

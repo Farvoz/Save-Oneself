@@ -6,7 +6,7 @@ export class ShipCard extends GameCard {
     private _skipMove: boolean;
     private _hasTurned: boolean;
 
-    constructor(frontSide: CardSide, _direction: Direction, cornerManager: ShipCornerManager) {
+    constructor(frontSide: CardSide, cornerManager: ShipCornerManager) {
         super(frontSide, frontSide);
         this.cornerManager = cornerManager;
         this._skipMove = true;
@@ -24,11 +24,11 @@ export class ShipCard extends GameCard {
     }
 
     getEmoji(): string {
-        return `⛵${ShipCard.getArrows(this.cornerManager.getCurrentDirection())}`;
+        return `⛵${ShipCard.getArrows(this.cornerManager.direction)}`;
     }
 
     getCurrentDirection(): Direction {
-        return this.cornerManager.getCurrentDirection();
+        return this.cornerManager.direction;
     }
 
     getCurrentType(): CardType {

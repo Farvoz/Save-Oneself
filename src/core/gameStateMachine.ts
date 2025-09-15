@@ -38,6 +38,7 @@ export const createGameStateMachine = () => {
                             MOVE_PLAYER: {
                                 actions: [
                                     assign(({ context, event }) => movePlayer(context, new Position(event.row, event.col))),
+                                    assign(({ context }) => ({ ...context, showStartTooltip: false })),
                                     ({ context: { playerPosition } }) => playerPosition && gameLogger.info('Игрок перемещён на позицию', { row: playerPosition.row, col: playerPosition.col })
                                 ],
                                 target: 'checkingCardPlacement'
@@ -218,7 +219,7 @@ export const createGameStateMachine = () => {
                             ({ context: { positionSystem } }) => {
                                 const shipPos = positionSystem.getShipPosition();
                                 if (shipPos) {
-                                    gameLogger.info('Корабль перемещён на позицию', { position: shipPos });
+                                    gameLogger.info('Корабль перемещён на позицию', { row: shipPos.row, col: shipPos.col });
                                 } else {
                                     gameLogger.info('Корабль не перемещён');
                                 }

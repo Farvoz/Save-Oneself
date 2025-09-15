@@ -87,6 +87,18 @@ describe('PositionSystem', () => {
     expect(positionSystem.getPosition(pos2)).toEqual(card1);
   });
 
+  test('меняет местами с пустой клеткой', () => {
+    const pos1 = new Position(1, 2);
+    const pos2 = new Position(1, 3);
+    const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
+    
+    positionSystem.setPosition(pos1, card1);
+    positionSystem.swapPositions(pos1, pos2);
+
+    expect(positionSystem.getPosition(pos1)).toEqual(undefined);
+    expect(positionSystem.getPosition(pos2)).toEqual(card1);
+  });
+
   test('should get bounds of occupied positions', () => {
     const card1 = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
     const card2 = new GameCard(CARD_DATA.hook.back, CARD_DATA.hook.front);

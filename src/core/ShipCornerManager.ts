@@ -18,7 +18,7 @@ interface islandBounds {
 
 // Является частью ShipCard
 export class ShipCornerManager {
-    private direction: ShipDirection;
+    direction: ShipDirection;
     // Это граница поля на момент создания ShipCornerManager. Не учитывается карта корабля.
     private bounds: Bounds;
     private islandBounds: islandBounds;
@@ -65,9 +65,14 @@ export class ShipCornerManager {
     }
 
     isFinalCornerShipPosition(pos: Position): boolean {
-        const cornerPosition = this.getCornerPosition();
+        const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
         
-        return cornerPosition.row === pos.row && cornerPosition.col === pos.col;
+        switch(this.direction) {
+            case 'NE': return bottomRight[0] + 1 === pos.row;
+            case 'SE': return bottomLeft[1] - 1 === pos.col;
+            case 'SW': return topLeft[0] - 1 === pos.row;
+            case 'NW': return topRight[1] + 1 === pos.col;
+        }
     }
 
     isIslandCornerCard(pos: Position): boolean {
@@ -88,10 +93,6 @@ export class ShipCornerManager {
                 pos.col > bottomRight[1]);
     }
 
-    getCurrentDirection(): ShipDirection {
-        return this.direction;
-    }
-
     getNextDirection(): ShipDirection {
         switch(this.direction) {
             case 'NE': return 'SE';
@@ -99,10 +100,6 @@ export class ShipCornerManager {
             case 'SW': return 'NW';
             case 'NW': return 'NE';
         }
-    }
-
-    updateDirection(newDirection: ShipDirection): void {
-        this.direction = newDirection;
     }
 
     getStartShipPosition(): Position {
@@ -145,7 +142,7 @@ export class ShipCornerManager {
     }
 
     /**
-     * Возвращает угловую позицию для корабля относительно islandBounds
+     * Возвращает угловую позицию относительно islandBounds
      * @returns Position - угловая позиция в зависимости от направления корабля
      */
     getCornerPosition(): Position {
@@ -153,13 +150,13 @@ export class ShipCornerManager {
         
         switch(this.direction) {
             case 'NW': 
-                return new Position(topRight[0] - 1, topRight[1] + 1);
+                return new Position(topRight[0], topRight[1]);
             case 'NE': 
-                return new Position(bottomRight[0] + 1, bottomRight[1] + 1);
+                return new Position(bottomRight[0], bottomRight[1]);
             case 'SW': 
-                return new Position(topLeft[0] - 1, topLeft[1] - 1);
+                return new Position(topLeft[0], topLeft[1]);
             case 'SE': 
-                return new Position(bottomLeft[0] + 1, bottomLeft[1] - 1);
+                return new Position(bottomLeft[0], bottomLeft[1]);
         }
     }
 
@@ -180,20 +177,12 @@ export class ShipCornerManager {
         const minCol = Math.min(topLeft[1], topRight[1]);
         const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
 
-        // В зависимости от текущего направления валидна только соответствующая сторона орбиты
-        switch (this.direction) {
-            case 'NE':
-                // Движение вниз вдоль правой стороны острова
-                return pos.col === maxCol + 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
-            case 'SE':
-                // Движение влево вдоль нижней стороны острова
-                return pos.row === maxRow + 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
-            case 'SW':
-                // Движение вверх вдоль левой стороны острова
-                return pos.col === minCol - 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
-            case 'NW':
-                // Движение вправо вдоль верхней стороны острова
-                return pos.row === minRow - 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
-        }
+        // Корабль должен быть ровно на расстоянии 1 клетки от стороны острова
+        const onTopEdge    = pos.row === minRow - 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
+        const onBottomEdge = pos.row === maxRow + 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
+        const onLeftEdge   = pos.col === minCol - 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
+        const onRightEdge  = pos.col === maxCol + 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
+
+        return onTopEdge || onBottomEdge || onLeftEdge || onRightEdge;
     }
 } 

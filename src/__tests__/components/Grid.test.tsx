@@ -5,9 +5,9 @@ import { Grid } from '../../components/Grid';
 import { PositionSystem, Position } from '../../core/PositionSystem';
 import { GridProps } from '../../components/Grid';
 import { createGameStateMachine } from '../../core/gameStateMachine';
-import { GameCard, ShipCard } from '../../core';
-import { ShipCornerManager } from '../../core/ShipCornerManager';
-import { CARD_DATA, ship } from '../../core/cardData';
+import { GameCard } from '../../core';
+import { CARD_DATA } from '../../core/cardData';
+import { getMockPositionSystem } from '../mocks';
 
 describe('Компонент Grid', () => {
   // Создаем мок стейт машины
@@ -75,15 +75,7 @@ describe('Компонент Grid', () => {
   });
 
   test('отрисовывает береговую линию на основе позиции корабля из positionSystem', () => {
-    const positionSystem = new PositionSystem();
-
-    // Создаем корабль с направлением NE на корректной позиции
-    // Для NE валидна правая кромка относительно острова; используем стартовую позицию
-    // Задаем фиксированные границы острова для корректных вычислений
-    const bounds = { minRow: 0, maxRow: 3, minCol: 0, maxCol: 3 } as const;
-    const shipCard = new ShipCard(ship, 'NE', new ShipCornerManager('NE', bounds));
-    const startPos = shipCard.cornerManager!.getStartShipPosition();
-    positionSystem.setPosition(startPos, shipCard);
+    const positionSystem = getMockPositionSystem()
     
     // Создаем мок стейт с shipCard
     const mockStateWithShip = {
@@ -95,16 +87,12 @@ describe('Компонент Grid', () => {
     
     render(<Grid {...mockProps} positionSystem={positionSystem} state={mockStateWithShip} />);
     
-    // Проверяем, что coastline отображается в правильной линии для NE (совпадает с колонкой корабля)
-    const shipPos = positionSystem.getShipPosition()!;
-    const coastlineCells = screen.getAllByTestId(new RegExp(`^grid-cell-\\d+-${shipPos.col}$`));
+    const coastlineCells = screen.getAllByTestId(/^grid-cell-0-\d+$/);
     coastlineCells.forEach(cell => {
       expect(cell).toHaveClass('coastline');
     });
     
-    // Проверяем, что другие столбцы не имеют coastline
-    const otherCol = shipPos.col === 0 ? 1 : 0;
-    const nonCoastlineCells = screen.getAllByTestId(new RegExp(`^grid-cell-\\d+-${otherCol}$`));
+    const nonCoastlineCells = screen.getAllByTestId(/^grid-cell-1-\d+$/);
     nonCoastlineCells.forEach(cell => {
       expect(cell).not.toHaveClass('coastline');
     });

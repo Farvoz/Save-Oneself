@@ -1,60 +1,70 @@
-import { GameCard } from '../../core';
-import { GameContext } from '../../core';   
-import { CARD_DATA } from '../../core/cardData';
+import { Position } from '../../core';
+import { GameContext } from '../../core';
 import { getMockContext } from '../mocks';
+import { CARD_DATA } from '../../core/cardData';
 
 describe('Карта «Телескоп» (замечен корабль)', () => {
     let mockContext: GameContext;
-    let telescopeCard: GameCard;
-
 
     beforeEach(() => {
         mockContext = getMockContext();
-
-        telescopeCard = new GameCard(CARD_DATA.telescope.back, CARD_DATA.telescope.front);
-
     });
 
-    describe('canFlip (проверка возможности переворота)', () => {
-        it('должна позволить переворот, когда игрок находится на higher-ground', () => {
-            // Создаем карту higher-ground и размещаем игрока на ней
-            const higherGroundCard = new GameCard(CARD_DATA.higherGround.back, CARD_DATA.higherGround.front);
-            mockContext.positionSystem.setPosition(mockContext.playerPosition!, higherGroundCard);
+    describe('onShipMove (обработчик перемещения корабля)', () => {
+        it('не должен менять направление, если корабль не на углу', () => {
+            const shipCard = mockContext.positionSystem.getShipCard()!;
+            
+            const originalDirection = shipCard.getCurrentDirection();
+            const originalHasTurned = shipCard.hasTurned;
 
-            const canFlip = telescopeCard.canFlip!(mockContext);
-            expect(canFlip).toBe(true);
+            // Вызываем обработчик
+            CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
+
+            const resultShipCard = mockContext.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(originalHasTurned);
         });
 
-        it('НЕ должна позволить переворот, когда игрок НЕ находится на higher-ground', () => {
-            // Игрок не на higher-ground - размещаем обычную карту
-            const waterCard = new GameCard(CARD_DATA.water.back, CARD_DATA.water.front);
-            mockContext.positionSystem.setPosition(mockContext.playerPosition!, waterCard);
+        it('не должен менять направление, если корабль уже поворачивал', () => {
+            const shipCard = mockContext.positionSystem.getShipCard()!;
+            // Корабль уже поворачивал
+            shipCard.hasTurned = true;
+            // Используем getCornerPosition для получения угловой позиции острова
+            const cornerPosition = shipCard.cornerManager!.getCornerPosition();
+            // Перемещаем корабль на одну позицию за угол для проверки isFinalCornerShipPosition
+            const finalCornerPosition = new Position(cornerPosition.row, cornerPosition.col + 1);
+            mockContext.positionSystem.moveShip(finalCornerPosition);
+            
+            const originalDirection = shipCard.getCurrentDirection();
 
-            const canFlip = telescopeCard.canFlip!(mockContext);
-            expect(canFlip).toBe(false);
+            // Вызываем обработчик
+            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
+
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
-    });
 
-    describe('onBeforeShipMove: должен изменить направление корабля', () => {
-        it('на углу острова только 1 раз', () => {
-            const shipCard = mockContext.positionSystem.getShipCard();
-            const futureDirection = shipCard?.cornerManager.getNextDirection();
+        it('должен изменить направление на углу, если корабль ещё не поворачивал', () => {
+            const shipCard = mockContext.positionSystem.getShipCard()!;
+            // Корабль на финальной угловой позиции и еще не поворачивал
+            const cornerPosition = new Position(0, 5);
+            mockContext.positionSystem.moveShip(cornerPosition);
+            shipCard.hasTurned = false;
+            
+            const originalDirection = shipCard.getCurrentDirection();
+            const expectedNewDirection = shipCard.cornerManager!.getNextDirection();
 
-            const cornerPos = shipCard!.cornerManager.getCornerPosition();
-            mockContext.positionSystem.swapPositions(cornerPos, shipCard!.cornerManager.getStartShipPosition());
+            // Проверяем, что это действительно финальная позиция
+            expect(shipCard.cornerManager!.isFinalCornerShipPosition(cornerPosition)).toBe(true);
 
-            const newContext = telescopeCard.frontSide.onBeforeShipMove!(mockContext);
-            expect(futureDirection).toBe(newContext.positionSystem.getShipCard()!.getCurrentDirection());
+            // Вызываем обработчик
+            const result = CARD_DATA.telescope.front.onBeforeShipMove!(mockContext);
 
-            const futureDirection2 = newContext.positionSystem.getShipCard()!.cornerManager.getNextDirection();
-            const cornerPos2 = newContext.positionSystem.getShipCard()!.cornerManager.getCornerPosition();
-            newContext.positionSystem.swapPositions(cornerPos2, cornerPos);
-
-            console.log(cornerPos2)
-            console.log(futureDirection2)
-
-            const newContext2 = telescopeCard.frontSide.onBeforeShipMove!(newContext);
-            expect(futureDirection2).not.toBe(newContext2.positionSystem.getShipCard()!.getCurrentDirection());
+            const resultShipCard = result.positionSystem.getShipCard();
+            expect(resultShipCard!.getCurrentDirection()).toBe(expectedNewDirection);
+            expect(resultShipCard!.getCurrentDirection()).not.toBe(originalDirection);
+            expect(resultShipCard!.hasTurned).toBe(true);
         });
     });
 });
