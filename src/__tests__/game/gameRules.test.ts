@@ -6,6 +6,7 @@ import {
   isPlayerValidPosition,
   hasFlippableCards,
   checkVictory,
+  checkDefeat,
   calculateScore
 } from '../../core';
 import { getMockContext, getMockPositionSystem, getMockShipCard } from '../mocks';
@@ -94,6 +95,53 @@ describe('Game Rules', () => {
           beaconCard.flip(mockContext);
           mockContext.positionSystem.setPosition(beaconPos, beaconCard);
           expect(checkVictory(mockContext)).toBe(true);
+      });
+  });
+
+  describe('checkDefeat', () => {
+      it('should return false when ship is within bounds', () => {
+          // Корабль находится в начальной позиции (0, -1) для направления NW
+          const shipPos = mockContext.positionSystem.getShipPosition();
+          expect(shipPos).toBeDefined();
+          expect(checkDefeat(mockContext)).toBe(false);
+      });
+
+      it('should return true when ship is out of bounds - NW direction', () => {
+        // Передвинуть корабль на угловую позицию
+        const shipCard = mockContext.positionSystem.getShipCard();
+        const cornerPosition = shipCard!.cornerManager.getCornerPosition();
+        const finalShipPosition = new Position(cornerPosition.row - 1, cornerPosition.col + 1);
+        expect(shipCard!.cornerManager.isFinalCornerShipPosition(finalShipPosition)).toBe(true);
+        
+        mockContext.positionSystem.moveShip(finalShipPosition);
+        expect(checkDefeat(mockContext)).toBe(false);
+
+        mockContext.positionSystem.moveShip(new Position(finalShipPosition.row, finalShipPosition.col + 1));
+        expect(checkDefeat(mockContext)).toBe(true);
+      });
+
+      it('should return false when ship is at valid boundary position', () => {
+          const bounds = {
+              minRow: 0,
+              maxRow: 3,
+              minCol: 0,
+              maxCol: 3
+          };
+          const shipCard = getMockShipCard('NW', bounds);
+          const positionSystem = getMockPositionSystem(shipCard);
+          
+          // Корабль в валидной позиции на границе
+          const validBoundaryPosition = new Position(-1, -1); // Начальная позиция для NW
+          positionSystem.setPosition(validBoundaryPosition, shipCard);
+          
+          const context = getMockContext({
+              playerPosition: new Position(0, 0),
+              positionSystem: positionSystem,
+              deck: [],
+              movesLeft: 3
+          });
+          
+          expect(checkDefeat(context)).toBe(false);
       });
   });
 

@@ -289,4 +289,19 @@ describe('ShipCornerManager', () => {
             expect(managerSE.isShipOutOfBounds(new Position(-2, -3))).toBe(true);   // левее
         });
     });
+
+    describe('валидация позиции корабля (isValidShipPosition)', () => {
+        test('должен возвращать true, когда позиция корабля валидна', () => {
+            const manager = new ShipCornerManager('NW', bounds);
+            expect(manager.isValidShipPosition(new Position(0, 0))).toBe(true);
+            expect(manager.isValidShipPosition(new Position(0, 1))).toBe(true);
+            expect(manager.isValidShipPosition(new Position(0, 2))).toBe(true);
+            expect(manager.isValidShipPosition(new Position(0, 3))).toBe(true);
+            expect(manager.isValidShipPosition(new Position(0, 4))).toBe(true);
+            expect(manager.isValidShipPosition(new Position(0, 5))).toBe(true);
+
+            // И последняя позиция корабля (уже проигрыш)
+            expect(manager.isValidShipPosition(new Position(0, 6))).toBe(true);
+        });
+    });
 }); 

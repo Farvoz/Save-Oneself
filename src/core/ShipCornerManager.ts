@@ -167,9 +167,6 @@ export class ShipCornerManager {
     isValidShipPosition(pos: Position | null): boolean {
         if (!pos) return false;
 
-        // Сначала быстрая проверка общих границ (рамка +1 вокруг острова)
-        if (this.isShipOutOfBounds(pos)) return false;
-
         const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
 
         const minRow = Math.min(topLeft[0], bottomLeft[0]);
@@ -177,11 +174,11 @@ export class ShipCornerManager {
         const minCol = Math.min(topLeft[1], topRight[1]);
         const maxCol = Math.max(bottomLeft[1], bottomRight[1]);
 
-        // Корабль должен быть ровно на расстоянии 1 клетки от стороны острова
-        const onTopEdge    = pos.row === minRow - 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
-        const onBottomEdge = pos.row === maxRow + 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 1;
-        const onLeftEdge   = pos.col === minCol - 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
-        const onRightEdge  = pos.col === maxCol + 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 1;
+        // Корабль должен быть ровно на расстоянии 1 клетки от стороны острова + 1 клетка вдоль острова
+        const onTopEdge    = pos.row === minRow - 1 && pos.col >= minCol - 1 && pos.col <= maxCol + 2;
+        const onBottomEdge = pos.row === maxRow + 1 && pos.col >= minCol - 2 && pos.col <= maxCol + 1;
+        const onLeftEdge   = pos.col === minCol - 1 && pos.row >= minRow - 2 && pos.row <= maxRow + 1;
+        const onRightEdge  = pos.col === maxCol + 1 && pos.row >= minRow - 1 && pos.row <= maxRow + 2;
 
         return onTopEdge || onBottomEdge || onLeftEdge || onRightEdge;
     }

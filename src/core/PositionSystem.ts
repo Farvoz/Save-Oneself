@@ -73,7 +73,7 @@ export class PositionSystem {
             const shipCard = value as ShipCard;
             const isValidPosition = shipCard.cornerManager.isValidShipPosition(pos);
             if (!isValidPosition) {
-                throw new Error(`Корабль с направлением ${shipCard.getCurrentDirection()} может находиться только вдоль определенного берега`);
+                throw new Error(`Корабль с направлением ${shipCard.getCurrentDirection()} может находиться только вдоль определенного берега. Нельзя переместиться в ${pos.toString()}`);
             }
         }
         
@@ -225,7 +225,5 @@ export class PositionSystem {
             cloned.occupiedPositions.set(posStr, card);
         }
         return cloned;
-    }
-
-    
+    }    
 } 
