@@ -160,42 +160,42 @@ describe('ShipCornerManager', () => {
         test('должен вычислять следующую позицию для направления NE', () => {
             const manager = new ShipCornerManager('NE', bounds);
             const currentPos = new Position(2, 3);
-            const nextPos = manager.getNextShipPosition(currentPos, 'NE');
+            const nextPos = manager.getNextShipPosition(currentPos);
             expect(nextPos).toEqual(new Position(3, 3));
         });
 
         test('должен вычислять следующую позицию для направления SE', () => {
             const manager = new ShipCornerManager('SE', bounds);
             const currentPos = new Position(3, 2);
-            const nextPos = manager.getNextShipPosition(currentPos, 'SE');
+            const nextPos = manager.getNextShipPosition(currentPos);
             expect(nextPos).toEqual(new Position(3, 1));
         });
 
         test('должен вычислять следующую позицию для направления SW', () => {
             const manager = new ShipCornerManager('SW', bounds);
             const currentPos = new Position(2, 1);
-            const nextPos = manager.getNextShipPosition(currentPos, 'SW');
+            const nextPos = manager.getNextShipPosition(currentPos);
             expect(nextPos).toEqual(new Position(1, 1));
         });
 
         test('должен вычислять следующую позицию для направления NW', () => {
             const manager = new ShipCornerManager('NW', bounds);
             const currentPos = new Position(1, 2);
-            const nextPos = manager.getNextShipPosition(currentPos, 'NW');
+            const nextPos = manager.getNextShipPosition(currentPos);
             expect(nextPos).toEqual(new Position(1, 3));
         });
 
         test('должен обрабатывать нулевые координаты', () => {
             const manager = new ShipCornerManager('NW', bounds);
             const currentPos = new Position(0, 0);
-            const nextPos = manager.getNextShipPosition(currentPos, 'NE');
-            expect(nextPos).toEqual(new Position(1, 0));
+            const nextPos = manager.getNextShipPosition(currentPos);
+            expect(nextPos).toEqual(new Position(0, 1));
         });
 
         test('должен обрабатывать отрицательные координаты', () => {
             const manager = new ShipCornerManager('SW', bounds);
             const currentPos = new Position(-1, -1);
-            const nextPos = manager.getNextShipPosition(currentPos, 'SW');
+            const nextPos = manager.getNextShipPosition(currentPos);
             expect(nextPos).toEqual(new Position(-2, -1));
         });
     });

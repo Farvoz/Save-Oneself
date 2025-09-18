@@ -372,12 +372,11 @@ export const CARD_DATA: CardData = {
                 const shipCard = context.positionSystem.getShipCard();
                 if (isAdjacent && shipCard) {
                     const extraPosition = shipCard.cornerManager.getNextShipPosition(
-                        shipPos,
-                        shipCard.getCurrentDirection()!
+                        shipPos
                     );
                     // Обновляем позицию корабля в positionSystem
-                    context.positionSystem.setPosition(extraPosition, shipCard);
-                    context.positionSystem.swapPositions(shipPos, extraPosition);
+                    context.positionSystem.moveShip(extraPosition);
+                    
                     return {
                         ...context,
                         positionSystem: context.positionSystem
@@ -395,11 +394,11 @@ export const CARD_DATA: CardData = {
             emoji: '🏴‍☠️',
             description: 'Срабатывает, когда корабль уже плывет',
             onBeforeShipMove: (context) => {
-                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                const thisCard = context.positionSystem.findCardById('pirates');
                 const shipCard = context.positionSystem.getShipCard();
-                if (shipCard && !shipCard.skipMove && playerCard?.getCurrentId() === 'pirates') {
-                    // flip the pirates card
-                    const newContext = playerCard!.flip(context);
+                
+                if (shipCard && !shipCard.skipMove) {
+                    const newContext = thisCard!.card.flip(context);
 
                     newContext.positionSystem.removeShipPosition();
 

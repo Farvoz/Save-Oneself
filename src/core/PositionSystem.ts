@@ -57,9 +57,10 @@ export class PositionSystem {
     }
 
     removeShipPosition(): void {
-        const shipResults = this.findAllBy(card => card.getCurrentType() === 'ship');
-        if (shipResults.length > 0) {
-            this.removePosition(shipResults[0].position);
+        const shipResults = this.getShipPosition();
+        
+        if (shipResults) {
+            this.removePosition(shipResults);
         }
     }
 

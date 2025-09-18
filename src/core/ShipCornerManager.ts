@@ -114,10 +114,10 @@ export class ShipCornerManager {
     }
 
     // Helper function to calculate new ship position based on direction
-    getNextShipPosition = (pos: Position, direction: ShipDirection): Position => {
+    getNextShipPosition = (pos: Position): Position => {
         let newRow = pos.row, newCol = pos.col;
         
-        switch(direction) {
+        switch(this.direction) {
             case 'NE': newRow++; break;
             case 'SE': newCol--; break;
             case 'SW': newRow--; break;

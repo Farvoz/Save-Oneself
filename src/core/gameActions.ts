@@ -130,10 +130,9 @@ export const placeShip = (positionSystem: PositionSystem, direction: Direction):
 // Move the ship
 export const moveShip = (shipCard: ShipCard, positionSystem: PositionSystem): MoveShipResult => {
     const shipPos = positionSystem.getShipPosition()!;
-    const currentDirection = shipCard.getCurrentDirection();
 
     // Смещаем корабль в новое положение
-    const newPosition = shipCard.cornerManager.getNextShipPosition(shipPos, currentDirection);
+    const newPosition = shipCard.cornerManager.getNextShipPosition(shipPos);
 
     // Удаляем корабль со старой позиции и устанавливаем на новую
     positionSystem.moveShip(newPosition);
