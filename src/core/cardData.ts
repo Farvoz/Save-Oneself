@@ -35,10 +35,6 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🌿',
             description: 'Позволяет сделать убежище',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
-            }
         },
         front: {
             id: 'shelter',
@@ -326,8 +322,8 @@ export const CARD_DATA: CardData = {
                 // tornado flips back, and also flips shelter and lit beacon back
                 if (context.positionSystem.countNonShipCards() === 13) {
                     // flip tornado back
-                    const tornadoCard = context.positionSystem.getPosition(context.playerPosition!);
-                    if (tornadoCard) tornadoCard.flip(context);
+                    const tornadoCard = context.positionSystem.findCardById('tornado');
+                    if (tornadoCard) tornadoCard.card.flip(context);
                     // flip shelter and lit beacon back
                     const shelterResult = context.positionSystem.findCardById('shelter');
                     const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
