@@ -125,7 +125,7 @@ export const createGameStateMachine = () => {
                     // состояние для проверки результата хода
                     checkingMoveResult: {
                         after: {
-                            0: [
+                            500: [
                                 {
                                     target: 'gameOver',
                                     guard: ({ context }) => Boolean(context.gameOverMessage),
@@ -150,7 +150,7 @@ export const createGameStateMachine = () => {
                             ({ context: { lives } }) => gameLogger.info('Жизни уменьшены на 1', { lives })
                         ],
                         after: {
-                            0: [
+                            500: [
                                 {
                                     target: 'gameOver',
                                     guard: ({ context }) => context.lives <= 0,

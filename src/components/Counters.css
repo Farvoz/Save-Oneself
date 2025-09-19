@@ -38,6 +38,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    flex: 1;
 }
 
 .phase-message {
@@ -181,4 +182,40 @@
 
 .help-link-text:active {
     transform: scale(0.95);
+}
+
+.game-phases {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    height: 40px; /* Фиксированная высота */
+    min-width: 200px; /* Минимальная ширина */
+}
+
+.phase-emoji {
+    font-size: 1.5em;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    opacity: 0.4;
+    filter: grayscale(100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; /* Фиксированная ширина */
+    height: 32px; /* Фиксированная высота */
+}
+
+.phase-emoji.active {
+    opacity: 1;
+    filter: grayscale(0%);
+    font-size: 1.8em; /* Увеличение через размер шрифта вместо scale */
+    background-color: rgba(33, 150, 243, 0.1);
+    border: 2px solid #2196F3;
+}
+
+.phase-emoji:hover {
+    opacity: 0.8;
+    filter: grayscale(50%);
+    font-size: 1.6em; /* Небольшое увеличение при наведении */
 } 

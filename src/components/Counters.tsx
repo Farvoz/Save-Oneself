@@ -4,13 +4,12 @@ import './Counters.css';
 
 type GamePhase = 'moving' | 'decreasingLives' | 'checkingFlippable' | 'shipMoving' | 'gameOver';
 
-const PHASE_MESSAGES: Record<GamePhase, string> = {
-    moving: 'Перемещение: выберите соседнюю клетку',
-    decreasingLives: 'Уменьшение жизней...',
-    checkingFlippable: 'Переворот карты или пропуск',
-    shipMoving: 'Движение корабля...',
-    gameOver: 'Игра окончена'
-};
+const GAME_PHASES = [
+    { id: 'moving' as GamePhase, emoji: '🚶', title: 'Перемещение: выберите соседнюю клетку' },
+    { id: 'decreasingLives' as GamePhase, emoji: '💔', title: 'Уменьшение жизней...' },
+    { id: 'checkingFlippable' as GamePhase, emoji: '🔄', title: 'Переворот карты или пропуск' },
+    { id: 'shipMoving' as GamePhase, emoji: '⛵', title: 'Движение корабля...' }
+];
 
 interface CountersProps {
     lives: number;
@@ -39,7 +38,8 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
     }, [lives, prevLives]);
 
     const currentPhase = typeof state.value === 'object' ? state.value.playing as GamePhase : state.value as GamePhase;
-    const message = PHASE_MESSAGES[currentPhase] || 'Неизвестная фаза';
+    const currentPhaseData = GAME_PHASES.find(phase => phase.id === currentPhase);
+    const message = currentPhaseData?.title || '';
     const showSkipButton = currentPhase === 'checkingFlippable';
     const showSkipMovesButton = currentPhase === 'moving' && state.context.hasMoved;
 
@@ -55,6 +55,17 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
                     <span className="counter-value">{deckLength}</span>
                 </div>
                 <div className="phase-content">
+                    <div className="game-phases">
+                        {GAME_PHASES.map((phase) => (
+                            <span
+                                key={phase.id}
+                                className={`phase-emoji ${currentPhase === phase.id ? 'active' : ''}`}
+                                title={phase.title}
+                            >
+                                {phase.emoji}
+                            </span>
+                        ))}
+                    </div>
                     <span className="phase-message">{message}</span>
                     {showSkipButton && (
                         <button
