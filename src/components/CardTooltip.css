@@ -1,0 +1,176 @@
+.card-tooltip {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 300px;
+    min-width: 250px;
+    animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-tooltip-content {
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    line-height: 1.4;
+}
+
+.tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-type {
+    font-weight: 600;
+    color: #495057;
+    font-size: 16px;
+}
+
+.flip-indicator {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.side-info {
+    margin-bottom: 12px;
+}
+
+.side-info.current {
+    background-color: #e8f5e8;
+    padding: 8px;
+    border-radius: 8px;
+    border-left: 3px solid #4caf50;
+}
+
+.side-info.other {
+    background-color: #fff3e0;
+    padding: 8px;
+    border-radius: 8px;
+    border-left: 3px solid #ff9800;
+}
+
+.side-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.side-emoji {
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.side-name {
+    font-weight: 600;
+    color: #37474f;
+    text-transform: capitalize;
+}
+
+.side-description {
+    color: #546e7a;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+.side-stats {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.side-requirements {
+    margin-top: 6px;
+}
+
+.requirement {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.divider {
+    height: 1px;
+    background-color: #dee2e6;
+    margin: 12px 0;
+}
+
+/* Стрелка, указывающая на карту */
+.card-tooltip::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    z-index: 1001;
+}
+
+/* Стрелка слева (когда tooltip справа от карты) */
+.card-tooltip.left-arrow::before {
+    left: -16px;
+    top: 20px;
+    border-right: 8px solid #dee2e6;
+}
+
+.card-tooltip.left-arrow::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 7px solid transparent;
+    left: -14px;
+    top: 21px;
+    border-right: 7px solid #f8f9fa;
+    z-index: 1002;
+}
+
+/* Стрелка справа (когда tooltip слева от карты) */
+.card-tooltip.right-arrow::before {
+    right: -16px;
+    top: 20px;
+    border-left: 8px solid #dee2e6;
+}
+
+.card-tooltip.right-arrow::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 7px solid transparent;
+    right: -14px;
+    top: 21px;
+    border-left: 7px solid #f8f9fa;
+    z-index: 1002;
+}
