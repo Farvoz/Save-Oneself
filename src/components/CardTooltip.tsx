@@ -88,12 +88,6 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
                         )}
                     </div>
                 )}
-                
-                {side.requirementsText && (
-                    <div className="side-requirements">
-                        <span className="requirement">📋 Требование для переворота: {side.requirementsText}</span>
-                    </div>
-                )}
             </div>
         );
     };
@@ -128,6 +122,10 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
                                     <span className="side-name">Лицевая сторона</span>
                                 </div>
                                 <div className="side-description">Переверните карту, чтобы увидеть содержимое</div>
+                                
+                                <div className="side-requirements">
+                                    <span className="requirement">📋 Требование для переворота: {card.backSide.requirementsText || 'Нет требований'}</span>
+                                </div>
                             </div>
                         ) : (
                             getSideInfo(otherSide, false)
