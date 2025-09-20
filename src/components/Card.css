@@ -90,13 +90,20 @@
 }
 
 .card-name {
-    font-size: 11px;
+    font-size: 10px;
     position: absolute;
     bottom: 2px;
     left: 0;
     right: 0;
     text-align: center;
     margin: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    padding: 2px 4px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card-name.ship-name {
@@ -104,6 +111,7 @@
     position: static;
     margin-bottom: 2px;
     margin-top: 38px;
+    background-color: transparent;
 }
 
 

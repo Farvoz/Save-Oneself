@@ -103,39 +103,39 @@ export const Card: React.FC<CardProps> = ({
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             >
-            {isPlayerPosition && (
-                <div 
-                    className={`player-marker ${hasMovesLeft ? 'clickable-player' : ''}`} 
-                    onClick={handlePlayerClick}
-                >
-                    🚶
+                {isPlayerPosition && (
+                    <div 
+                        className={`player-marker ${hasMovesLeft ? 'clickable-player' : ''}`} 
+                        onClick={handlePlayerClick}
+                    >
+                        🚶
+                    </div>
+                )}
+                <div className="card-content">
+                    {Math.abs(card.getCurrentLives()) > 0 && (
+                        <div className={"card-lives " + (card.getCurrentLives() > 0 ? "positive" : "")}>
+                            {card.getCurrentLives() > 0 ? "💖" : "💔"} {card.getCurrentLives()}
+                        </div>
+                    )}
+                    {card.getCurrentScore() && (
+                        <div className="card-score">
+                            ✨ {card.getCurrentScore()}
+                        </div>
+                    )}
+                    {card.getCurrentType() === 'back' && card.getRequirementsText() && (
+                        <div className="card-requirements">
+                            {card.getRequirementsText()}
+                        </div>
+                    )}
+                    {card.getCurrentId() && (
+                        <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''}`}>
+                            <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentRussianName() || card.getCurrentId()}`}</span>
+                        </div>
+                    )}
+                    {card.getCurrentDirection() && (
+                        <div className="card-direction">{card.getCurrentDirection()}</div>
+                    )}
                 </div>
-            )}
-            <div className="card-content">
-                {Math.abs(card.getCurrentLives()) > 0 && (
-                    <div className={"card-lives " + (card.getCurrentLives() > 0 ? "positive" : "")}>
-                        {card.getCurrentLives() > 0 ? "💖" : "💔"} {card.getCurrentLives()}
-                    </div>
-                )}
-                {card.getCurrentScore() && (
-                    <div className="card-score">
-                        ✨ {card.getCurrentScore()}
-                    </div>
-                )}
-                {card.getCurrentType() === 'back' && card.getRequirementsText() && (
-                    <div className="card-requirements">
-                        {card.getRequirementsText()}
-                    </div>
-                )}
-                {card.getCurrentId() && (
-                    <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''}`}>
-                        <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentRussianName() || card.getCurrentId()}`}</span>
-                    </div>
-                )}
-                {card.getCurrentDirection() && (
-                    <div className="card-direction">{card.getCurrentDirection()}</div>
-                )}
-            </div>
             </div>
             <CardTooltip 
                 card={card}
