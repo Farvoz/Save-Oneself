@@ -5,9 +5,9 @@ import './Counters.css';
 type GamePhase = 'moving' | 'decreasingLives' | 'checkingFlippable' | 'shipMoving' | 'gameOver';
 
 const GAME_PHASES = [
-    { id: 'moving' as GamePhase, emoji: '🚶', title: 'Выберите соседнюю клетку для перемещения' },
+    { id: 'moving' as GamePhase, emoji: '🚶', title: 'Выберите клетку для перемещения' },
     { id: 'decreasingLives' as GamePhase, emoji: '💔', title: 'Вам становится все труднее оставаться на острове...' },
-    { id: 'checkingFlippable' as GamePhase, emoji: '🔄', title: 'Переверните карту или пропустите ход' },
+    { id: 'checkingFlippable' as GamePhase, emoji: '🔄', title: 'Переверните карту или пропустите фазу' },
     { id: 'shipMoving' as GamePhase, emoji: '⛵', title: 'Движение корабля' }
 ];
 
@@ -54,14 +54,19 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
                 </div>
                 <div className="phase-content">
                     <div className="game-phases">
-                        {GAME_PHASES.map((phase) => (
-                            <span
-                                key={phase.id}
-                                className={`phase-emoji ${currentPhase === phase.id ? 'active' : ''}`}
-                                title={phase.title}
-                            >
-                                {phase.emoji}
-                            </span>
+                        {GAME_PHASES.map((phase, index) => (
+                            <>
+                                <span
+                                    key={phase.id}
+                                    className={`phase-emoji ${currentPhase === phase.id ? 'active' : ''}`}
+                                    title={phase.title}
+                                >
+                                    {phase.emoji}
+                                </span>
+                                {index < GAME_PHASES.length - 1 && (
+                                    <span key={`arrow-${index}`} className="phase-arrow">→</span>
+                                )}
+                            </>
                         ))}
                     </div>
                     <span className="phase-message">{message}</span>
