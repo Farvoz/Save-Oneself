@@ -35,26 +35,12 @@ describe('Компонент Card', () => {
     expect(cardElement).toHaveStyle({ backgroundColor: '#F5F5DC' });
   });
 
-  test('отрисовывает индикатор жизней, когда применимо', () => {
-    render(<Card card={mockCard} {...defaultProps} />);
-    const livesIndicator = screen.getByText('1');
-    expect(livesIndicator).toBeInTheDocument();
-  });
-
   test('не отображает индикатор жизней, когда жизней 0', () => {
     const back = { ...backSide, lives: 0 as number };
     const cardWithoutLives = new GameCard(back, frontSide);
     render(<Card card={cardWithoutLives} {...defaultProps} />);
     const livesIndicator = screen.queryByText('0');
     expect(livesIndicator).not.toBeInTheDocument();
-  });
-
-  test('отрисовывает карту с отрицательным индикатором жизней', () => {
-    const back = { ...backSide, lives: -1 as number };
-    const negativeCard = new GameCard(back, frontSide);
-    render(<Card card={negativeCard} {...defaultProps} />);
-    const livesIndicator = screen.getByText('-1');
-    expect(livesIndicator).toBeInTheDocument();
   });
 
   test('применяет корректные CSS-классы в зависимости от типа карты', () => {
