@@ -1,11 +1,11 @@
-# Схема связей сущностей игры Marooned (актуальная)
+# Схема связей сущностей игры Marooned (актуальная версия)
 
 ## Диаграмма связей (Mermaid)
 
 ```mermaid
 graph TB
     %% Основные сущности
-    GameContext[GameContext<br/>Типы и состояние]
+    GameContext[GameContext<br/>Игровой контекст]
     GameStateMachine[GameStateMachine<br/>Машина состояний]
     PositionSystem[PositionSystem<br/>Система позиций]
     Position[Position<br/>Координаты]
@@ -62,80 +62,121 @@ graph TB
 ### 1) Основные сущности
 
 - **GameContext** (`src/core/initial.ts`):
-  - `lives: number`
-  - `deck: GameCard[]`
-  - `positionSystem: PositionSystem`
-  - `playerPosition?: Position`
-  - `hasPlacedCard: boolean`, `hasMoved: boolean`, `movesLeft: number`
-  - `gameOverMessage: string | null`, `isVictory: boolean`
+  - `lives: number` - количество жизней (0-16)
+  - `deck: GameCard[]` - колода карт
+  - `positionSystem: PositionSystem` - система управления позициями
+  - `playerPosition?: Position` - текущая позиция игрока
+  - `hasPlacedCard: boolean`, `hasMoved: boolean`, `movesLeft: number` - флаги состояния хода
+  - `gameOverMessage: string | null`, `isVictory: boolean` - состояние игры
+  - `showStartTooltip: boolean` - показывать ли подсказку
 
 - **GameStateMachine** (`src/core/gameStateMachine.ts`):
+  - Использует XState для управления состояниями
   - Инициализируется `INITIAL_STATE`
-  - Управляет фазами: startOfRound → moving → checkingCardPlacement → checkingCardEffects → checkingMoveResult → decreasingLives → checkingFlippable → shipMoving → checkingShipEffects
-  - Вызовы обработчиков сторон карт: `onRoundStart`, `onPlace` (только для текущей клетки), `onBeforeShipMove`, `onShipMove`
+  - Управляет фазами: `startOfRound` → `moving` → `checkingCardPlacement` → `checkingCardEffects` → `checkingMoveResult` → `decreasingLives` → `checkingFlippable` → `shipMoving` → `checkingShipEffects`
+  - Вызывает обработчики сторон карт: `onRoundStart`, `onPlace`, `onBeforeShipMove`, `onShipMove`
 
 ### 2) Система карт
 
 - **CardSide** (`src/core/Card.ts`): описывает сторону карты и содержит обработчики:
-  - `onPlace`, `onFlip`, `onBeforeShipMove`, `onShipMove`, `onRoundStart`, а также `canFlip`
+  - `id`, `lives`, `direction`, `requirements`, `type`, `emoji`, `description`, `score`
+  - Обработчики: `onPlace`, `onFlip`, `onBeforeShipMove`, `onShipMove`, `onRoundStart`
+  - `canFlip` - проверка возможности переворота
 
 - **GameCard** (`src/core/Card.ts`):
-  - Две стороны (back/front), переключается `flip`
-  - Методы доступа к текущим свойствам (id, emoji, type, direction, lives/score)
-  - Базовая реализация `canFlip` учитывает требования (`requirements`) через `PositionSystem`
+  - Две стороны (`backSide`/`frontSide`), переключается через `flip()`
+  - Методы доступа к текущим свойствам: `getCurrentId()`, `getCurrentEmoji()`, `getCurrentType()`, `getCurrentDirection()`, `getCurrentLives()`, `getCurrentScore()`
+  - Базовая реализация `canFlip()` учитывает требования через `PositionSystem`
 
 - **ShipCard** (`src/core/ShipCard.ts`):
-  - Наследуется от `GameCard`, хранит текущее направление и `ShipCornerManager`
-  - Флаги `skipMove`, `hasTurned`
+  - Наследуется от `GameCard`, хранит `ShipCornerManager`
+  - Флаги `skipMove`, `hasTurned` для управления поведением
+  - Методы: `getCurrentDirection()`, `getEmoji()`, `getCurrentType()`
 
 - **ShipCornerManager** (`src/core/ShipCornerManager.ts`):
-  - Рассчитывает «квадрат острова» по текущим границам
-  - Валидирует орбиту и стартовую/следующую позицию корабля, определяет повороты на углах
+  - Рассчитывает "квадрат острова" по текущим границам поля
+  - Валидирует орбиту и позиции корабля
+  - Определяет повороты на углах: `getNextDirection()`, `isFinalCornerShipPosition()`
+  - Управляет движением: `getStartShipPosition()`, `getNextShipPosition()`
+  - Проверки: `isPlayerValidPosition()`, `isShipOutOfBounds()`, `isIslandCornerCard()`
 
 ### 3) Позиции
 
 - **PositionSystem** (`src/core/PositionSystem.ts`):
-  - Хранит карты по ключу строки координат
-  - Оперирует картами/кораблем: `getShipPosition/Card`, `set/remove/swap`, `findCardById`, `findAllBy`, `getBounds`, `getAdjacentPositions`, `isAdjacent`, `isOutOfBounds`, `countNonShipCards`, `clone`
-  - Знает о `ShipCard` (валидация позиций корабля через `cornerManager`)
+  - Хранит карты по ключу строки координат (`occupiedPositions: Map<string, GameCard>`)
+  - Оперирует картами: `getPosition()`, `setPosition()`, `removePosition()`, `hasPosition()`
+  - Работа с кораблем: `getShipPosition()`, `getShipCard()`, `moveShip()`, `removeShipPosition()`
+  - Поиск и фильтрация: `findCardById()`, `findAllBy()`, `findFarthestPosition()`
+  - Геометрия: `getBounds()`, `getAdjacentPositions()`, `isAdjacent()`, `isOutOfBounds()`
+  - Утилиты: `countNonShipCards()`, `clone()`, `swapPositions()`
 
-- **Position**: простая структура координат с утилитами (`toString`, `fromString`, `distanceTo`, `equals`, `isValid`)
+- **Position**: простая структура координат с утилитами:
+  - `toString()`, `fromString()`, `equals()`, `distanceTo()`, `isValid()`
 
 ### 4) Данные, инициализация, действия
 
 - **CARD_DATA** (`src/core/cardData.ts`):
   - Описание всех карт (back/front) и их обработчиков
+  - 15 типов карт: `vines`, `hook`, `water`, `flint`, `palmTrees`, `sticks`, `bottle`, `higherGround`, `telescope`, `rocks`, `pig`, `storm`, `mirage`, `pirates`, `mapRow`, `mapCol`
   - Функция `updateLives(oldLives, delta)` централизует изменение жизней (0..16)
+  - Отдельная карта `ship` для корабля
 
 - **initial.ts**:
-  - Типы `GameContext`, `GameEvent`, `GameState`
-  - `INITIAL_GAME_DECK` создаётся из `CARD_DATA`
-  - `INITIAL_STATE` формирует стартовый контекст
+  - Типы: `GameContext`, `GameEvent`, `GameState`
+  - `BACK_CARDS`, `INITIAL_GAME_DECK` создаются из `CARD_DATA`
+  - `INITIAL_STATE` формирует стартовый контекст с 16 жизнями
 
 - **gameActions.ts**:
-  - `shuffleDeck`, `movePlayer`, `placeCard`, `placeShip`, `moveShip`, `decreaseLive`, `isPlayerValidPosition`, `hasFlippableCards`, `checkVictory`, `checkDefeat`, `calculateScore`
-  - Взаимодействует с `PositionSystem`, `ShipCard`, `ShipCornerManager`; использует `updateLives` из `cardData`
+  - `shuffleDeck()` - перемешивание колоды
+  - `movePlayer()` - перемещение игрока с проверками
+  - `placeCard()` - размещение карты на поле
+  - `placeShip()` - размещение корабля с `ShipCornerManager`
+  - `moveShip()` - движение корабля по орбите
+  - `decreaseLive()` - уменьшение жизней
+  - `isPlayerValidPosition()` - валидация позиции игрока
+  - `hasFlippableCards()` - проверка наличия переворачиваемых карт
+  - `checkVictory()` - проверка условий победы (SOS, маяк, сообщение)
+  - `checkDefeat()` - проверка поражения (корабль вне границ)
+  - `calculateScore()` - подсчет итогового счета
 
-### 5) Поток раунда (кратко)
+### 5) Поток раунда (детальный)
 
-1. `startOfRound`: сброс флагов, `onRoundStart` для всех карт
-2. `moving`: игрок делает шаг (`MOVE_PLAYER`) или пропускает остаток ходов
-3. `checkingCardPlacement`: если клетка пустая и карта не размещена — `placeCard` (+ потенциально `placeShip`)
-4. `checkingCardEffects`: `onPlace` только для текущей клетки
-5. `checkingMoveResult`: проверка победы/ходов; иначе — уменьшение жизней
-6. `decreasingLives` → `checkingFlippable` (по желанию `FLIP_CARD`) → `shipMoving`
-7. `shipMoving`: `onBeforeShipMove`, движение корабля, затем проверка победы/поражения и `onShipMove`
+1. **`startOfRound`**: сброс флагов `hasPlacedCard`, `hasMoved`, вызов `onRoundStart` для всех карт
+2. **`moving`**: игрок делает шаг (`MOVE_PLAYER`) или пропускает ходы (`SKIP_MOVES`)
+3. **`checkingCardPlacement`**: если клетка пустая и карта не размещена — `placeCard()`, потенциально `placeShip()`
+4. **`checkingCardEffects`**: вызов `onPlace` только для текущей клетки
+5. **`checkingMoveResult`**: проверка победы/поражения, иначе уменьшение жизней
+6. **`decreasingLives`**: уменьшение жизней на 1
+7. **`checkingFlippable`**: по желанию игрока `FLIP_CARD` для переворачиваемых карт
+8. **`shipMoving`**: 
+   - Вызов `onBeforeShipMove` для всех карт
+   - Движение корабля через `moveShip()`
+   - Проверка победы/поражения
+   - Вызов `onShipMove` для всех карт
 
-## Примечания по текущей архитектуре
+### 6) Особенности обработчиков карт
 
-- **Циклических зависимостей нет**: `gameActions` импортирует `updateLives` из `cardData`, а `cardData` не зависит от `gameActions`.
-- **Сознательная связанность `PositionSystem ↔ ShipCard`**: валидация позиций корабля делегирована `ShipCornerManager` через `ShipCard`.
-- **Обработчики на `CardSide`** формируют сценарии: телескоп (поворот на углу один раз), пираты (перехват до движения), мираж (замена дальней карты и flip), шторм/торнадо (условные flip-эффекты), карты карты (map-r/map-c) и т.п.
+- **`onPlace`**: срабатывает при размещении карты (например, вода +2 жизни, шторм -2 жизни)
+- **`onFlip`**: срабатывает при перевороте карты (например, кокосы +2 жизни)
+- **`onBeforeShipMove`**: срабатывает перед движением корабля (телескоп, пираты)
+- **`onShipMove`**: срабатывает после движения корабля (морской змей)
+- **`onRoundStart`**: срабатывает в начале раунда (шторм, компас)
+- **`canFlip`**: проверяет условия для переворота (бутылка, карты карты, телескоп, камни)
 
-## Возможные улучшения (необязательные)
+## Примечания по архитектуре
 
-- Вынести `updateLives` в отдельный модуль эффектов, если появятся другие общие эффекты
-- Рассмотреть ослабление зависимости `PositionSystem` от `ShipCard` через интерфейс уровня «корабля», если потребуется альтернативная реализация
+- **Отсутствие циклических зависимостей**: `gameActions` импортирует `updateLives` из `cardData`, но `cardData` не зависит от `gameActions`
+- **Сознательная связанность `PositionSystem ↔ ShipCard`**: валидация позиций корабля делегирована `ShipCornerManager` через `ShipCard`
+- **Обработчики на `CardSide`** формируют игровые сценарии:
+  - Телескоп: поворот корабля на углу один раз
+  - Пираты: перехват корабля до движения
+  - Мираж: замена дальней карты и flip
+  - Шторм/торнадо: условные flip-эффекты
+  - Карты карты: поиск сокровища по пересечению
+  - Бутылка: отправка сообщения при остановке корабля
+
+## Возможные улучшения
+
+- Вынести `updateLives` в отдельный модуль эффектов при появлении других общих эффектов
+- Рассмотреть ослабление зависимости `PositionSystem` от `ShipCard` через интерфейс при необходимости альтернативной реализации
 - Документировать контракт обработчиков `CardSide` и их сроки вызова в отдельном разделе руководства
-
-
