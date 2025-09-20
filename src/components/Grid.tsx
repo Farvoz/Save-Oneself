@@ -64,6 +64,7 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
                         isPlayerPosition={isPlayerPosition ?? false}
                         isFlippable={isFlippable ?? false}
                         onPlayerClick={onPlayerClick}
+                        hasMovesLeft={state.matches('playing.moving') && context.movesLeft > 0}
                     />
                 )}
                 {/* Показываем эмоджи шагов для доступных позиций */}

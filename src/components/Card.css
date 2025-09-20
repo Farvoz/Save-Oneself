@@ -20,11 +20,10 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 32px;
+    font-size: 22px;
     z-index: 10;
     pointer-events: none;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    animation: playerPulse 2s ease-in-out infinite;
 }
 
 .player-marker.clickable-player {
@@ -34,18 +33,10 @@
 }
 
 .player-marker.clickable-player:hover {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%);
     text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
 }
 
-@keyframes playerPulse {
-    0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.1);
-    }
-}
 
 .card-content {
     display: flex;
@@ -56,23 +47,24 @@
     height: 100%;
     position: relative;
     z-index: 2;
+    transition: opacity 1s ease-in-out;
 }
 
 .card-lives {
     position: absolute;
     top: 2px;
     left: 2px;
-    font-size: 18px;
-    color: #333;
-    /* фон - emoji иконка в виде сердечка */
-    background-color: #ffbcbc;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    font-size: 10px;
+    color: #37474f;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    padding: 2px 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3;
+    font-weight: 500;
+    gap: 2px;
 }
 
 .card-lives.positive {
@@ -85,15 +77,16 @@
     top: 2px;
     right: 2px;
     font-size: 10px;
-    color: #f57c00;
-    background-color: rgba(245, 124, 0, 0.1);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    color: #37474f;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    padding: 2px 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3;
+    font-weight: 500;
+    gap: 2px;
 }
 
 .card-name {
@@ -107,36 +100,48 @@
 }
 
 .card-name.ship-name {
-    font-size: 14px;
+    font-size: 20px;
     position: static;
     margin-bottom: 2px;
     margin-top: 38px;
 }
 
-.card-name.flippable-name {
-    position: relative;
-}
 
 .card-name-text {
     transition: opacity 0.2s ease;
 }
 
-.card-flip-icon {
+/* Анимация переворота карты */
+.card.flippable {
+    transition: transform 1.2s ease-in-out;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+.card.flippable:hover {
+    transform: rotateY(180deg);
+}
+
+.card.flippable:hover .card-content {
+    opacity: 0;
+}
+
+.card.flippable::before {
+    content: '';
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
-    text-align: center;
+    bottom: 0;
+    background-color: #E8F5E9; /* Цвет фона лицевой стороны */
+    border-radius: 8px;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
     opacity: 0;
-    transition: opacity 0.2s ease;
-    font-size: 11px;
+    transition: opacity 1.2s ease-in-out;
 }
 
-.card.flippable:hover .card-name-text {
-    opacity: 0;
-}
-
-.card.flippable:hover .card-flip-icon {
+.card.flippable:hover::before {
     opacity: 1;
 }
 
@@ -150,9 +155,10 @@
 
 .card-requirements {
     font-size: 10px;
+    line-height: 13px;
     color: #666;
     text-align: center;
-    margin-top: 1px;
+    margin-top: 3px;
     align-self: flex-end;
 }
 

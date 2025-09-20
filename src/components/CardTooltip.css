@@ -34,14 +34,14 @@
 }
 
 .side-info.current {
-    background-color: #e8f5e8;
+    background-color: rgba(255, 255, 255, 0.8);
     padding: 8px;
     border-radius: 8px;
     border-left: 3px solid #4caf50;
 }
 
 .side-info.other {
-    background-color: #fff3e0;
+    background-color: rgba(255, 255, 255, 0.6);
     padding: 8px;
     border-radius: 8px;
     border-left: 3px solid #ff9800;
@@ -120,7 +120,7 @@
 .card-tooltip.left-arrow::before {
     left: -16px;
     top: 20px;
-    border-right: 8px solid #dee2e6;
+    border-right: 8px solid var(--tooltip-border, #dee2e6);
 }
 
 .card-tooltip.left-arrow::after {
@@ -131,7 +131,7 @@
     border: 7px solid transparent;
     left: -14px;
     top: 21px;
-    border-right: 7px solid #f8f9fa;
+    border-right: 7px solid var(--tooltip-bg, #f8f9fa);
     z-index: 1002;
 }
 
@@ -139,7 +139,7 @@
 .card-tooltip.right-arrow::before {
     right: -16px;
     top: 20px;
-    border-left: 8px solid #dee2e6;
+    border-left: 8px solid var(--tooltip-border, #dee2e6);
 }
 
 .card-tooltip.right-arrow::after {
@@ -150,6 +150,6 @@
     border: 7px solid transparent;
     right: -14px;
     top: 21px;
-    border-left: 7px solid #f8f9fa;
+    border-left: 7px solid var(--tooltip-bg, #f8f9fa);
     z-index: 1002;
 }

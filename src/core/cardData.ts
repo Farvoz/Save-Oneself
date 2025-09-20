@@ -29,6 +29,7 @@ export const CARD_DATA: CardData = {
     vines: {
         back: {
             id: 'vines',
+            russianName: 'Лианы',
             direction: 'SW' as Direction,
             requirements: 'palm-trees',
             requirementsText: 'нужна 🌴',
@@ -38,6 +39,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'shelter',
+            russianName: 'Убежище',
             lives: 2,
             score: 2,
             type: 'front' as CardType,
@@ -52,6 +54,7 @@ export const CARD_DATA: CardData = {
     hook: {
         back: {
             id: 'hook',
+            russianName: 'Крючок',
             direction: 'NE' as Direction,
             requirements: 'water',
             requirementsText: 'нужна 💧',
@@ -61,6 +64,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'fish',
+            russianName: 'Рыба',
             lives: 3,
             type: 'front' as CardType,
             emoji: '🐟',
@@ -74,6 +78,7 @@ export const CARD_DATA: CardData = {
     water: {
         back: {
             id: 'water',
+            russianName: 'Вода',
             lives: 2,
             requirements: 'telescope',
             requirementsText: 'нужна 🔭',
@@ -87,6 +92,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'waterfall',
+            russianName: 'Водопад',
             lives: 2,
             type: 'front' as CardType,
             emoji: '🌊',
@@ -100,6 +106,7 @@ export const CARD_DATA: CardData = {
     flint: {
         back: {
             id: 'flint',
+            russianName: 'Кремень',
             requirements: 'vines',
             requirementsText: 'нужна 🌿',
             type: 'back' as CardType,
@@ -108,6 +115,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'torch',
+            russianName: 'Факел',
             score: 2,
             type: 'front' as CardType,
             emoji: '🕯️',
@@ -117,6 +125,7 @@ export const CARD_DATA: CardData = {
     palmTrees: {
         back: {
             id: 'palm-trees',
+            russianName: 'Пальмы',
             direction: 'SE' as Direction,
             requirements: 'rocks',
             requirementsText: 'нужна 🧱',
@@ -126,6 +135,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'coconuts',
+            russianName: 'Кокосы',
             lives: 2,
             type: 'front' as CardType,
             emoji: '🥥',
@@ -139,6 +149,7 @@ export const CARD_DATA: CardData = {
     sticks: {
         back: {
             id: 'sticks',
+            russianName: 'Ветки',
             direction: 'NW' as Direction,
             requirements: 'flint',
             requirementsText: 'нужна ⚡',
@@ -148,6 +159,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'spear',
+            russianName: 'Копье',
             score: 2,
             type: 'front' as CardType,
             emoji: '🗡️',
@@ -157,7 +169,8 @@ export const CARD_DATA: CardData = {
     bottle: {
         back: {
             id: 'bottle',
-            requirementsText: 'нужен корабль на паузе',
+            russianName: 'Бутылка',
+            requirementsText: 'нужен корабль только на старте',
             type: 'back' as CardType,
             emoji: '🍾',
             description: 'Кажется, я смогу оставить здесь сообщение! Главное, чтобы не на углу!',
@@ -168,6 +181,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'message',
+            russianName: 'Сообщение',
             score: 3,
             type: 'front' as CardType,
             emoji: '📜',
@@ -177,6 +191,7 @@ export const CARD_DATA: CardData = {
     higherGround: {
         back: {
             id: 'higher-ground',
+            russianName: 'Возвышенность',
             requirements: 'torch',
             requirementsText: 'нужна 🕯️',
             type: 'back' as CardType,
@@ -185,6 +200,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'lit-beacon',
+            russianName: 'Маяк',
             score: 7,
             type: 'front' as CardType,
             emoji: '🔥',
@@ -194,6 +210,7 @@ export const CARD_DATA: CardData = {
     telescope: {
         back: {
             id: 'telescope',
+            russianName: 'Подзорная труба',
             requirementsText: 'нужно быть на ⛰️',
             type: 'back' as CardType,
             emoji: '🔭',
@@ -209,6 +226,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'ship-sighted',
+            russianName: 'Корабль замечен',
             score: 1,
             type: 'front' as CardType,
             emoji: '🚢',
@@ -236,6 +254,7 @@ export const CARD_DATA: CardData = {
     rocks: {
         back: {
             id: 'rocks',
+            russianName: 'Камни',
             requirementsText: 'нужно быть на ⛰️',
             type: 'back' as CardType,
             emoji: '🧱',
@@ -251,6 +270,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'sos',
+            russianName: 'SOS',
             score: 5,
             type: 'front' as CardType,
             emoji: '🆘',
@@ -260,6 +280,7 @@ export const CARD_DATA: CardData = {
     pig: {
         back: {
             id: 'pig',
+            russianName: 'Кабан',
             lives: -2,
             requirements: 'spear',
             requirementsText: 'нужна 🗡️',
@@ -278,6 +299,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'meat',
+            russianName: 'Мясо',
             lives: 3,
             type: 'front' as CardType,
             emoji: '🍽️',
@@ -291,6 +313,7 @@ export const CARD_DATA: CardData = {
     storm: {
         back: {
             id: 'storm',
+            russianName: 'Шторм',
             lives: -2,
             requirementsText: '13 карта',
             type: 'back' as CardType,
@@ -317,6 +340,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'tornado',
+            russianName: 'Торнадо',
             lives: -3,
             type: 'front' as CardType,
             emoji: '🌪️',
@@ -342,6 +366,7 @@ export const CARD_DATA: CardData = {
     mirage: {
         back: {
             id: 'mirage',
+            russianName: 'Мираж',
             requirementsText: 'найти пересечение',
             type: 'back' as CardType,
             emoji: '🌫️',
@@ -359,6 +384,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'sea-serpent',
+            russianName: 'Морской змей',
             type: 'front' as CardType,
             emoji: '🐍',
             description: 'Корабль перескочет соседнюю клетку - лучше не оставлять на берегу',
@@ -390,6 +416,7 @@ export const CARD_DATA: CardData = {
     pirates: {
         back: {
             id: 'pirates',
+            russianName: 'Пираты',
             requirementsText: 'ждать отплытие',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
@@ -413,6 +440,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'compass',
+            russianName: 'Компас',
             type: 'front' as CardType,
             emoji: '🧭',
             description: 'Удача! Я нашел компас! Теперь смогу быстрее двигаться по изученным местам!',
@@ -425,6 +453,7 @@ export const CARD_DATA: CardData = {
     mapRow: {
         back: {
             id: 'map-r',
+            russianName: 'Карта ряда',
             type: 'back' as CardType,
             emoji: '👈🗺️👉',
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
@@ -442,6 +471,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'rum',
+            russianName: 'Ром',
             lives: 1,
             type: 'front' as CardType,
             emoji: '🥃',
@@ -465,6 +495,7 @@ export const CARD_DATA: CardData = {
     mapCol: {
         back: {
             id: 'map-c',
+            russianName: 'Карта колонки',
             type: 'back' as CardType,
             emoji: '👇🗺️☝️',
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
@@ -482,6 +513,7 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'treasure',
+            russianName: 'Сокровище',
             score: 10,
             type: 'front' as CardType,
             emoji: '💎',
@@ -506,6 +538,7 @@ export const CARD_DATA: CardData = {
 
 export const ship: CardSide = {
     id: 'ship',
+    russianName: 'Корабль',
     type: 'ship' as CardType,
     emoji: '⛵',
     description: 'Корабль плывет вдоль берега',

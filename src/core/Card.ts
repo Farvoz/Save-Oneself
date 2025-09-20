@@ -6,6 +6,7 @@ export type CardType = 'back' | 'front' | 'ship';
 
 export type CardSide = {
     id: string;
+    russianName?: string;
     lives?: number;
     direction?: Direction;
     requirements?: string;
@@ -104,6 +105,10 @@ export class GameCard {
 
     getCurrentDescription(): string | undefined {
         return this.getCurrentSide().description;
+    }
+
+    getCurrentRussianName(): string | undefined {
+        return this.getCurrentSide().russianName;
     }
 
     getCurrentScore(): number | undefined {

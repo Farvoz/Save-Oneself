@@ -13,6 +13,14 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
 
     const currentSide = card.getCurrentSide();
     
+    // Функция для получения цвета карты (аналогично Card.tsx)
+    const getCardBackground = (cardObj: GameCard): string => {
+        if (cardObj.getCurrentType() === 'ship') return '#87CEEB';
+        if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
+        if (cardObj.getCurrentType() === 'front') return '#E8F5E9';
+        return '#F5F5DC';
+    };
+    
     // Конвертируем координаты сетки в пиксели
     const cellSize = 100;
     const gridOffset = 4;
@@ -60,13 +68,21 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
         arrowClass = 'left-arrow';
     }
 
-    const getSideInfo = (side: { emoji: string; id: string; description?: string; lives?: number; score?: number; direction?: string; requirementsText?: string }, isCurrent: boolean) => {
+    const getSideInfo = (side: { emoji: string; id: string; russianName?: string; description?: string; lives?: number; score?: number; direction?: string; requirementsText?: string }, isCurrent: boolean, backgroundColor?: string) => {
         const emoji = side.emoji;
-        const name = side.id;
+        const name = side.russianName || side.id;
         const description = side.description || 'Нет описания';
         
+        const sideStyle: React.CSSProperties = backgroundColor ? {
+            backgroundColor: backgroundColor,
+            borderLeftColor: backgroundColor
+        } : {};
+        
         return (
-            <div className={`side-info ${isCurrent ? 'current' : 'other'}`}>
+            <div 
+                className={`side-info ${isCurrent ? 'current' : 'other'}`}
+                style={sideStyle}
+            >
                 <div className="side-header">
                     <span className="side-emoji">{emoji}</span>
                     <span className="side-name">{name}</span>
@@ -76,7 +92,7 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
                 {(side.lives || side.score || side.direction) && (
                     <div className="side-stats">
                         {side.lives && (
-                            <span className="stat">💖 {side.lives}</span>
+                            <span className="stat">{side.lives > 0 ? "💖" : "💔"} {side.lives}</span>
                         )}
                         {side.score && (
                             <span className="stat">✨ {side.score}</span>
@@ -96,20 +112,22 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
             style={{
                 left: `${left}px`,
                 top: `${top}px`,
-            }}
+                '--tooltip-bg': '#f8f9fa',
+                '--tooltip-border': '#dee2e6'
+            } as React.CSSProperties}
         >
             <div className="card-tooltip-content">
                 {/* Всегда показываем тыльную сторону первой */}
                 {card.getCurrentType() === 'back' ? (
-                    getSideInfo(currentSide, true)
+                    getSideInfo(currentSide, true, getCardBackground(card))
                 ) : (
-                    getSideInfo(card.backSide, false)
+                    getSideInfo(card.backSide, false, '#F5F5DC')
                 )}
                 
                 {/* Показываем лицевую сторону только если это не корабль */}
                 {card.getCurrentType() !== 'ship' && (
                     card.getCurrentType() === 'front' ? (
-                        getSideInfo(currentSide, true)
+                        getSideInfo(currentSide, true, getCardBackground(card))
                     ) : (
                         <div className="side-info hidden">
                             <div className="side-header">

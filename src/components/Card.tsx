@@ -13,6 +13,7 @@ interface CardProps {
     isAvailableMove: boolean;
     isFlippable: boolean;
     onPlayerClick?: () => void;
+    hasMovesLeft?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({ 
@@ -24,7 +25,8 @@ export const Card: React.FC<CardProps> = ({
     isFlipped = false,
     isAvailableMove,
     isFlippable,
-    onPlayerClick
+    onPlayerClick,
+    hasMovesLeft = false
 }) => {
     const [showTooltip, setShowTooltip] = useState(false);
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,7 +105,7 @@ export const Card: React.FC<CardProps> = ({
             >
             {isPlayerPosition && (
                 <div 
-                    className="player-marker clickable-player" 
+                    className={`player-marker ${hasMovesLeft ? 'clickable-player' : ''}`} 
                     onClick={handlePlayerClick}
                 >
                     🚶
@@ -112,12 +114,12 @@ export const Card: React.FC<CardProps> = ({
             <div className="card-content">
                 {Math.abs(card.getCurrentLives()) > 0 && (
                     <div className={"card-lives " + (card.getCurrentLives() > 0 ? "positive" : "")}>
-                        {card.getCurrentLives()}
+                        {card.getCurrentLives() > 0 ? "💖" : "💔"} {card.getCurrentLives()}
                     </div>
                 )}
                 {card.getCurrentScore() && (
                     <div className="card-score">
-                        {card.getCurrentScore()} ⭐
+                        ✨ {card.getCurrentScore()}
                     </div>
                 )}
                 {card.getCurrentType() === 'back' && card.getRequirementsText() && (
@@ -126,9 +128,8 @@ export const Card: React.FC<CardProps> = ({
                     </div>
                 )}
                 {card.getCurrentId() && (
-                    <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''} ${isFlippable ? 'flippable-name' : ''}`}>
-                        <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentId()}`}</span>
-                        {isFlippable && <span className="card-flip-icon">🔄</span>}
+                    <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''}`}>
+                        <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentRussianName() || card.getCurrentId()}`}</span>
                     </div>
                 )}
                 {card.getCurrentDirection() && (
