@@ -17,32 +17,34 @@
 
 .player-marker {
     position: absolute;
-    top: -20px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    background-color: #4CAF50;
-    color: white;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: bold;
-    white-space: nowrap;
-    z-index: 5;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    z-index: 10;
     pointer-events: none;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: playerPulse 2s ease-in-out infinite;
 }
 
-.player-marker::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #4CAF50;
+.player-marker.clickable-player {
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.player-marker.clickable-player:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+}
+
+@keyframes playerPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
 }
 
 .card-content {
@@ -95,10 +97,47 @@
 }
 
 .card-name {
+    font-size: 11px;
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    margin: 0;
+}
+
+.card-name.ship-name {
     font-size: 14px;
+    position: static;
     margin-bottom: 2px;
     margin-top: 38px;
+}
+
+.card-name.flippable-name {
+    position: relative;
+}
+
+.card-name-text {
+    transition: opacity 0.2s ease;
+}
+
+.card-flip-icon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 11px;
+}
+
+.card.flippable:hover .card-name-text {
+    opacity: 0;
+}
+
+.card.flippable:hover .card-flip-icon {
+    opacity: 1;
 }
 
 .card-direction {
@@ -117,18 +156,8 @@
     align-self: flex-end;
 }
 
-.flip-indicator {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-    z-index: 2;
-}
 
-.card.flippable:hover .flip-indicator {
-    opacity: 1;
+/* Карта игрока должна быть выше пунктирных линий */
+.card.player-position {
+    z-index: 25;
 }

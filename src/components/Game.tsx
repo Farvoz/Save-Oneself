@@ -19,6 +19,10 @@ const Game: React.FC = () => {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
             gameService.send({ type: 'FLIP_CARD', row, col });
+        } else if (state.matches('playing.moving') && context.hasMoved && 
+                   context.playerPosition && context.playerPosition.equals(new Position(row, col))) {
+            // Клик на фигурку игрока для пропуска ходов
+            gameService.send({ type: 'SKIP_MOVES' });
         }
     }
 
@@ -56,13 +60,17 @@ const Game: React.FC = () => {
                     deckLength={context.deck.length}
                     state={state}
                     handleSkipPhase={handleSkipPhase}
-                    handleSkipMoves={handleSkipMoves}
                 />
             </div>
             <Grid 
                 onCellClick={handleCellClick} 
                 positionSystem={context.positionSystem} 
                 state={state}
+                onPlayerClick={() => {
+                    if (state.matches('playing.moving') && context.hasMoved) {
+                        gameService.send({ type: 'SKIP_MOVES' });
+                    }
+                }}
             />
             <GameOver
                 message={context.gameOverMessage}

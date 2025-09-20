@@ -172,6 +172,28 @@ export const isPlayerValidPosition = (context: GameContext, pos: Position): bool
     return true;
 };
 
+// Get all valid positions for player movement
+export const getValidMovePositions = (context: GameContext): Position[] => {
+    const validPositions: Position[] = [];
+    
+    if (!context.playerPosition) {
+        // Если игрок еще не начал, только стартовая позиция доступна
+        return [new Position(0, 0)];
+    }
+    
+    // Проверяем все позиции в радиусе 1 от текущей позиции игрока
+    for (let row = context.playerPosition.row - 1; row <= context.playerPosition.row + 1; row++) {
+        for (let col = context.playerPosition.col - 1; col <= context.playerPosition.col + 1; col++) {
+            const pos = new Position(row, col);
+            if (isPlayerValidPosition(context, pos)) {
+                validPositions.push(pos);
+            }
+        }
+    }
+    
+    return validPositions;
+};
+
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context: GameContext): boolean => {
     for (const [, card] of context.positionSystem.occupiedPositions) {

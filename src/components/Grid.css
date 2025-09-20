@@ -22,17 +22,7 @@
     border-radius: 5px;
 }
 
-.grid-cell.valid-move {
-    background-color: rgba(76, 175, 80, 0.1);
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
-}
-
-.grid-cell.valid-move:hover {
-    background-color: rgba(76, 175, 80, 0.2);
-    transform: scale(1.05);
-    z-index: 1;
-}
+/* Убираем старые стили для valid-move */
 
 .grid-cell.coastline {
     background-color: rgba(33, 150, 243, 0.1);
@@ -48,4 +38,53 @@
     background-size: 20px 20px;
     opacity: 0.3;
     pointer-events: none;
+}
+
+/* Стили для SVG линий */
+.grid-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.dotted-line {
+    animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -10;
+    }
+}
+
+/* Стили для эмоджи шагов */
+.step-emoji {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    z-index: 10;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(128, 128, 128, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
 }

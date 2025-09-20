@@ -6,14 +6,12 @@ interface CardTooltipProps {
     card: GameCard;
     visible: boolean;
     position: { row: number; col: number };
-    isFlippable: boolean;
 }
 
-export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, position, isFlippable }) => {
+export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, position }) => {
     if (!visible) return null;
 
     const currentSide = card.getCurrentSide();
-    const otherSide = card.getCurrentType() === 'front' ? card.backSide : card.frontSide;
     
     // Конвертируем координаты сетки в пиксели
     const cellSize = 100;
@@ -101,36 +99,29 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
             }}
         >
             <div className="card-tooltip-content">
-                <div className="tooltip-header">
-                    <span className="card-type">
-                        {card.getCurrentType() === 'ship' ? '🚢 Корабль' : '🎴 Карта'}
-                    </span>
-                    {isFlippable && (
-                        <span className="flip-indicator">🔄 Можно перевернуть</span>
-                    )}
-                </div>
+                {/* Всегда показываем тыльную сторону первой */}
+                {card.getCurrentType() === 'back' ? (
+                    getSideInfo(currentSide, true)
+                ) : (
+                    getSideInfo(card.backSide, false)
+                )}
                 
-                {getSideInfo(currentSide, true)}
-                
-                {otherSide && (
-                    <>
-                        <div className="divider"></div>
-                        {card.getCurrentType() === 'back' ? (
-                            <div className="side-info other">
-                                <div className="side-header">
-                                    <span className="side-emoji">❓</span>
-                                    <span className="side-name">Лицевая сторона</span>
-                                </div>
-                                <div className="side-description">Переверните карту, чтобы увидеть содержимое</div>
-                                
-                                <div className="side-requirements">
-                                    <span className="requirement">📋 Требование для переворота: {card.backSide.requirementsText || 'Нет требований'}</span>
-                                </div>
+                {/* Показываем лицевую сторону только если это не корабль */}
+                {card.getCurrentType() !== 'ship' && (
+                    card.getCurrentType() === 'front' ? (
+                        getSideInfo(currentSide, true)
+                    ) : (
+                        <div className="side-info hidden">
+                            <div className="side-header">
+                                <span className="side-emoji">❓</span>
+                                <span className="side-name"><i>Лицевая сторона</i></span>
                             </div>
-                        ) : (
-                            getSideInfo(otherSide, false)
-                        )}
-                    </>
+                            
+                            <div className="side-requirements">
+                                <span className="requirement">📋 Можно перевернуть: {card.backSide.requirementsText || 'Нет требований'}</span>
+                            </div>
+                        </div>
+                    )
                 )}
             </div>
         </div>

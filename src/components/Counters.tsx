@@ -5,10 +5,10 @@ import './Counters.css';
 type GamePhase = 'moving' | 'decreasingLives' | 'checkingFlippable' | 'shipMoving' | 'gameOver';
 
 const GAME_PHASES = [
-    { id: 'moving' as GamePhase, emoji: '🚶', title: 'Перемещение: выберите соседнюю клетку' },
-    { id: 'decreasingLives' as GamePhase, emoji: '💔', title: 'Уменьшение жизней...' },
-    { id: 'checkingFlippable' as GamePhase, emoji: '🔄', title: 'Переворот карты или пропуск' },
-    { id: 'shipMoving' as GamePhase, emoji: '⛵', title: 'Движение корабля...' }
+    { id: 'moving' as GamePhase, emoji: '🚶', title: 'Выберите соседнюю клетку для перемещения' },
+    { id: 'decreasingLives' as GamePhase, emoji: '💔', title: 'Вам становится все труднее оставаться на острове...' },
+    { id: 'checkingFlippable' as GamePhase, emoji: '🔄', title: 'Переверните карту или пропустите ход' },
+    { id: 'shipMoving' as GamePhase, emoji: '⛵', title: 'Движение корабля' }
 ];
 
 interface CountersProps {
@@ -16,10 +16,9 @@ interface CountersProps {
     deckLength: number;
     state: GameState;
     handleSkipPhase: () => void;
-    handleSkipMoves: () => void;
 }
 
-const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSkipPhase, handleSkipMoves }) => {
+const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSkipPhase }) => {
     const [livesAnimation, setLivesAnimation] = useState<string>('');
     const [prevLives, setPrevLives] = useState<number>(lives);
 
@@ -41,7 +40,6 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
     const currentPhaseData = GAME_PHASES.find(phase => phase.id === currentPhase);
     const message = currentPhaseData?.title || '';
     const showSkipButton = currentPhase === 'checkingFlippable';
-    const showSkipMovesButton = currentPhase === 'moving' && state.context.hasMoved;
 
     return (
         <div className="counters">
@@ -75,14 +73,7 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
                             Пропустить
                         </button>
                     )}
-                    {showSkipMovesButton && (
-                        <button
-                            className="skip-phase-button"
-                            onClick={handleSkipMoves}
-                        >
-                            Остаться здесь
-                        </button>
-                    )}
+                    {/* Кнопка "Остаться здесь" удалена - теперь можно кликнуть на фигурку игрока */}
                 </div>
                 <div className="help-links">
                     <a href="https://boardgamegeek.com/filepage/132096/marooned-rules" target="_blank" rel="noreferrer noopener" className="help-link-text" title="Правила игры">?</a>

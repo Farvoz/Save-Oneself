@@ -28,29 +28,6 @@
     line-height: 1.4;
 }
 
-.tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.card-type {
-    font-weight: 600;
-    color: #495057;
-    font-size: 16px;
-}
-
-.flip-indicator {
-    background-color: #e3f2fd;
-    color: #1976d2;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-}
 
 .side-info {
     margin-bottom: 12px;
@@ -68,6 +45,13 @@
     padding: 8px;
     border-radius: 8px;
     border-left: 3px solid #ff9800;
+}
+
+.side-info.hidden {
+    background-color: #e1e1e1;
+    padding: 8px;
+    border-radius: 8px;
+    border-left: 3px solid #9e9e9e;
 }
 
 .side-header {
@@ -121,11 +105,6 @@
     font-weight: 500;
 }
 
-.divider {
-    height: 1px;
-    background-color: #dee2e6;
-    margin: 12px 0;
-}
 
 /* Стрелка, указывающая на карту */
 .card-tooltip::before {

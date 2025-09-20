@@ -12,6 +12,7 @@ interface CardProps {
     isFlipped?: boolean;
     isAvailableMove: boolean;
     isFlippable: boolean;
+    onPlayerClick?: () => void;
 }
 
 export const Card: React.FC<CardProps> = ({ 
@@ -22,7 +23,8 @@ export const Card: React.FC<CardProps> = ({
     onClick, 
     isFlipped = false,
     isAvailableMove,
-    isFlippable
+    isFlippable,
+    onPlayerClick
 }) => {
     const [showTooltip, setShowTooltip] = useState(false);
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,6 +32,13 @@ export const Card: React.FC<CardProps> = ({
     const handleClick = (): void => {
         if (onClick) {
             onClick(row, col);
+        }
+    };
+
+    const handlePlayerClick = (e: React.MouseEvent): void => {
+        e.stopPropagation(); // Предотвращаем всплытие события к карте
+        if (onPlayerClick) {
+            onPlayerClick();
         }
     };
 
@@ -93,10 +102,12 @@ export const Card: React.FC<CardProps> = ({
                 onMouseLeave={handleMouseLeave}
             >
             {isPlayerPosition && (
-                <div className="player-marker">Игрок</div>
-            )}
-            {isFlippable && (
-                <div className="flip-indicator">🔄</div>
+                <div 
+                    className="player-marker clickable-player" 
+                    onClick={handlePlayerClick}
+                >
+                    🚶
+                </div>
             )}
             <div className="card-content">
                 {Math.abs(card.getCurrentLives()) > 0 && (
@@ -115,7 +126,10 @@ export const Card: React.FC<CardProps> = ({
                     </div>
                 )}
                 {card.getCurrentId() && (
-                    <div className="card-name">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentId()}`}</div>
+                    <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''} ${isFlippable ? 'flippable-name' : ''}`}>
+                        <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentId()}`}</span>
+                        {isFlippable && <span className="card-flip-icon">🔄</span>}
+                    </div>
                 )}
                 {card.getCurrentDirection() && (
                     <div className="card-direction">{card.getCurrentDirection()}</div>
@@ -126,7 +140,6 @@ export const Card: React.FC<CardProps> = ({
                 card={card}
                 visible={showTooltip}
                 position={{ row, col }}
-                isFlippable={isFlippable}
             />
         </>
     );

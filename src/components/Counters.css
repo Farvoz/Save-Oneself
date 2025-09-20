@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 10px;
+    padding: 10px 0;
 }
 
 .game-stats {
@@ -69,15 +69,6 @@
     transform: translateY(0);
 }
 
-.counter {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-    font-size: 18px;
-}
 
 .counter-label {
     color: #666;
@@ -129,25 +120,6 @@
     animation: increaseLives 0.5s ease;
 }
 
-.skip-phase {
-    padding: 8px 16px;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s ease;
-}
-
-.skip-phase:hover {
-    background-color: #1976D2;
-}
-
-.skip-phase:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
 
 .help-links {
     margin-left: auto;
@@ -173,16 +145,6 @@
     cursor: pointer;
 }
 
-.help-link-text:hover {
-    background-color: #1976D2;
-    transform: scale(1.1);
-    text-decoration: none;
-    color: white;
-}
-
-.help-link-text:active {
-    transform: scale(0.95);
-}
 
 .game-phases {
     display: flex;
@@ -213,9 +175,3 @@
     background-color: rgba(33, 150, 243, 0.1);
     border: 2px solid #2196F3;
 }
-
-.phase-emoji:hover {
-    opacity: 0.8;
-    filter: grayscale(50%);
-    font-size: 1.6em; /* Небольшое увеличение при наведении */
-} 
