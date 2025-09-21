@@ -8,7 +8,7 @@
 
 .tooltip-content {
     background-color: #f8f4e6;
-    color: #8b4513;
+    color: var(--primary-text-color);
     padding: 12px 16px;
     border-radius: 8px;
     font-size: 14px;

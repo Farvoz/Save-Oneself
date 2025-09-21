@@ -20,7 +20,6 @@
 
 .card-tooltip-content {
     background-color: #f8f9fa;
-    border: 2px solid #dee2e6;
     border-radius: 12px;
     padding: 12px;
     font-size: 14px;
@@ -67,12 +66,12 @@
 
 .side-name {
     font-weight: 600;
-    color: #37474f;
+    color: var(--primary-text-color);
     text-transform: capitalize;
 }
 
 .side-description {
-    color: #546e7a;
+    color: var(--secondary-text-color);
     margin-bottom: 6px;
     font-style: italic;
 }

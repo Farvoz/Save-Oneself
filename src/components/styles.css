@@ -1,3 +1,11 @@
+/* CSS Variables */
+:root {
+    --primary-text-color: #8b4513;
+    --secondary-text-color: #a0522d;
+    --tertiary-text-color: #8b7355;
+    --accent-text-color: #cd853f;
+}
+
 /* Base styles */
 body {
     display: flex;
@@ -24,18 +32,3 @@ body {
     width: 100%;
     max-width: 900px;
 }
-
-/* Game Over styles */
-#game-over {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    display: none;
-    font-size: 24px;
-    z-index: 34;
-} 
