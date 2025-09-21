@@ -82,13 +82,13 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
         }
 
         const playerPos = context.playerPosition;
-        const playerX = (playerPos.col + 4) * 100 + 50; // Центр ячейки
+        const playerX = (playerPos.col + 4) * 100 + 50; // Центр ячейки (100px)
         const playerY = (playerPos.row + 4) * 100 + 50;
 
         return validMovePositions.map((pos, index) => {
             if (pos.equals(playerPos)) return null;
             
-            const targetX = (pos.col + 4) * 100 + 50;
+            const targetX = (pos.col + 4) * 100 + 50; // Центр ячейки (100px)
             const targetY = (pos.row + 4) * 100 + 50;
             
             return (
@@ -98,7 +98,7 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
                     y1={playerY}
                     x2={targetX}
                     y2={targetY}
-                    stroke="#888"
+                    stroke="var(--grid-stroke)"
                     strokeWidth="2"
                     strokeDasharray="5,5"
                     opacity="0.6"

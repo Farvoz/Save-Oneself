@@ -76,18 +76,18 @@ export const Card: React.FC<CardProps> = ({
     };
 
     const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'ship') return '#87CEEB';
-        if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
-        if (cardObj.getCurrentType() === 'front') return '#E8F5E9';
-        return '#F5F5DC';
+        if (cardObj.getCurrentType() === 'ship') return 'var(--card-ship)';
+        if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
+        if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
+        return 'var(--card-default)';
     };
 
     const cardStyle: React.CSSProperties = {
         position: 'absolute',
-        left: '1px',
-        top: '1px',
-        width: '96px',
-        height: '96px',
+        left: '0px',
+        top: '0px',
+        width: '100px',
+        height: '100px',
         cursor: isAvailableMove || isFlippable ? 'pointer' : 'default',
         backgroundColor: getCardBackground(card)
     };

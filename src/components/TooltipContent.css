@@ -1,20 +1,20 @@
 .tooltip-content {
-    background: #f8f4e6;
+    background: var(--bg-tooltip);
     border-radius: 8px;
     padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--shadow-light);
 }
 
 .tooltip-title {
     font-weight: 700;
     margin-bottom: 8px;
-    color: var(--primary-text-color);
+    color: var(--text-primary);
     font-size: 16px;
 }
 
 .tooltip-description {
     margin-bottom: 12px;
-    color: var(--secondary-text-color);
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.4;
 }
@@ -23,7 +23,7 @@
     margin: 12px 0 0 18px;
     padding: 0;
     font-size: 13px;
-    color: var(--tertiary-text-color);
+    color: var(--text-tertiary);
 }
 
 .tooltip-details li {
@@ -33,17 +33,17 @@
 }
 
 .tooltip-details li::marker {
-    color: var(--accent-text-color);
+    color: var(--text-accent);
 }
 
 .tooltip-mechanics {
     margin-top: 12px;
     padding: 10px 12px;
-    background: rgba(139, 69, 19, 0.1);
+    background: var(--card-mechanics);
     border-radius: 6px;
     font-size: 12px;
     font-style: italic;
-    color: var(--primary-text-color);
+    color: var(--text-primary);
 }
 
 .tooltip-mechanics::before {

@@ -1,9 +1,58 @@
-/* CSS Variables */
+/* CSS Variables - Оптимизированная палитра */
 :root {
-    --primary-text-color: #8b4513;
-    --secondary-text-color: #a0522d;
-    --tertiary-text-color: #8b7355;
-    --accent-text-color: #cd853f;
+    /* Основные цвета текста (коричневая палитра) */
+    --text-primary: #8b4513;      /* основной коричневый */
+    --text-secondary: #a0522d;    /* светло-коричневый */
+    --text-tertiary: #8b7355;     /* серо-коричневый */
+    --text-accent: #cd853f;       /* песочный */
+    --text-black: black;
+    --text-white: white;
+    
+    /* Фоновые цвета */
+    --bg-main: #f0f0f0;           /* основной фон */
+    --bg-card: #E8F5E9;           /* фон карт */
+    --bg-tooltip: #f8f4e6;        /* фон тултипов */
+    --bg-tooltip-alt: #f8f9fa;    /* альтернативный фон тултипов */
+    --bg-overlay: rgba(255, 255, 255, 0.7);     /* белый оверлей */
+    --bg-overlay-light: rgba(255, 255, 255, 0.6); /* светлый оверлей */
+    --bg-overlay-medium: rgba(255, 255, 255, 0.8); /* средний оверлей */
+    --bg-divider: #e1e1e1;        /* разделители */
+    --bg-transparent: transparent;
+    
+    /* Цвета состояний */
+    --color-success: #4caf50;     /* зеленый - успех */
+    --color-success-bg: rgba(46, 125, 50, 0.1);   /* фон успеха */
+    --color-error: #f44336;       /* красный - ошибка */
+    --color-error-bg: #ffebee;    /* фон ошибки */
+    --color-error-dark: #d32f2f;  /* темно-красный */
+    --color-error-darker: #b71c1c; /* очень темно-красный */
+    --color-info: #2196F3;        /* синий - информация */
+    --color-info-bg: rgba(33, 150, 243, 0.1);     /* фон информации */
+    --color-info-strong: rgba(33, 150, 243, 0.2); /* насыщенный фон */
+    --color-warning: #ff9800;     /* оранжевый - предупреждение */
+    --color-victory: rgba(0, 128, 0, 0.9);        /* победа */
+    --color-defeat: rgba(0, 0, 0, 0.9);           /* поражение */
+    
+    /* Границы */
+    --border-light: #d4c4a8;      /* светлая граница */
+    --border-neutral: #9e9e9e;    /* нейтральная граница */
+    --border-tooltip: #dee2e6;    /* граница тултипов */
+    --border-info: rgba(33, 150, 243, 0.4);       /* прозрачная синяя граница */
+    
+    /* Тени */
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    --shadow-dark: rgba(0, 0, 0, 0.3);
+    --shadow-darker: rgba(0, 0, 0, 0.5);
+    
+    /* Специальные цвета карт */
+    --card-ship: #87CEEB;         /* цвет корабля */
+    --card-back: #F5F5DC;         /* задняя сторона карты */
+    --card-front: #E8F5E9;        /* лицевая сторона карты */
+    --card-mechanics: rgba(139, 69, 19, 0.1);     /* фон механик */
+    
+    /* Сетка */
+    --grid-stroke: #888;          /* линии сетки */
 }
 
 /* Base styles */
@@ -12,7 +61,7 @@ body {
     flex-direction: column;
     align-items: center;
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: var(--bg-main);
     margin: 0;
     padding: 0;
 }

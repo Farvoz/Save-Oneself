@@ -32,7 +32,7 @@ describe('Компонент Card', () => {
   test('отрисовывает карту с корректным фоном', () => {
     render(<Card card={mockCard} {...defaultProps} />);
     const cardElement = screen.getByTestId('card-test-card');
-    expect(cardElement).toHaveStyle({ backgroundColor: '#F5F5DC' });
+    expect(cardElement).toHaveStyle({ backgroundColor: 'var(--card-default)' });
   });
 
   test('не отображает индикатор жизней, когда жизней 0', () => {

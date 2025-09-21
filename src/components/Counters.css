@@ -10,8 +10,8 @@
     justify-content: flex-start;
     align-items: center;
     padding: 8px 16px;
-    background: #f8f4e6;
-    border: 1px solid #d4c4a8;
+    background: var(--bg-tooltip);
+    border: 1px solid var(--border-light);
     border-radius: 8px;
 }
 
@@ -42,14 +42,14 @@
 }
 
 .phase-message {
-    color: var(--primary-text-color);
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 500;
 }
 
 .skip-phase-button {
-    background-color: #f44336;
-    color: white;
+    background-color: var(--color-error);
+    color: var(--text-white);
     border: none;
     padding: 4px 12px;
     border-radius: 4px;
@@ -60,23 +60,23 @@
 }
 
 .skip-phase-button:hover {
-    background-color: #d32f2f;
+    background-color: var(--color-error-dark);
     transform: translateY(-1px);
 }
 
 .skip-phase-button:active {
-    background-color: #b71c1c;
+    background-color: var(--color-error-darker);
     transform: translateY(0);
 }
 
 
 .counter-label {
-    color: var(--primary-text-color);
+    color: var(--text-primary);
 }
 
 .counter-value {
     font-weight: bold;
-    color: var(--primary-text-color);
+    color: var(--text-primary);
     transition: all 0.3s ease;
 }
 
@@ -84,15 +84,15 @@
 @keyframes decreaseLives {
     0% {
         transform: scale(1);
-        color: var(--primary-text-color);
+        color: var(--text-primary);
     }
     50% {
         transform: scale(1.2);
-        color: #f44336;
+        color: var(--color-error);
     }
     100% {
         transform: scale(1);
-        color: var(--primary-text-color);
+        color: var(--text-primary);
     }
 }
 
@@ -100,15 +100,15 @@
 @keyframes increaseLives {
     0% {
         transform: scale(1);
-        color: var(--primary-text-color);
+        color: var(--text-primary);
     }
     50% {
         transform: scale(1.2);
-        color: #4CAF50;
+        color: var(--color-success);
     }
     100% {
         transform: scale(1);
-        color: var(--primary-text-color);
+        color: var(--text-primary);
     }
 }
 
@@ -134,8 +134,8 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    background-color: #2196F3;
-    color: white;
+    background-color: var(--color-info);
+    color: var(--text-white);
     text-decoration: none;
     border-radius: 50%;
     font-size: 14px;
@@ -171,13 +171,13 @@
 .phase-emoji.active {
     opacity: 1;
     filter: grayscale(0%);
-    background-color: rgba(33, 150, 243, 0.1);
-    outline: 2px solid #2196F3;
+    background-color: var(--color-info-light);
+    outline: 2px solid var(--color-info);
 }
 
 .phase-arrow {
     font-size: 1.2em;
-    color: var(--primary-text-color);
+    color: var(--text-primary);
     opacity: 0.6;
     transition: all 0.3s ease;
 }

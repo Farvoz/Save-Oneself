@@ -15,10 +15,10 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
     
     // Функция для получения цвета карты (аналогично Card.tsx)
     const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'ship') return '#87CEEB';
-        if (cardObj.getCurrentType() === 'back') return '#F5F5DC';
-        if (cardObj.getCurrentType() === 'front') return '#E8F5E9';
-        return '#F5F5DC';
+        if (cardObj.getCurrentType() === 'ship') return 'var(--card-ship)';
+        if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
+        if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
+        return 'var(--card-default)';
     };
     
     // Конвертируем координаты сетки в пиксели
@@ -112,8 +112,8 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
             style={{
                 left: `${left}px`,
                 top: `${top}px`,
-                '--tooltip-bg': '#f8f9fa',
-                '--tooltip-border': '#dee2e6'
+                '--tooltip-bg': 'var(--background-tooltip-secondary)',
+                '--tooltip-border': 'var(--border-tooltip)'
             } as React.CSSProperties}
         >
             <div className="card-tooltip-content">
@@ -121,7 +121,7 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
                 {card.getCurrentType() === 'back' ? (
                     getSideInfo(currentSide, true, getCardBackground(card))
                 ) : (
-                    getSideInfo(card.backSide, false, '#F5F5DC')
+                    getSideInfo(card.backSide, false, 'var(--card-default)')
                 )}
                 
                 {/* Показываем лицевую сторону только если это не корабль */}

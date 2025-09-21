@@ -11,17 +11,17 @@
 }
 
 #game-over.victory {
-    background-color: rgba(0, 128, 0, 0.9);
-    color: white;
+    background-color: var(--color-victory);
+    color: var(--text-white);
 }
 
 #game-over.defeat {
-    background-color: rgba(0, 0, 0, 0.9);
-    color: white;
+    background-color: var(--color-defeat);
+    color: var(--text-white);
 }
 
 .game-over-message {
-    color: white;
+    color: var(--text-white);
     font-size: 24px;
     font-weight: bold;
 }
@@ -29,5 +29,5 @@
 .game-over-score {
     margin-top: 10px;
     font-size: 20px;
-    color: var(--accent-text-color);
+    color: var(--text-accent);
 }
