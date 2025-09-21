@@ -453,7 +453,7 @@ export const CARD_DATA: CardData = {
     mapRow: {
         back: {
             id: 'map-r',
-            russianName: 'Карта ряда',
+            russianName: 'Карта сокровищ 1/2',
             type: 'back' as CardType,
             emoji: '👈🗺️👉',
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
@@ -495,7 +495,7 @@ export const CARD_DATA: CardData = {
     mapCol: {
         back: {
             id: 'map-c',
-            russianName: 'Карта колонки',
+            russianName: 'Карта сокровищ 2/2',
             type: 'back' as CardType,
             emoji: '👇🗺️☝️',
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
@@ -541,5 +541,5 @@ export const ship: CardSide = {
     russianName: 'Корабль',
     type: 'ship' as CardType,
     emoji: '⛵',
-    description: 'Корабль плывет вдоль берега',
+    description: 'Корабль плывет вдоль берега. Нужно как-то привлечь его внимание!',
 } as const; 

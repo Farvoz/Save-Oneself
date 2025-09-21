@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { Tooltip } from '../../components/Tooltip';
+import { StartTooltip } from '../../components/StartTooltip';
 
-describe('Tooltip', () => {
+describe('StartTooltip', () => {
     it('should render tooltip when visible is true', () => {
         render(
-            <Tooltip 
+            <StartTooltip 
                 text="Test tooltip text"
                 position={{ row: 0, col: 0 }}
                 visible={true}
@@ -16,7 +16,7 @@ describe('Tooltip', () => {
 
     it('should not render tooltip when visible is false', () => {
         render(
-            <Tooltip 
+            <StartTooltip 
                 text="Test tooltip text"
                 position={{ row: 0, col: 0 }}
                 visible={false}
@@ -28,7 +28,7 @@ describe('Tooltip', () => {
 
     it('should have correct positioning styles', () => {
         render(
-            <Tooltip 
+            <StartTooltip 
                 text="Test tooltip text"
                 position={{ row: 1, col: 2 }}
                 visible={true}

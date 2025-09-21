@@ -1,13 +1,13 @@
 import React from 'react';
-import './Tooltip.css';
+import './StartTooltip.css';
 
-export interface TooltipProps {
+export interface StartTooltipProps {
     text: string;
     position: { row: number; col: number };
     visible: boolean;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ text, position, visible }) => {
+export const StartTooltip: React.FC<StartTooltipProps> = ({ text, position, visible }) => {
     if (!visible) return null;
 
     // Конвертируем координаты сетки в пиксели
@@ -28,7 +28,6 @@ export const Tooltip: React.FC<TooltipProps> = ({ text, position, visible }) => 
             <div className="tooltip-content">
                 {text}
             </div>
-            <div className="tooltip-arrow"></div>
         </div>
     );
 };

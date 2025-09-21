@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Card } from './Card';
-import { Tooltip } from './Tooltip';
+import { StartTooltip } from './StartTooltip';
 import './Grid.css';
 import { Position, PositionSystem, isPlayerValidPosition, GameState, getValidMovePositions } from '../core';
 
@@ -118,7 +118,7 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
             <svg className="grid-lines" width="900" height="900">
                 {renderDottedLines()}
             </svg>
-            <Tooltip 
+            <StartTooltip 
                 text="Меня выбросило на остров... Надо изучить местность и выбраться отсюда!"
                 position={{ row: 0, col: 0 }}
                 visible={context.showStartTooltip && !context.playerPosition}

@@ -1,0 +1,22 @@
+.hover-tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.hover-tooltip {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
