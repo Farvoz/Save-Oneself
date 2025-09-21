@@ -1,6 +1,6 @@
 .card-tooltip {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-tooltip-base);
     pointer-events: none;
     max-width: 300px;
     min-width: 250px;
@@ -112,7 +112,7 @@
     width: 0;
     height: 0;
     border: 8px solid transparent;
-    z-index: 1001;
+    z-index: var(--z-tooltip-arrow-border);
 }
 
 /* Стрелка слева (когда tooltip справа от карты) */
@@ -131,7 +131,7 @@
     left: -14px;
     top: 21px;
     border-right: 7px solid var(--tooltip-bg, var(--bg-tooltip-alt));
-    z-index: 1002;
+    z-index: var(--z-tooltip-arrow-fill);
 }
 
 /* Стрелка справа (когда tooltip слева от карты) */
@@ -150,5 +150,5 @@
     right: -14px;
     top: 21px;
     border-left: 7px solid var(--tooltip-bg, var(--bg-tooltip-alt));
-    z-index: 1002;
+    z-index: var(--z-tooltip-arrow-fill);
 }

@@ -76,7 +76,6 @@ export const Card: React.FC<CardProps> = ({
     };
 
     const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'ship') return 'var(--card-ship)';
         if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
         if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
         return 'var(--card-default)';
@@ -119,7 +118,7 @@ export const Card: React.FC<CardProps> = ({
                     )}
                     {card.getCurrentScore() && (
                         <div className="card-score">
-                            ✨ {card.getCurrentScore()}
+                            ⭐ {card.getCurrentScore()}
                         </div>
                     )}
                     {card.getCurrentType() === 'back' && card.getRequirementsText() && (
@@ -129,11 +128,8 @@ export const Card: React.FC<CardProps> = ({
                     )}
                     {card.getCurrentId() && (
                         <div className={`card-name ${card.getCurrentType() === 'ship' ? 'ship-name' : ''}`}>
-                            <span className="card-name-text">{`${getEmoji()} ${card.getCurrentType() === 'ship' ? '' : card.getCurrentRussianName() || card.getCurrentId()}`}</span>
+                            <span className="card-name-text">{`${getEmoji()}`}</span>
                         </div>
-                    )}
-                    {card.getCurrentDirection() && (
-                        <div className="card-direction">{card.getCurrentDirection()}</div>
                     )}
                 </div>
             </div>

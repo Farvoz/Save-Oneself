@@ -57,7 +57,7 @@ const Game: React.FC = () => {
             <div className="game-info">
                 <Counters
                     lives={context.lives}
-                    deckLength={context.deck.length}
+                    score={calculateScore(context)}
                     state={state}
                     handleSkipPhase={handleSkipPhase}
                 />

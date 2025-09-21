@@ -15,7 +15,6 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
     
     // Функция для получения цвета карты (аналогично Card.tsx)
     const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'ship') return 'var(--card-ship)';
         if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
         if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
         return 'var(--card-default)';
@@ -95,7 +94,7 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
                             <span className="stat">{side.lives > 0 ? "💖" : "💔"} {side.lives}</span>
                         )}
                         {side.score && (
-                            <span className="stat">✨ {side.score}</span>
+                            <span className="stat">⭐ {side.score}</span>
                         )}
                         {side.direction && (
                             <span className="stat">🧭 {side.direction}</span>

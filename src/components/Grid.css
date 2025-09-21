@@ -51,7 +51,7 @@
     top: 0;
     left: 0;
     pointer-events: none;
-    z-index: 20;
+    z-index: var(--z-grid-lines);
 }
 
 /* Убираем лишние границы по краям */
@@ -80,7 +80,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 16px;
-    z-index: 10;
+    z-index: var(--z-card-base);
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -99,5 +99,30 @@
     50% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* Стили для стрелочки корабля */
+.ship-arrow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    z-index: var(--z-card-base);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: shipArrowPulse 2s ease-in-out infinite;
+}
+
+@keyframes shipArrowPulse {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
     }
 }

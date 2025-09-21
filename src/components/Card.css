@@ -10,7 +10,7 @@
     justify-content: center;
     font-weight: bold;
     color: var(--text-black);
-    z-index: 10;
+    z-index: var(--z-card-base);
     user-select: none;
 }
 
@@ -20,7 +20,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 22px;
-    z-index: 10;
+    z-index: var(--z-tooltip-base);
     pointer-events: none;
     text-shadow: 2px 2px 4px var(--shadow-dark);
 }
@@ -45,7 +45,6 @@
     width: 100%;
     height: 100%;
     position: relative;
-    z-index: 2;
     transition: opacity 1s ease-in-out;
 }
 
@@ -55,20 +54,20 @@
     left: 2px;
     font-size: 10px;
     color: var(--text-primary);
-    background-color: var(--bg-overlay);
+    background-color: var(--color-error-bg);
     border-radius: 4px;
     padding: 2px 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 3;
+    z-index: var(--z-card-counters);
     font-weight: 500;
     gap: 2px;
 }
 
 .card-lives.positive {
     color: var(--text-primary);
-    background-color: var(--bg-overlay);
+    background-color: var(--color-success-bg);
 }
 
 .card-score {
@@ -83,26 +82,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 3;
+    z-index: var(--z-card-counters);
     font-weight: 500;
     gap: 2px;
 }
 
 .card-name {
-    font-size: 10px;
+    font-size: 16px;
     position: absolute;
     bottom: 2px;
     left: 0;
     right: 0;
     text-align: center;
     margin: 2px 5px;
-    background-color: var(--card-mechanics);
     border-radius: 4px;
     padding: 2px 4px;
     height: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     color: var(--text-primary);
 }
 
@@ -154,13 +152,6 @@
     opacity: 1;
 }
 
-.card-direction {
-    font-size: 10px;
-    margin-top: 2px;
-    position: absolute;
-    left: 2px;
-    top: 2px;
-}
 
 .card-requirements {
     font-size: 10px;
@@ -171,8 +162,3 @@
     align-self: flex-end;
 }
 
-
-/* Карта игрока должна быть выше пунктирных линий */
-.card.player-position {
-    z-index: 25;
-}

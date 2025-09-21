@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from './Card';
 import { StartTooltip } from './StartTooltip';
 import './Grid.css';
-import { Position, PositionSystem, isPlayerValidPosition, GameState, getValidMovePositions } from '../core';
+import { Position, PositionSystem, isPlayerValidPosition, GameState, getValidMovePositions, ShipCard } from '../core';
 
 export interface GridProps {
     onCellClick: (row: number, col: number) => void;
@@ -27,8 +27,8 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
         // Add coastline logic - use positionSystem to find ship position for consistency
         let isCoastline = false;
         const shipCard = positionSystem.getShipCard();
+        const shipPos = positionSystem.getShipPosition();
         if (shipCard?.getCurrentDirection()) {
-            const shipPos = positionSystem.getShipPosition();
             if (shipPos) {
                 switch (shipCard.getCurrentDirection()) {
                     case 'NE':
@@ -70,6 +70,12 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
                 {/* Показываем эмоджи шагов для доступных позиций */}
                 {isValidMovePosition && !isPlayerPosition && (
                     <div className="step-emoji">👣</div>
+                )}
+                {/* Показываем стрелочку направления для следующих позиций корабля */}
+                {isCoastline && !shipPos?.equals(pos) && (
+                    <div className="ship-arrow">
+                        {shipCard?.getCurrentDirection() && ShipCard.getArrows(shipCard.getCurrentDirection())}
+                    </div>
                 )}
             </div>
         );

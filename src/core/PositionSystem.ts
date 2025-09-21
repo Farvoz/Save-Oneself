@@ -226,5 +226,5 @@ export class PositionSystem {
             cloned.occupiedPositions.set(posStr, card);
         }
         return cloned;
-    }    
+    }
 } 

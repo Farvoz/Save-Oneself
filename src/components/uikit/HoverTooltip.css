@@ -5,7 +5,7 @@
 
 .hover-tooltip {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-tooltip-base);
     pointer-events: none;
     animation: tooltipFadeIn 0.2s ease-out;
 }

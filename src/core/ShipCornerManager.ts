@@ -68,10 +68,14 @@ export class ShipCornerManager {
         const { topLeft, topRight, bottomLeft, bottomRight } = this.islandBounds;
         
         switch(this.direction) {
-            case 'NE': return bottomRight[0] + 1 === pos.row;
-            case 'SE': return bottomLeft[1] - 1 === pos.col;
-            case 'SW': return topLeft[0] - 1 === pos.row;
-            case 'NW': return topRight[1] + 1 === pos.col;
+            case 'NE': 
+                return bottomRight[0] + 1 === pos.row && bottomRight[1] + 1 === pos.col;
+            case 'SE': 
+                return bottomLeft[0] + 1 === pos.row && bottomLeft[1] - 1 === pos.col;
+            case 'SW': 
+                return topLeft[0] - 1 === pos.row && topLeft[1] - 1 === pos.col;
+            case 'NW': 
+                return topRight[0] - 1 === pos.row && topRight[1] + 1 === pos.col;
         }
     }
 

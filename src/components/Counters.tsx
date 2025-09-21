@@ -26,13 +26,15 @@ const COUNTERS_TOOLTIPS = {
         ],
         mechanics: "Жизни — это основной ресурс выживания. Берегите их!"
     },
-    deck: {
-        title: "Колода карт",
-        description: "Количество оставшихся карт в колоде",
+    score: {
+        title: "Очки",
+        description: "Складываются из следующих источников:",
         details: [
-            "При перемещении персонажа на новую клетку вытягивается одна карта из колоды"
+            "1 очко за каждую оставшуюся жизнь игрока",
+            "1 очко за каждые 4 размещённые карты острова",
+            "за некоторые перевёрнутые карты на поле",
         ],
-        mechanics: "Все карты уникальны"
+        mechanics: "Стремитесь набрать как можно больше очков!"
     },
     phases: {
         title: "Фазы игры",
@@ -81,12 +83,12 @@ const COUNTERS_TOOLTIPS = {
 
 interface CountersProps {
     lives: number;
-    deckLength: number;
+    score: number;
     state: GameState;
     handleSkipPhase: () => void;
 }
 
-const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSkipPhase }) => {
+const Counters: React.FC<CountersProps> = ({ lives, score, state, handleSkipPhase }) => {
     const [livesAnimation, setLivesAnimation] = useState<string>('');
     const [prevLives, setPrevLives] = useState<number>(lives);
 
@@ -130,16 +132,16 @@ const Counters: React.FC<CountersProps> = ({ lives, deckLength, state, handleSki
                 <HoverTooltip
                     content={
                         <TooltipContent
-                            title={COUNTERS_TOOLTIPS.deck.title}
-                            description={COUNTERS_TOOLTIPS.deck.description}
-                            details={COUNTERS_TOOLTIPS.deck.details}
-                            mechanics={COUNTERS_TOOLTIPS.deck.mechanics}
+                            title={COUNTERS_TOOLTIPS.score.title}
+                            description={COUNTERS_TOOLTIPS.score.description}
+                            details={COUNTERS_TOOLTIPS.score.details}
+                            mechanics={COUNTERS_TOOLTIPS.score.mechanics}
                         />
                     }
                 >
-                    <div className="stat-item" style={{ color: deckLength <= 5 ? 'var(--text-error)' : 'inherit' }}>
-                        <span className="counter-label">🎴 </span>
-                        <span className="counter-value">{deckLength}</span>
+                    <div className="stat-item">
+                        <span className="counter-label">⭐ </span>
+                        <span className="counter-value">{score}</span>
                     </div>
                 </HoverTooltip>
                 <div className="phase-content">

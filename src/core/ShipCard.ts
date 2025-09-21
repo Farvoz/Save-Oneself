@@ -24,7 +24,7 @@ export class ShipCard extends GameCard {
     }
 
     getEmoji(): string {
-        return `⛵${ShipCard.getArrows(this.cornerManager.direction)}`;
+        return `⛵`;
     }
 
     getCurrentDirection(): Direction {

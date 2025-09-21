@@ -1,6 +1,6 @@
 .tooltip {
     position: absolute;
-    z-index: 1000;
+    z-index: var(--z-tooltip-base);
     pointer-events: none;
     transform: translate(-50%, -100%);
     margin-top: -10px;
