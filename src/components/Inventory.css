@@ -101,31 +101,6 @@
 }
 
 
-.inventory-item-requirements {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: var(--bg-tooltip);
-    border: 1px solid var(--border-info);
-    border-radius: 4px;
-    padding: 4px 6px;
-    font-size: 10px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    box-shadow: 0 2px 4px var(--shadow-light);
-    z-index: 10;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-.inventory-item:hover .inventory-item-requirements {
-    opacity: 1;
-}
 
 .inventory-empty {
     display: flex;

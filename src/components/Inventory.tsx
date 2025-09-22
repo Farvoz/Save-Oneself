@@ -46,11 +46,6 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onItemClick, canActiva
                                 <div className="inventory-item-info">
                                     <div className="inventory-item-name">{item.russianName}</div>
                                 </div>
-                                {item.requirementsText && (
-                                    <div className="inventory-item-requirements">
-                                        {item.requirementsText}
-                                    </div>
-                                )}
                             </div>
                         </HoverTooltip>
                     );

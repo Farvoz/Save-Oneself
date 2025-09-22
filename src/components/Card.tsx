@@ -45,6 +45,11 @@ export const Card: React.FC<CardProps> = ({
     };
 
     const handleMouseEnter = () => {
+        // Не показываем tooltip для карт в инвентаре (stubSide)
+        if (card.getCurrentId().startsWith('stub')) {
+            return;
+        }
+        
         // Показываем tooltip с небольшой задержкой
         hoverTimeoutRef.current = setTimeout(() => {
             setShowTooltip(true);
