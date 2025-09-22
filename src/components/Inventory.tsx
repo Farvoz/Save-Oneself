@@ -1,5 +1,7 @@
 import React from 'react';
 import { InventoryItem, Inventory as InventoryClass } from '../core';
+import { HoverTooltip } from './uikit';
+import { InventoryTooltip } from './InventoryTooltip';
 import './Inventory.css';
 
 interface InventoryProps {
@@ -28,22 +30,29 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onItemClick, canActiva
                 {inventory.getAllItems().map((item, index) => {
                     const clickable = isItemClickable(item);
                     return (
-                        <div 
-                            key={`${item.id}-${index}`} 
-                            className={`inventory-item ${clickable ? 'inventory-item-clickable' : ''}`}
-                            onClick={() => clickable && handleItemClick(item)}
-                            title={clickable ? 'Кликните для переворота карты' : ''}
+                        <HoverTooltip
+                            key={`${item.id}-${index}`}
+                            content={<InventoryTooltip item={item} />}
+                            position="right"
+                            delay={200}
+                            hideDelay={100}
                         >
-                            <div className="inventory-item-emoji">{item.emoji}</div>
-                            <div className="inventory-item-info">
-                                <div className="inventory-item-name">{item.russianName}</div>
-                            </div>
-                            {item.requirementsText && (
-                                <div className="inventory-item-requirements">
-                                    {item.requirementsText}
+                            <div 
+                                className={`inventory-item ${clickable ? 'inventory-item-clickable' : ''}`}
+                                onClick={() => clickable && handleItemClick(item)}
+                                title={clickable ? 'Кликните для переворота карты' : ''}
+                            >
+                                <div className="inventory-item-emoji">{item.emoji}</div>
+                                <div className="inventory-item-info">
+                                    <div className="inventory-item-name">{item.russianName}</div>
                                 </div>
-                            )}
-                        </div>
+                                {item.requirementsText && (
+                                    <div className="inventory-item-requirements">
+                                        {item.requirementsText}
+                                    </div>
+                                )}
+                            </div>
+                        </HoverTooltip>
                     );
                 })}
                 {inventory.isEmpty() && (

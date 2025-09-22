@@ -26,7 +26,7 @@ export const HoverTooltip: React.FC<HoverTooltipProps> = ({
     children
 }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number }>({
+    const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left?: number; right?: number }>({
         top: 0,
         left: 0
     });
@@ -48,7 +48,8 @@ export const HoverTooltip: React.FC<HoverTooltipProps> = ({
 
         let finalPosition = position;
         let top = 0;
-        let left = 0;
+        let left: number | undefined = 0;
+        let right: number | undefined = undefined;
 
         // Если позиция 'auto', определяем лучшую позицию
         if (position === 'auto') {
@@ -83,15 +84,26 @@ export const HoverTooltip: React.FC<HoverTooltipProps> = ({
                 break;
             case 'right':
                 top = containerRect.top + (containerRect.height - tooltipRect.height) / 2;
-                left = containerRect.right + margin;
+                left = undefined;
+                right = viewportWidth - containerRect.left + containerRect.width + containerRect.width/2;
                 break;
         }
 
         // Проверяем границы экрана и корректируем позицию
-        if (left < margin) {
-            left = margin;
-        } else if (left + tooltipRect.width > viewportWidth - margin) {
-            left = viewportWidth - tooltipRect.width - margin;
+        if (left !== undefined) {
+            if (left < margin) {
+                left = margin;
+            } else if (left + tooltipRect.width > viewportWidth - margin) {
+                left = viewportWidth - tooltipRect.width - margin;
+            }
+        }
+        
+        if (right !== undefined) {
+            if (right < margin) {
+                right = margin;
+            } else if (right + tooltipRect.width > viewportWidth - margin) {
+                right = viewportWidth - tooltipRect.width - margin;
+            }
         }
 
         if (top < margin) {
@@ -100,7 +112,7 @@ export const HoverTooltip: React.FC<HoverTooltipProps> = ({
             top = viewportHeight - tooltipRect.height - margin;
         }
 
-        setTooltipPosition({ top, left });
+        setTooltipPosition({ top, left, right });
     }, [position]);
 
     // Показать тултип
@@ -150,7 +162,8 @@ export const HoverTooltip: React.FC<HoverTooltipProps> = ({
                     className={`hover-tooltip`}
                     style={{
                         top: `${tooltipPosition.top}px`,
-                        left: `${tooltipPosition.left}px`
+                        ...(tooltipPosition.left !== undefined && { left: `${tooltipPosition.left}px` }),
+                        ...(tooltipPosition.right !== undefined && { right: `${tooltipPosition.right}px` })
                     }}
                 >
                     {content}
