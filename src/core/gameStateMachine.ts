@@ -183,8 +183,8 @@ export const createGameStateMachine = () => {
                                     assign(({ context, event }) => {
                                         // Сначала ищем в инвентаре
                                         const inventoryItem = context.inventory.findById(event.id);
-                                        if (inventoryItem && inventoryItem.canActivate && inventoryItem.canActivate(context)) {
-                                            return inventoryItem.activate ? inventoryItem.activate(context) : context;
+                                        if (inventoryItem && inventoryItem.canActivate(context)) {
+                                            return inventoryItem.activate(context);
                                         }
                                         
                                         // Если не найден в инвентаре, ищем на поле

@@ -85,10 +85,9 @@ export class GameCard {
      * Создаёт элемент инвентаря из текущей стороны карты
      */
     createInventoryItem(): InventoryItem {
-        const currentSide = this.getCurrentSide();
         this.isInInventory = true;
 
-        return new InventoryItem(currentSide);
+        return new InventoryItem(this.backSide, this.frontSide);
     }
 
     /**
@@ -147,7 +146,7 @@ export class GameCard {
      * Проверяет, можно ли перевернуть карту
      */
     canActivate(context: GameContext): boolean {
-        if (this.getCurrentType() === 'front') return false;
+        if (this.isFlipped || this.isInInventory) return false;
         
         // Если есть кастомная логика, используем её
         if (this.backSide.canActivate) {

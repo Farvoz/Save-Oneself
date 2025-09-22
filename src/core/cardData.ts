@@ -1,8 +1,7 @@
 import { Direction, CardType, CardSide } from './Card';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
-    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage'  | 
-    'mapRow' | 'mapCol';
+    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' ;
 
 type CardData = {
     [key in CardKey]: {
@@ -310,7 +309,7 @@ export const CARD_DATA: CardData = {
             addToInventory: false,
             onPlace: (context) => {
                 // Если есть spear или torch, урон не наносится
-                const isProtected = context.positionSystem.findCardById('spear') || context.positionSystem.findCardById('torch');
+                const isProtected = context.inventory.findById('spear') || context.inventory.findById('torch');
                 if (!isProtected) {
                     const { lives } = updateLives(context.lives, -2);
                     return { ...context, lives };
@@ -344,7 +343,7 @@ export const CARD_DATA: CardData = {
             addToInventory: false,
             onPlace: (context) => {
                 // Если есть shelter, урон не наносится
-                const isProtected = context.positionSystem.findCardById('shelter');
+                const isProtected = context.inventory.findById('shelter');
                 if (!isProtected) {
                     const { lives } = updateLives(context.lives, -2);
                     return { ...context, lives };
@@ -381,8 +380,8 @@ export const CARD_DATA: CardData = {
                 }
 
                 // flip shelter and lit beacon back
-                const shelterResult = context.positionSystem.findCardById('shelter');
-                if (shelterResult) shelterResult.card.flip(context);
+                const shelterItem = context.inventory.findById('shelter');
+                if (shelterItem) shelterItem.activate(context);
 
                 const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
                 if (litBeaconResult) litBeaconResult.card.flip(context);
@@ -485,94 +484,94 @@ export const CARD_DATA: CardData = {
     //         }
     //     }
     // },
-    mapRow: {
-        back: {
-            id: 'map-r',
-            russianName: 'Карта сокровищ 1/2',
-            type: 'back' as CardType,
-            emoji: '👈🗺️👉',    
-            description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
-            addToInventory: true,
-            canActivate: (context) => {
-                // Both map cards must be on the board
-                const mapRResult = context.positionSystem.findCardById('map-r');
-                const mapCResult = context.positionSystem.findCardById('map-c');
+    // mapRow: {
+    //     back: {
+    //         id: 'map-r',
+    //         russianName: 'Карта сокровищ 1/2',
+    //         type: 'back' as CardType,
+    //         emoji: '👈🗺️👉',    
+    //         description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
+    //         addToInventory: true,
+    //         canActivate: (context) => {
+    //             // Both map cards must be on the board
+    //             const mapRResult = context.positionSystem.findCardById('map-r');
+    //             const mapCResult = context.positionSystem.findCardById('map-c');
 
-                if (!mapRResult || !mapCResult) return false;
+    //             if (!mapRResult || !mapCResult) return false;
 
-                // Player must be at the intersection of map-r row and map-c column
-                return mapRResult.position.row === context.playerPosition!.row && 
-                       mapCResult.position.col === context.playerPosition!.col;
-            }
-        },
-        front: {
-            id: 'rum',
-            russianName: 'Ром',
-            lives: 1,
-            type: 'front' as CardType,
-            emoji: '🥃',
-            description: 'Ром! Можно набрать сил!',
-            addToInventory: true,
-            onPlace: (context) => {
-                // flip both map cards and add 1 life (rum effect)
-                const card = context.positionSystem.getCard(context.playerPosition!);
-                if (card) {
-                    // flip the other map card
-                    const otherMapId = 'map-c';
-                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip(context);
-                    // add 1 life
-                    const { lives } = updateLives(context.lives, 1);
-                    return { ...context, lives };
-                }
-                return context;
-            }
-        }
-    },
-    mapCol: {
-        back: {
-            id: 'map-c',
-            russianName: 'Карта сокровищ 2/2',
-            type: 'back' as CardType,   
-            emoji: '👇🗺️☝️',
-            description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
-            addToInventory: true,
-            canActivate: (context) => {
-                // Both map cards must be on the board
-                const mapRResult = context.positionSystem.findCardById('map-r');
-                const mapCResult = context.positionSystem.findCardById('map-c');
+    //             // Player must be at the intersection of map-r row and map-c column
+    //             return mapRResult.position.row === context.playerPosition!.row && 
+    //                    mapCResult.position.col === context.playerPosition!.col;
+    //         }
+    //     },
+    //     front: {
+    //         id: 'rum',
+    //         russianName: 'Ром',
+    //         lives: 1,
+    //         type: 'front' as CardType,
+    //         emoji: '🥃',
+    //         description: 'Ром! Можно набрать сил!',
+    //         addToInventory: true,
+    //         onPlace: (context) => {
+    //             // flip both map cards and add 1 life (rum effect)
+    //             const card = context.positionSystem.getCard(context.playerPosition!);
+    //             if (card) {
+    //                 // flip the other map card
+    //                 const otherMapId = 'map-c';
+    //                 const otherMapResult = context.positionSystem.findCardById(otherMapId);
+    //                 if (otherMapResult) otherMapResult.card.flip(context);
+    //                 // add 1 life
+    //                 const { lives } = updateLives(context.lives, 1);
+    //                 return { ...context, lives };
+    //             }
+    //             return context;
+    //         }
+    //     }
+    // },
+    // mapCol: {
+    //     back: {
+    //         id: 'map-c',
+    //         russianName: 'Карта сокровищ 2/2',
+    //         type: 'back' as CardType,   
+    //         emoji: '👇🗺️☝️',
+    //         description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
+    //         addToInventory: true,
+    //         canActivate: (context) => {
+    //             // Both map cards must be on the board
+    //             const mapRResult = context.positionSystem.findCardById('map-r');
+    //             const mapCResult = context.positionSystem.findCardById('map-c');
 
-                if (!mapRResult || !mapCResult) return false;
+    //             if (!mapRResult || !mapCResult) return false;
 
-                // Player must be at the intersection of map-r row and map-c column
-                return mapRResult.position.row === context.playerPosition!.row && 
-                       mapCResult.position.col === context.playerPosition!.col;
-            }
-        },
-        front: {
-            id: 'treasure',
-            russianName: 'Сокровище',
-            score: 10,
-            type: 'front' as CardType,
-            emoji: '💎',    
-            description: 'Тепер это сокровище моё! Осталось только выбраться с острова...',
-            addToInventory: true,
-            onPlace: (context) => {
-                // flip both map cards and add 1 life (rum effect)
-                const card = context.positionSystem.getCard(context.playerPosition!);
-                if (card) {
-                    // flip the other map card
-                    const otherMapId = 'map-r';
-                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip(context);
-                    // add 1 life
-                    const { lives } = updateLives(context.lives, 1);
-                    return { ...context, lives };
-                }
-                return context;
-            }
-        }
-    },
+    //             // Player must be at the intersection of map-r row and map-c column
+    //             return mapRResult.position.row === context.playerPosition!.row && 
+    //                    mapCResult.position.col === context.playerPosition!.col;
+    //         }
+    //     },
+    //     front: {
+    //         id: 'treasure',
+    //         russianName: 'Сокровище',
+    //         score: 10,
+    //         type: 'front' as CardType,
+    //         emoji: '💎',    
+    //         description: 'Тепер это сокровище моё! Осталось только выбраться с острова...',
+    //         addToInventory: true,
+    //         onPlace: (context) => {
+    //             // flip both map cards and add 1 life (rum effect)
+    //             const card = context.positionSystem.getCard(context.playerPosition!);
+    //             if (card) {
+    //                 // flip the other map card
+    //                 const otherMapId = 'map-r';
+    //                 const otherMapResult = context.positionSystem.findCardById(otherMapId);
+    //                 if (otherMapResult) otherMapResult.card.flip(context);
+    //                 // add 1 life
+    //                 const { lives } = updateLives(context.lives, 1);
+    //                 return { ...context, lives };
+    //             }
+    //             return context;
+    //         }
+    //     }
+    // },
 } as const; 
 
 export const ship: CardSide = {

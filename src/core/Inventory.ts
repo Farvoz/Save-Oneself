@@ -10,13 +10,15 @@ export class InventoryItem {
     lives?: number;
     requirements?: string;
     requirementsText?: string;
-    
+    nextCardSide?: CardSide;
+    canActivate: (context: GameContext) => boolean;
+    cardSide: CardSide;
+
     // Колбэки для игровых событий
-    activate?: (context: GameContext, event?: GameEvent) => GameContext;
     onRoundStart?: (context: GameContext, event?: GameEvent) => GameContext;
     onBeforeShipMove?: (context: GameContext, event?: GameEvent) => GameContext;
-
-    constructor(cardSide: CardSide) {
+    
+    constructor(cardSide: CardSide, nextCardSide?: CardSide) {
         this.id = cardSide.id;
         this.emoji = cardSide.emoji;
         this.russianName = cardSide.russianName || 'Неизвестно';
@@ -27,17 +29,42 @@ export class InventoryItem {
         this.requirementsText = cardSide.requirementsText;
         
         // Копируем колбэки
-        this.activate = cardSide.onPlace; // onPlace становится activate для инвентаря
         this.onRoundStart = cardSide.onRoundStart;
         this.onBeforeShipMove = cardSide.onBeforeShipMove;
+        this.nextCardSide = nextCardSide;
+        this.cardSide = cardSide;
+
+        this.canActivate = cardSide.canActivate ?? this._canActivate;
     }
 
-    canActivate(context: GameContext): boolean {
+    // Дефолтный метод проверки можно ли перевернуть карту
+    _canActivate(context: GameContext): boolean {
         const requirements = this.requirements;
         if (!requirements) return false;
         
         // Проверяем базовые требования (карты на поле или в инвентаре)
         return context.positionSystem.findCardById(requirements) !== null || context.inventory.findById(requirements) !== null;
+    }
+
+    activate(context: GameContext): GameContext {
+        if (!this.nextCardSide) {
+            return context;
+        }
+
+        // Создаем новый элемент инвентаря из следующей стороны карты
+        // Используем ID следующей стороны для корректного поиска
+        const nextInventoryItem = new InventoryItem(this.nextCardSide, this.cardSide);
+        
+        // Заменяем текущий элемент на следующий в инвентаре
+        const newInventory = context.inventory.updateById(this.id, nextInventoryItem);
+        
+        // Применяем эффекты следующей стороны карты
+        let newContext = { ...context, inventory: newInventory };
+        if (this.nextCardSide.onPlace) {
+            newContext = this.nextCardSide.onPlace(newContext);
+        }
+        
+        return newContext;
     }
 }
 
@@ -99,8 +126,6 @@ export class Inventory {
     isEmpty(): boolean {
         return this.items.length === 0;
     }
-
-
 
     /**
      * Создаёт пустой инвентарь
