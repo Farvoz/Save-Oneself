@@ -4,6 +4,7 @@ import { GameCard, Direction } from './Card';
 import { ShipCard } from './ShipCard';
 import { Position, PositionSystem } from './PositionSystem';
 import { ship, updateLives } from './cardData';
+import { InventoryItem } from './Inventory';
 
 interface MovePlayerResult {
     playerPosition: Position;
@@ -26,6 +27,7 @@ interface PlaceCardResult {
     deck: GameCard[];
     cardObj: GameCard;
     lives: number;
+    inventoryItem?: InventoryItem;
 }
 
 interface PlaceShipResult {
@@ -50,7 +52,7 @@ export const movePlayer = (context: GameContext, newPosition: Position): MovePla
     const hasPlacedCard = context.hasPlacedCard;
     let movesLeft = context.movesLeft;
 
-    const card = newPositionSystem.getPosition(newPosition);
+    const card = newPositionSystem.getCard(newPosition);
 
     // если карта не существует, то placeCard
     if (!card && context.deck.length === 0) {
@@ -99,11 +101,15 @@ export const placeCard = (context: GameContext, pos: Position): PlaceCardResult 
     const newPositionSystem = context.positionSystem.clone();
     newPositionSystem.setPosition(pos, cardObj);
     
+    // Создаем объект для инвентаря только если карта помечена для добавления
+    const inventoryItem = cardObj.shouldAddToInventory() ? cardObj.createInventoryItem() : undefined;
+    
     return {
         positionSystem: newPositionSystem,
         deck: newDeck,
         cardObj,
-        lives: newLives
+        lives: newLives,
+        inventoryItem
     };
 };
 
@@ -196,16 +202,26 @@ export const getValidMovePositions = (context: GameContext): Position[] => {
 
 // Check if there are any flippable cards on the board
 export const hasFlippableCards = (context: GameContext): boolean => {
+    // Проверяем карты на игровом поле
     for (const [, card] of context.positionSystem.occupiedPositions) {
-        if (card.canFlip(context) && card.getCurrentType() !== 'ship') {
+        if (card.canActivate(context) && card.getCurrentType() !== 'ship') {
             return true;
         }
     }
+    
+    // Проверяем элементы в инвентаре
+    for (const item of context.inventory.getAllItems()) {
+        if (item.canActivate(context)) {
+            return true;
+        }
+    }
+    
     return false;
 };
 
 // Check if the game is won
 // return boolean
+// TODO: перенести в эффекты карт
 export const checkVictory = (context: GameContext): boolean => {
     const shipPos = context.positionSystem.getShipPosition();
     if (!shipPos) return false;
@@ -242,13 +258,18 @@ export const checkDefeat = (context: GameContext): boolean => {
         : false;
 };
 
+
 // Calculate final score
 export const calculateScore = (context: GameContext): number => {
     let score = 0;
     
-    // Add scores from flipped cards
+    // Add scores from flipped cards on the board
     const scoreCards = context.positionSystem.findAllBy(card => Boolean(card.getCurrentScore())).map(result => result.card);
     score += scoreCards.reduce((acc, card) => acc + Number(card.getCurrentScore()), 0);
+    
+    // Add scores from inventory items
+    const inventoryItems = context.inventory.getAllItems();
+    score += inventoryItems.reduce((acc, item) => acc + Number(item.score || 0), 0);
     
     // Add remaining lives
     score += context.lives;

@@ -18,10 +18,10 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
     
     const renderGridCell = (row: number, col: number): React.ReactNode => {
         const pos = new Position(row, col);
-        const card = positionSystem.getPosition(pos);
+        const card = positionSystem.getCard(pos);
         const isAvailableMove = state.matches('playing.moving') && isPlayerValidPosition(context, pos);
         const isPlayerPosition = context.playerPosition && context.playerPosition.equals(pos);
-        const isFlippable = card && state.matches('playing.checkingFlippable') && card.canFlip(context);
+        const isFlippable = card && state.matches('playing.checkingFlippable') && card.canActivate(context);
         const isValidMovePosition = validMovePositions.some(validPos => validPos.equals(pos));
 
         // Add coastline logic - use positionSystem to find ship position for consistency

@@ -1,6 +1,6 @@
 // Дефолтные моки для тестов
 
-import { Position, PositionSystem, ShipCard, GameContext } from '../core';
+import { Position, PositionSystem, ShipCard, GameContext, Inventory } from '../core';
 import { ShipCornerManager } from '../core/ShipCornerManager';
 
 // Функция для получения мока корабля
@@ -59,7 +59,8 @@ export function getMockContext({
     isVictory = false,
     deck = [],
     movesLeft = 1,
-    showStartTooltip = false
+    showStartTooltip = false,
+    inventory = Inventory.empty()
 }: Partial<GameContext> = {}): GameContext {
     return {
         playerPosition,
@@ -71,6 +72,7 @@ export function getMockContext({
         isVictory,
         deck,
         movesLeft,
-        showStartTooltip
+        showStartTooltip,
+        inventory
     };
 }

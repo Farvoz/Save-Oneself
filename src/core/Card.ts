@@ -1,8 +1,17 @@
 import type { GameContext, GameEvent } from "./initial";
+import { InventoryItem } from "./Inventory";
 
 export type Direction = 'NE' | 'SE' | 'SW' | 'NW';
 
 export type CardType = 'back' | 'front' | 'ship';
+
+const createStubCardSide = (): CardSide => {
+    return {
+        id: 'stub' + Math.random().toString(36).substring(2, 15),
+        type: 'back',
+        emoji: '...'
+    };
+};
 
 export type CardSide = {
     id: string;
@@ -16,13 +25,25 @@ export type CardSide = {
     description?: string;
     score?: number;
     /**
+     * Добавлять ли карту в инвентарь при размещении на поле
+     */
+    addToInventory?: boolean;
+    /**
+     * Проверяет, можно ли перевернуть карту
+     */
+    canActivate?: (context: GameContext) => boolean;
+    /**
+     * Вызывается при начале раунда
+     */
+    onRoundStart?: (context: GameContext, event?: GameEvent) => GameContext;
+    /**
      * Вызывается при размещении карты на поле
      */
     onPlace?: (context: GameContext, event?: GameEvent) => GameContext;
     /**
-     * Вызывается при перевороте карты
+     * Вызывается после размещения карты на поле
      */
-    onFlip?: (context: GameContext, event?: GameEvent) => GameContext;
+    afterPlace?: (context: GameContext, event?: GameEvent) => GameContext;
     /**
      * Вызывается перед движением корабля
      */
@@ -31,56 +52,63 @@ export type CardSide = {
      * Вызывается при движении корабля
      */
     onShipMove?: (context: GameContext, event?: GameEvent) => GameContext;
-    /**
-     * Вызывается при начале раунда
-     */
-    onRoundStart?: (context: GameContext, event?: GameEvent) => GameContext;
-    /**
-     * Проверяет, можно ли перевернуть карту
-     */
-    canFlip?: (context: GameContext) => boolean;
 };
 
 export class GameCard {
     backSide: CardSide;
     frontSide: CardSide;
+    stubSide: CardSide;
     private isFlipped: boolean;
+    private isInInventory: boolean;
 
     constructor(backSide: CardSide, frontSide: CardSide) {
         this.backSide = backSide;
         this.frontSide = frontSide;
         this.isFlipped = false;
+        this.isInInventory = false;
+        this.stubSide = createStubCardSide();
     }
 
     flip(context: GameContext) {
         this.isFlipped = !this.isFlipped;
         
+        let newContext = context;
         const side = this.getCurrentSide();
-        if (side && typeof side.onFlip === 'function') {
-            return side.onFlip(context);
+        if (typeof side.onPlace === 'function') {
+            newContext = side.onPlace(newContext);
         }
 
-        return context;
+        return { ...newContext };
+    }
+
+    /**
+     * Создаёт элемент инвентаря из текущей стороны карты
+     */
+    createInventoryItem(): InventoryItem {
+        const currentSide = this.getCurrentSide();
+        this.isInInventory = true;
+
+        return new InventoryItem(currentSide);
+    }
+
+    /**
+     * Проверяет, должна ли карта добавляться в инвентарь при размещении
+     */
+    shouldAddToInventory(): boolean {
+        const currentSide = this.getCurrentSide();
+        return Boolean(currentSide.addToInventory);
     }
 
     getCurrentSide(): CardSide {
-        return this.isFlipped ? this.frontSide : this.backSide;
+        return this.isInInventory ? this.stubSide : this.isFlipped ? this.frontSide : this.backSide;
     }
 
     getRequirements(): string | undefined {
-        return this.backSide.requirements;
+        return this.getCurrentSide().requirements;
     }
 
     getRequirementsText(): string | undefined {
-        return this.backSide.requirementsText;
-    }
-
-    getBackId(): string {
-        return this.backSide.id;
-    }
-
-    getFrontId(): string {
-        return this.frontSide.id;
+        return this.getCurrentSide().requirementsText;
     }
 
     getCurrentId(): string {
@@ -100,7 +128,7 @@ export class GameCard {
     }
 
     getCurrentDirection(): Direction | undefined {
-        return this.getCurrentSide().direction;
+        return this.backSide.direction;
     }
 
     getCurrentDescription(): string | undefined {
@@ -115,23 +143,15 @@ export class GameCard {
         return this.getCurrentSide().score;
     }
 
-    getCurrentBackId(): string {
-        return this.backSide.id;
-    }
-
-    getCurrentFrontId(): string {
-        return this.frontSide.id;
-    }
-
     /**
      * Проверяет, можно ли перевернуть карту
      */
-    canFlip(context: GameContext): boolean {
+    canActivate(context: GameContext): boolean {
         if (this.getCurrentType() === 'front') return false;
         
         // Если есть кастомная логика, используем её
-        if (this.backSide.canFlip) {
-            return this.backSide.canFlip(context);
+        if (this.backSide.canActivate) {
+            return this.backSide.canActivate(context);
         }
         
         const requirements = this.getRequirements();

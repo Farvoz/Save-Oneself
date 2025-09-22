@@ -4,7 +4,9 @@ import { shuffleDeck, movePlayer, moveShip, decreaseLive, placeCard, placeShip, 
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
 import type { GameContext } from './initial';
-import type { CardSide } from './Card';
+
+// Тип для обработчиков событий карт
+type CardEventHandler = 'onRoundStart' | 'onPlace' | 'afterPlace' | 'onPlace' | 'onBeforeShipMove' | 'onShipMove';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -66,7 +68,7 @@ export const createGameStateMachine = () => {
                                 {
                                     target: 'placingCardAndShip',
                                     guard: ({ context }) => { 
-                                        return !context.positionSystem.getPosition(context.playerPosition!) && !context.hasPlacedCard 
+                                        return !context.positionSystem.getCard(context.playerPosition!) && !context.hasPlacedCard 
                                     },
                                     actions: () => {
                                         gameLogger.info('Нужно разместить карту');
@@ -83,13 +85,14 @@ export const createGameStateMachine = () => {
                                 let newContext = { ...context };
                                 
                                 // Размещаем карту
-                                const { positionSystem, deck, cardObj, lives } = placeCard(context, context.playerPosition!);
+                                const { positionSystem, deck, cardObj, lives, inventoryItem } = placeCard(context, context.playerPosition!);
                                 newContext = {
                                     ...newContext,
                                     positionSystem,
                                     deck,
                                     lives,
-                                    hasPlacedCard: true
+                                    hasPlacedCard: true,
+                                    inventory: inventoryItem ? context.inventory.add(inventoryItem) : context.inventory
                                 };
 
                                 // Проверяем необходимость размещения корабля
@@ -112,10 +115,13 @@ export const createGameStateMachine = () => {
                     checkingCardEffects: {
                         entry: [
                             assign(({ context }) => {
-                                const card = context.positionSystem.getPosition(context.playerPosition!);
+                                const card = context.positionSystem.getCard(context.playerPosition!);
                                 if (!card) return context;
                                 // Вызов обработчика onPlace только для текущей карты
-                                return applyCardHandlerForCurrentCard(context, 'onPlace', context.playerPosition!);
+                                let newContext = applyCardHandlerForCurrentCard(context, 'onPlace', context.playerPosition!);
+                                // Вызов обработчика afterPlace только для текущей карты
+                                newContext = applyCardHandlers(newContext, 'afterPlace');
+                                return newContext;
                             })
                         ],
                         after: {
@@ -172,17 +178,24 @@ export const createGameStateMachine = () => {
                     },
                     checkingFlippable: {
                         on: {
-                            FLIP_CARD: {
-                                guard: ({ context, event }) => {
-                                    const card = context.positionSystem.getPosition(new Position(event.row, event.col));
-                                    return Boolean(card && card.canFlip(context));
-                                },
+                            ACTIVATE_CARD: {
                                 actions: [
                                     assign(({ context, event }) => {
-                                        const card = context.positionSystem.getPosition(new Position(event.row, event.col));
-                                        return card ? card.flip(context) : context;
+                                        // Сначала ищем в инвентаре
+                                        const inventoryItem = context.inventory.findById(event.id);
+                                        if (inventoryItem && inventoryItem.canActivate && inventoryItem.canActivate(context)) {
+                                            return inventoryItem.activate ? inventoryItem.activate(context) : context;
+                                        }
+                                        
+                                        // Если не найден в инвентаре, ищем на поле
+                                        const fieldCard = context.positionSystem.findCardById(event.id);
+                                        if (fieldCard && fieldCard.card.canActivate(context)) {
+                                            return fieldCard.card.flip(context);
+                                        }
+                                        
+                                        return context;
                                     }),
-                                    ({ event }) => gameLogger.info('Карта перевернута на позиции', { row: event.row, col: event.col })
+                                    ({ event }) => gameLogger.info('Карта активирована', { id: event.id })
                                 ],
                                 target: 'shipMoving'
                             },
@@ -265,9 +278,11 @@ export const createGameStateMachine = () => {
     });
 };
 
-// Вспомогательная функция для вызова обработчиков карт
-function applyCardHandlers(context: GameContext, handlerName: keyof CardSide) {
+// Запускает обработчики для всех карт и элементов инвентаря
+function applyCardHandlers(context: GameContext, handlerName: CardEventHandler) {
     let newContext = { ...context };
+    
+    // Применяем обработчики для всех карт на поле
     const allCards = context.positionSystem.findAllBy(() => true);
     for (const { card } of allCards) {
         const side = card.getCurrentSide();
@@ -276,16 +291,41 @@ function applyCardHandlers(context: GameContext, handlerName: keyof CardSide) {
             newContext = handler(newContext) || newContext;
         }
     }
+    
+    // Применяем обработчики для всех элементов инвентаря (только совместимые)
+    const inventoryItems = context.inventory.getAllItems();
+    for (const item of inventoryItems) {
+        if (handlerName in item && typeof item[handlerName as keyof typeof item] === 'function') {
+            const handler = item[handlerName as keyof typeof item] as ((ctx: GameContext) => GameContext);
+            newContext = handler(newContext) || newContext;
+        }
+    }
+    
     return newContext;
 }
 
-function applyCardHandlerForCurrentCard(context: GameContext, handlerName: keyof CardSide, position: Position) {
-    const card = context.positionSystem.getPosition(position);
-    if (!card) return context;
-    const side = card.getCurrentSide();
-    if (side && typeof side[handlerName] === 'function') {
-        const handler = side[handlerName] as ((ctx: GameContext) => GameContext);
-        return handler(context) || context;
+// Запускает обработчик для текущей карты и элементов инвентаря
+function applyCardHandlerForCurrentCard(context: GameContext, handlerName: CardEventHandler, position: Position) {
+    let newContext = { ...context };
+    
+    // Применяем обработчик для текущей карты на поле
+    const card = context.positionSystem.getCard(position);
+    if (card) {
+        const side = card.getCurrentSide();
+        if (side && typeof side[handlerName] === 'function') {
+            const handler = side[handlerName] as ((ctx: GameContext) => GameContext);
+            newContext = handler(newContext) || newContext;
+        }
     }
-    return context;
+    
+    // Применяем обработчики для всех элементов инвентаря (только совместимые)
+    const inventoryItems = context.inventory.getAllItems();
+    for (const item of inventoryItems) {
+        if (handlerName in item && typeof item[handlerName as keyof typeof item] === 'function') {
+            const handler = item[handlerName as keyof typeof item] as ((ctx: GameContext) => GameContext);
+            newContext = handler(newContext) || newContext;
+        }
+    }
+    
+    return newContext;
 } 
