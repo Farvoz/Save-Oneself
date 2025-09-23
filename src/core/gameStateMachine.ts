@@ -6,7 +6,7 @@ import { Position } from './PositionSystem';
 import type { GameContext } from './initial';
 
 // Тип для обработчиков событий карт
-type CardEventHandler = 'onRoundStart' | 'onPlace' | 'afterPlace' | 'onPlace' | 'onBeforeShipMove' | 'onShipMove';
+type CardEventHandler = 'onRoundStart' | 'onPlace' | 'afterPlace' | 'onBeforeShipMove' | 'onShipMove';
 
 export const createGameStateMachine = () => {
     return createMachine({
@@ -214,16 +214,16 @@ export const createGameStateMachine = () => {
                                 const contextWithEffects = applyCardHandlers(context, 'onBeforeShipMove');
 
                                 // Проверяем, можно ли двигать корабль
-                                const shipPos = context.positionSystem.getShipPosition();
-                                const shipCard = context.positionSystem.getShipCard();
+                                const shipPos = contextWithEffects.positionSystem.getShipPosition();
+                                const shipCard = contextWithEffects.positionSystem.getShipCard();
                                 if (!shipPos || !shipCard?.getCurrentDirection()) {
-                                    return context;
+                                    return contextWithEffects;
                                 }
 
                                 // Если корабль должен пропустить ход, просто сбрасываем флаг
                                 if (shipCard.skipMove) {
                                     shipCard.skipMove = false;
-                                    return context;
+                                    return contextWithEffects;
                                 }
                                 
                                 // Двигаем корабль

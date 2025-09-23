@@ -1,7 +1,8 @@
 import { Direction, CardType, CardSide } from './Card';
+import { InventoryItem } from './Inventory';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
-    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' ;
+    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' | 'pirates' | 'mapRow' | 'mapCol';
 
 type CardData = {
     [key in CardKey]: {
@@ -445,133 +446,253 @@ export const CARD_DATA: CardData = {
             }
         }
     },
-    // pirates: {
-    //     back: {
-    //         id: 'pirates',
-    //         russianName: 'Пираты',
-    //         requirementsText: 'ждать отплытие',
-    //         type: 'back' as CardType,
-    //         emoji: '🏴‍☠️',
-    //         description: 'Кажется, я вижу пиратов? Тогда нам не по пути...',
-    //         addToInventory: true,
-    //         onBeforeShipMove: (context) => {
-    //             const thisCard = context.inventory.findById('pirates');
-    //             const shipCard = context.positionSystem.getShipCard();
+    pirates: {
+        back: {
+            id: 'pirates',
+            russianName: 'Пираты',
+            requirementsText: 'ждать отплытие',
+            type: 'back' as CardType,
+            emoji: '🏴‍☠️',
+            description: 'Кажется, я вижу пиратов? Тогда нам не по пути...',
+            addToInventory: true,
+            onBeforeShipMove: (context) => {
+                const thisItem = context.inventory.findById('pirates');
+                const shipCard = context.positionSystem.getShipCard();
                 
-    //             if (shipCard && !shipCard.skipMove) {
-    //                 const newContext = thisCard!.activate(context);
+                if (shipCard && !shipCard.skipMove) {
+                    const newContext = thisItem!.activate(context);
 
-    //                 newContext.positionSystem.removeShipPosition();
+                    newContext.positionSystem.removeShipPosition();                
 
-    //                 return {
-    //                     ...newContext,
-    //                     positionSystem: newContext.positionSystem
-    //                 };
-    //             }
-    //             return context;
-    //         }
-    //     },
-    //     front: {
-    //         id: 'compass',
-    //         russianName: 'Компас',
-    //         type: 'front' as CardType,
-    //         emoji: '🧭',
-    //         description: 'Удача! Я нашел компас! Теперь смогу быстрее двигаться по изученным местам!',
-    //         addToInventory: true,
-    //         onRoundStart: (context) => {
-    //             // Если компас есть на поле, movesLeft = 2
-    //             return { ...context, movesLeft: 2 };
-    //         }
-    //     }
-    // },
-    // mapRow: {
-    //     back: {
-    //         id: 'map-r',
-    //         russianName: 'Карта сокровищ 1/2',
-    //         type: 'back' as CardType,
-    //         emoji: '👈🗺️👉',    
-    //         description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
-    //         addToInventory: true,
-    //         canActivate: (context) => {
-    //             // Both map cards must be on the board
-    //             const mapRResult = context.positionSystem.findCardById('map-r');
-    //             const mapCResult = context.positionSystem.findCardById('map-c');
+                    return {
+                        ...newContext,
+                        positionSystem: newContext.positionSystem
+                    };
+                }
+                return context;
+            }
+        },
+        front: {
+            id: 'compass',
+            russianName: 'Компас',
+            type: 'front' as CardType,
+            emoji: '🧭',
+            description: 'Удача! Я нашел компас! Теперь смогу быстрее двигаться по изученным местам!',
+            addToInventory: true,
+            onRoundStart: (context) => {
+                // Если компас есть на поле, movesLeft = 2
+                return { ...context, movesLeft: 2 };
+            }
+        }
+    },
+    mapRow: {
+        back: {
+            id: 'map-r',
+            russianName: 'Карта сокровищ 1/2',
+            type: 'back' as CardType,
+            emoji: '👈🗺️👉',    
+            description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
+            addToInventory: false,
+            canActivate: (context) => {
+                // Both map cards must be on the board
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapCResult = context.positionSystem.findCardById('map-c');
 
-    //             if (!mapRResult || !mapCResult) return false;
+                if (!mapRResult || !mapCResult) return false;
 
-    //             // Player must be at the intersection of map-r row and map-c column
-    //             return mapRResult.position.row === context.playerPosition!.row && 
-    //                    mapCResult.position.col === context.playerPosition!.col;
-    //         }
-    //     },
-    //     front: {
-    //         id: 'rum',
-    //         russianName: 'Ром',
-    //         lives: 1,
-    //         type: 'front' as CardType,
-    //         emoji: '🥃',
-    //         description: 'Ром! Можно набрать сил!',
-    //         addToInventory: true,
-    //         onPlace: (context) => {
-    //             // flip both map cards and add 1 life (rum effect)
-    //             const card = context.positionSystem.getCard(context.playerPosition!);
-    //             if (card) {
-    //                 // flip the other map card
-    //                 const otherMapId = 'map-c';
-    //                 const otherMapResult = context.positionSystem.findCardById(otherMapId);
-    //                 if (otherMapResult) otherMapResult.card.flip(context);
-    //                 // add 1 life
-    //                 const { lives } = updateLives(context.lives, 1);
-    //                 return { ...context, lives };
-    //             }
-    //             return context;
-    //         }
-    //     }
-    // },
-    // mapCol: {
-    //     back: {
-    //         id: 'map-c',
-    //         russianName: 'Карта сокровищ 2/2',
-    //         type: 'back' as CardType,   
-    //         emoji: '👇🗺️☝️',
-    //         description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
-    //         addToInventory: true,
-    //         canActivate: (context) => {
-    //             // Both map cards must be on the board
-    //             const mapRResult = context.positionSystem.findCardById('map-r');
-    //             const mapCResult = context.positionSystem.findCardById('map-c');
+                // Player must be at the intersection of map-r row and map-c column
+                return mapRResult.position.row === context.playerPosition!.row && 
+                       mapCResult.position.col === context.playerPosition!.col;
+            },
+            onPlace: (context) => {
+                // Проверяем, есть ли вторая часть карты (map-c)
+                const mapCResult = context.positionSystem.findCardById('map-c');
+                const mapInInventory = context.inventory.findById('map');
 
-    //             if (!mapRResult || !mapCResult) return false;
+                if (mapCResult && !mapInInventory) {
+                    // Если есть вторая часть, добавляем карту в инвентарь
+                    const mapCardSide: CardSide = {
+                        id: 'map',
+                        russianName: 'Карта',
+                        type: 'back' as CardType,
+                        emoji: '🗺️',
+                        description: 'Полная карта сокровищ! Теперь я знаю, где искать сокровище!',
+                        addToInventory: true,
+                        canActivate: (context) => {
+                            // Обе части карты должны быть на поле
+                            const mapRResult = context.positionSystem.findCardById('map-r');
+                            const mapCResult = context.positionSystem.findCardById('map-c');
 
-    //             // Player must be at the intersection of map-r row and map-c column
-    //             return mapRResult.position.row === context.playerPosition!.row && 
-    //                    mapCResult.position.col === context.playerPosition!.col;
-    //         }
-    //     },
-    //     front: {
-    //         id: 'treasure',
-    //         russianName: 'Сокровище',
-    //         score: 10,
-    //         type: 'front' as CardType,
-    //         emoji: '💎',    
-    //         description: 'Тепер это сокровище моё! Осталось только выбраться с острова...',
-    //         addToInventory: true,
-    //         onPlace: (context) => {
-    //             // flip both map cards and add 1 life (rum effect)
-    //             const card = context.positionSystem.getCard(context.playerPosition!);
-    //             if (card) {
-    //                 // flip the other map card
-    //                 const otherMapId = 'map-r';
-    //                 const otherMapResult = context.positionSystem.findCardById(otherMapId);
-    //                 if (otherMapResult) otherMapResult.card.flip(context);
-    //                 // add 1 life
-    //                 const { lives } = updateLives(context.lives, 1);
-    //                 return { ...context, lives };
-    //             }
-    //             return context;
-    //         }
-    //     }
-    // },
+                            if (!mapRResult || !mapCResult) return false;
+
+                            // Игрок должен быть на пересечении ряда map-r и колонки map-c
+                            return mapRResult.position.row === context.playerPosition!.row && 
+                                   mapCResult.position.col === context.playerPosition!.col;
+                        },
+                        onPlace: (context) => {
+                            // Переворачиваем обе карты на поле
+                            const mapRResult = context.positionSystem.findCardById('map-r');
+                            const mapCResult = context.positionSystem.findCardById('map-c');
+                            
+                            let newContext = { ...context };
+                            
+                            if (mapRResult) {
+                                newContext = mapRResult.card.flip(newContext);
+                            }
+                            
+                            if (mapCResult) {
+                                newContext = mapCResult.card.flip(newContext);
+                            }
+                            
+                            // Удаляем карту из инвентаря после активации
+                            newContext = {
+                                ...newContext,
+                                inventory: newContext.inventory.removeById('map')
+                            };
+                            
+                            return newContext;
+                        }
+                    };
+                    
+                    const mapInventoryItem = new InventoryItem(mapCardSide);
+                    
+                    return {
+                        ...context,
+                        inventory: context.inventory.add(mapInventoryItem)
+                    };
+                }
+                
+                return context;
+            }
+        },
+        front: {
+            id: 'rum',
+            russianName: 'Ром',
+            lives: 1,
+            type: 'front' as CardType,
+            emoji: '🥃',
+            description: 'Ром! Можно набрать сил!',
+            addToInventory: false,
+            onPlace: (context) => {
+                // flip both map cards and add 1 life (rum effect)
+                const card = context.positionSystem.getCard(context.playerPosition!);
+                if (card) {
+                    // flip the other map card
+                    const otherMapId = 'map-c';
+                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
+                    if (otherMapResult) otherMapResult.card.flip(context);
+                    // add 1 life
+                    const { lives } = updateLives(context.lives, 1);
+                    return { ...context, lives };
+                }
+                return context;
+            }
+        }
+    },
+    mapCol: {
+        back: {
+            id: 'map-c',
+            russianName: 'Карта сокровищ 2/2',
+            type: 'back' as CardType,   
+            emoji: '👇🗺️☝️',
+            description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
+            addToInventory: false,
+            canActivate: (context) => {
+                // Both map cards must be on the board
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapCResult = context.positionSystem.findCardById('map-c');
+
+                if (!mapRResult || !mapCResult) return false;
+
+                // Player must be at the intersection of map-r row and map-c column
+                return mapRResult.position.row === context.playerPosition!.row && 
+                       mapCResult.position.col === context.playerPosition!.col;
+            },
+            onPlace: (context) => {
+                // Проверяем, есть ли первая часть карты (map-r)
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapInInventory = context.inventory.findById('map');
+                
+                if (mapRResult && !mapInInventory) {
+                    // Если есть первая часть, добавляем карту в инвентарь
+                    const mapCardSide: CardSide = {
+                        id: 'map',
+                        russianName: 'Карта',
+                        type: 'back' as CardType,
+                        emoji: '🗺️',
+                        description: 'Полная карта сокровищ! Теперь я знаю, где искать сокровище!',
+                        addToInventory: true,
+                        canActivate: (context) => {
+                            // Обе части карты должны быть на поле
+                            const mapRResult = context.positionSystem.findCardById('map-r');
+                            const mapCResult = context.positionSystem.findCardById('map-c');
+
+                            if (!mapRResult || !mapCResult) return false;
+
+                            // Игрок должен быть на пересечении ряда map-r и колонки map-c
+                            return mapRResult.position.row === context.playerPosition!.row && 
+                                   mapCResult.position.col === context.playerPosition!.col;
+                        },
+                        onPlace: (context) => {
+                            // Переворачиваем обе карты на поле
+                            const mapRResult = context.positionSystem.findCardById('map-r');
+                            const mapCResult = context.positionSystem.findCardById('map-c');
+                            
+                            let newContext = { ...context };
+                            
+                            if (mapRResult) {
+                                newContext = mapRResult.card.flip(newContext);
+                            }
+                            
+                            if (mapCResult) {
+                                newContext = mapCResult.card.flip(newContext);
+                            }
+                            
+                            // Удаляем карту из инвентаря после активации
+                            newContext = {
+                                ...newContext,
+                                inventory: newContext.inventory.removeById('map')
+                            };
+                            
+                            return newContext;
+                        }
+                    };
+                    
+                    const mapInventoryItem = new InventoryItem(mapCardSide);
+                    
+                    return {
+                        ...context,
+                        inventory: context.inventory.add(mapInventoryItem)
+                    };
+                }
+                
+                return context;
+            }
+        },
+        front: {
+            id: 'treasure',
+            russianName: 'Сокровище',
+            score: 10,
+            type: 'front' as CardType,
+            emoji: '💎',    
+            description: 'Тепер это сокровище моё! Осталось только выбраться с острова...',
+            addToInventory: false,
+            onPlace: (context) => {
+                // flip both map cards and add 1 life (rum effect)
+                const card = context.positionSystem.getCard(context.playerPosition!);
+                if (card) {
+                    // flip the other map card
+                    const otherMapId = 'map-r';
+                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
+                    if (otherMapResult) otherMapResult.card.flip(context);
+                    // add 1 life
+                    const { lives } = updateLives(context.lives, 1);
+                    return { ...context, lives };
+                }
+                return context;
+            }
+        }
+    },
 } as const; 
 
 export const ship: CardSide = {
