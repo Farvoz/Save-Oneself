@@ -94,6 +94,16 @@
     text-overflow: ellipsis;
 }
 
+.inventory-item-score {
+    font-size: 10px;
+    color: var(--color-secondary);
+    font-weight: bold;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
 .inventory-item-position {
     font-size: 10px;
     color: var(--text-tertiary);

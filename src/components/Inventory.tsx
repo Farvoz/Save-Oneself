@@ -45,6 +45,9 @@ const Inventory: React.FC<InventoryProps> = ({ inventory, onItemClick, canActiva
                                 <div className="inventory-item-emoji">{item.emoji}</div>
                                 <div className="inventory-item-info">
                                     <div className="inventory-item-name">{item.russianName}</div>
+                                    {item.score !== undefined && (
+                                        <div className="inventory-item-score">⭐ {item.score}</div>
+                                    )}
                                 </div>
                             </div>
                         </HoverTooltip>
