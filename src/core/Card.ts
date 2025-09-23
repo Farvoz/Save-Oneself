@@ -9,7 +9,8 @@ const createStubCardSide = (): CardSide => {
     return {
         id: 'stub' + Math.random().toString(36).substring(2, 15),
         type: 'back',
-        emoji: '...'
+        emoji: '...',
+        clickable: false // Заглушки не должны реагировать на клики
     };
 };
 
@@ -28,6 +29,10 @@ export type CardSide = {
      * Добавлять ли карту в инвентарь при размещении на поле
      */
     addToInventory?: boolean;
+    /**
+     * Определяет, должна ли карта реагировать на клики
+     */
+    clickable?: boolean;
     /**
      * Проверяет, можно ли перевернуть карту
      */
@@ -140,6 +145,15 @@ export class GameCard {
 
     getCurrentScore(): number | undefined {
         return this.getCurrentSide().score;
+    }
+
+    /**
+     * Проверяет, должна ли карта реагировать на клики
+     */
+    isClickable(): boolean {
+        const currentSide = this.getCurrentSide();
+        // По умолчанию карты кликабельны, если не указано обратное
+        return currentSide.clickable !== false;
     }
 
     /**

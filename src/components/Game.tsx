@@ -20,7 +20,7 @@ const Game: React.FC = () => {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
             const card = context.positionSystem.getCard(new Position(row, col));
-            if (card) {
+            if (card && card.isClickable()) {
                 gameService.send({ type: 'ACTIVATE_CARD', id: card.getCurrentId() });
             }
         } else if (state.matches('playing.moving') && context.hasMoved && 

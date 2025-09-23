@@ -62,7 +62,7 @@ export const Grid: React.FC<GridProps> = ({ onCellClick, positionSystem, state, 
                         isAvailableMove={isAvailableMove}
                         onClick={() => onCellClick(row, col)}
                         isPlayerPosition={isPlayerPosition ?? false}
-                        isFlippable={isFlippable ?? false}
+                        isFlippable={(isFlippable && card.isClickable()) ?? false}
                         onPlayerClick={onPlayerClick}
                         hasMovesLeft={state.matches('playing.moving') && context.movesLeft > 0}
                     />
