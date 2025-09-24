@@ -1,5 +1,6 @@
 import { Direction, CardType, CardSide } from './Card';
 import { gameLogger } from './gameLogger';
+import type { GameContext } from './initial';
 import { InventoryItem } from './Inventory';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
@@ -14,10 +15,17 @@ type CardData = {
 
 interface UpdateLivesResult {
     lives: number;
+    hasGivenLives?: boolean;
 }
 
 // Update lives (increase or decrease)
-export const updateLives = (oldLives: number, lives: number): UpdateLivesResult => {
+export const updateLives = (oldLives: number, lives: number, hasGivenLives?: boolean): UpdateLivesResult => {
+    // Для положительных жизней проверяем, не давала ли карта уже жизни
+    if (lives > 0 && hasGivenLives) {
+        gameLogger.info('Карта уже дала жизни, пропускаем', { lives: oldLives });
+        return { lives: oldLives, hasGivenLives: true };
+    }
+
     const newLives = lives < 0 
         ? Math.max(0, oldLives + lives)  // Decrease lives but not below 0
         : Math.min(16, oldLives + lives); // Increase lives but not above 16
@@ -28,7 +36,27 @@ export const updateLives = (oldLives: number, lives: number): UpdateLivesResult 
         gameLogger.info('Жизни увеличены на ' + lives, { lives: newLives });
     }
     
-    return { lives: newLives };
+    return { 
+        lives: newLives, 
+        hasGivenLives: lives > 0 ? true : hasGivenLives 
+    };
+};
+
+// Вспомогательная функция для обновления жизней с проверкой карты
+export const updateLivesWithCardCheck = (context: GameContext, cardId: string, lives: number): GameContext => {
+    const hasGivenLives = context.cardsGivenLives.has(cardId);
+    const { lives: newLives, hasGivenLives: newHasGivenLives } = updateLives(context.lives, lives, hasGivenLives);
+    
+    const newCardsGivenLives = new Set(context.cardsGivenLives);
+    if (lives > 0 && newHasGivenLives) {
+        newCardsGivenLives.add(cardId);
+    }
+    
+    return {
+        ...context,
+        lives: newLives,
+        cardsGivenLives: newCardsGivenLives
+    };
 };
 
 const mapCardSide: CardSide = {
@@ -98,8 +126,7 @@ export const CARD_DATA: CardData = {
             description: 'Защищает от шторма',
             addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'shelter', 2);
             }
         }
     },
@@ -124,8 +151,7 @@ export const CARD_DATA: CardData = {
             description: 'Вкуснотища! Смогу ещё прожить на этом острове!',
             addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 3);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'fish', 3);
             }
         }
     },
@@ -141,8 +167,7 @@ export const CARD_DATA: CardData = {
             description: 'Позволяет освежиться и набрать сил',
             addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'water', 2);
             }
         },
         front: {
@@ -154,8 +179,7 @@ export const CARD_DATA: CardData = {
             description: 'Здесь можно освежиться и набрать сил',
             addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'waterfall', 2);
             }
         }
     },
@@ -201,8 +225,7 @@ export const CARD_DATA: CardData = {
             description: 'Ммм, как вкусно!',
             addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'coconut', 2);
             }
         }
     },
@@ -362,7 +385,7 @@ export const CARD_DATA: CardData = {
                 // Если есть spear или torch, урон не наносится
                 const isProtected = context.inventory.findById('spear') || context.inventory.findById('torch');
                 if (!isProtected) {
-                    const { lives } = updateLives(context.lives, -2);
+                    const { lives } = updateLives(context.lives, -2, false);
                     return { ...context, lives };
                 }
                 return context;
@@ -377,8 +400,7 @@ export const CARD_DATA: CardData = {
             description: 'Ммм, то-то же!',
             addToInventory: false,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 3);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'meat', 3);
             }
         }
     },
@@ -396,7 +418,7 @@ export const CARD_DATA: CardData = {
                 // Если есть shelter, урон не наносится
                 const isProtected = context.inventory.findById('shelter');
                 if (!isProtected) {
-                    const { lives } = updateLives(context.lives, -2);
+                    const { lives } = updateLives(context.lives, -2, false);
                     return { ...context, lives };
                 }
                 return context;
@@ -428,7 +450,7 @@ export const CARD_DATA: CardData = {
                 const playerPosition = context.playerPosition;
 
                 if (tornadoResult?.position.equals(playerPosition!)) {
-                    const { lives } = updateLives(context.lives, -3);
+                    const { lives } = updateLives(context.lives, -3, false);
                     newLives = lives;
                 }
 
@@ -595,8 +617,7 @@ export const CARD_DATA: CardData = {
             onPlace: (context) => {
                 const card = context.positionSystem.getCard(context.playerPosition!);
                 if (card) {
-                    const { lives } = updateLives(context.lives, 1);
-                    return { ...context, lives };
+                    return updateLivesWithCardCheck(context, 'rum', 1);
                 }
                 return context;
             }

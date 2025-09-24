@@ -242,7 +242,7 @@ export const createGameStateMachine = () => {
                                     target: 'gameOver',
                                     guard: ({ context }) => checkDefeat(context),
                                     actions: assign({
-                                        gameOverMessage: 'Игра окончена! Корабль уплыл слишком далеко.',
+                                        gameOverMessage: 'Увы... Корабль уплыл слишком далеко',
                                         isVictory: false
                                     })
                                 },

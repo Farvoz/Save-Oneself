@@ -41,7 +41,7 @@ interface MoveShipResult {
 }
 
 export const decreaseLive = (lives: number) => {
-    return updateLives(lives, -1);
+    return updateLives(lives, -1, false);
 }
 
 // Move the player to a new position

@@ -19,6 +19,7 @@ export type GameContext = {
     playerPosition?: Position;
     showStartTooltip: boolean;
     inventory: Inventory;
+    cardsGivenLives: Set<string>; // Отслеживаем карты, которые уже дали жизни
 };
 
 export type GameEvent =
@@ -47,5 +48,6 @@ export const INITIAL_STATE: GameContext = {
     movesLeft: 0,
     hasMoved: false,
     showStartTooltip: true,
-    inventory: Inventory.empty()
+    inventory: Inventory.empty(),
+    cardsGivenLives: new Set<string>()
 }; 
