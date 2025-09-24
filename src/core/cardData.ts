@@ -395,13 +395,14 @@ export const CARD_DATA: CardData = {
                 return context;
             },
             afterPlace: (context) => {
+                let newContext = context;
                 if (context.positionSystem.countNonShipCards() === 13) {
                     const stormResult = context.positionSystem.findCardById('storm');
                     if (stormResult) {
-                        stormResult.card.flip(context);
+                        newContext = stormResult.card.flip(context);
                     }
                 }
-                return context;
+                return newContext;
             }
         },
         front: {
