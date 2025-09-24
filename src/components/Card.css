@@ -12,6 +12,11 @@
     color: var(--text-black);
     z-index: var(--z-card-base);
     user-select: none;
+    background-color: var(--card-back);
+}
+
+.card.ship-card {
+    background-color: transparent;
 }
 
 .player-marker {

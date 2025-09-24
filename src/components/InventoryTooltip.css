@@ -28,70 +28,13 @@
 
 /* Текущий элемент */
 .inventory-tooltip-current {
-    background-color: var(--bg-overlay-medium);
     padding: 8px;
-    border-radius: 8px;
-    border-left: 3px solid var(--color-success);
     margin-bottom: 8px;
-}
-
-.inventory-tooltip-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.inventory-tooltip-emoji {
-    font-size: 18px;
-    margin-right: 8px;
-}
-
-.inventory-tooltip-name {
-    font-weight: 600;
-    color: var(--text-primary);
-    text-transform: capitalize;
-}
-
-.inventory-tooltip-description {
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    font-style: italic;
-}
-
-.inventory-tooltip-stats {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.inventory-tooltip-stat {
-    background-color: var(--bg-overlay);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
 }
 
 /* Требования активации */
 .inventory-tooltip-requirements {
-    background-color: var(--color-error-bg);
-    padding: 8px;
-    border-radius: 8px;
-    border-left: 3px solid var(--color-error);
     margin-bottom: 8px;
-}
-
-.inventory-tooltip-section-title {
-    font-weight: 600;
-    color: var(--color-error-dark);
-    margin-bottom: 4px;
-    font-size: 12px;
-}
-
-.inventory-tooltip-requirement-text {
-    color: var(--color-error-dark);
-    font-size: 12px;
-    font-weight: 500;
 }
 
 /* Будущее преобразование */
@@ -99,49 +42,13 @@
     background-color: var(--color-info-bg);
     padding: 8px;
     border-radius: 8px;
-    border-left: 3px solid var(--border-neutral);
 }
 
-.inventory-tooltip-future-content {
-    margin-top: 4px;
-}
-
-.inventory-tooltip-future-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-}
-
-.inventory-tooltip-future-emoji {
-    font-size: 16px;
-    margin-right: 6px;
-}
-
-.inventory-tooltip-future-name {
-    font-weight: 600;
-    color: var(--text-primary);
-    text-transform: capitalize;
-    font-style: italic;
-}
-
-.inventory-tooltip-future-description {
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    font-style: italic;
+.inventory-tooltip-future .side-description {
     font-size: 12px;
 }
 
-.inventory-tooltip-future-stats {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.inventory-tooltip-future-stat {
-    background-color: var(--bg-overlay);
-    padding: 2px 6px;
-    border-radius: 4px;
+.inventory-tooltip-future .stat {
     font-size: 11px;
-    font-weight: 500;
     opacity: 0.8;
 }

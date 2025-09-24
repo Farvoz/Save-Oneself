@@ -225,7 +225,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'bottle',
             russianName: 'Бутылка',
-            requirementsText: 'нужен корабль только на старте',
+            requirementsText: 'нужен корабль в первой клетке',
             type: 'back' as CardType,
             emoji: '🍾',
             description: 'Кажется, я смогу оставить здесь сообщение! Главное, чтобы не на углу!',
@@ -441,7 +441,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'mirage',
             russianName: 'Мираж',
-            requirementsText: 'найти пересечение',
+            requirementsText: 'при вскрытии',
             type: 'back' as CardType,
             emoji: '🌫️',
             description: 'Сразу же заменяет самую дальнюю карту и переворачивается',
@@ -493,7 +493,7 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'pirates',
             russianName: 'Пираты',
-            requirementsText: 'ждать отплытие',
+            requirementsText: 'ждать отплытие корабля',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
             description: 'Кажется, я вижу пиратов? Тогда нам не по пути...',

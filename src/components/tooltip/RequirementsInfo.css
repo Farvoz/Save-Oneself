@@ -1,0 +1,19 @@
+.requirements-info {
+    background-color: var(--color-error-bg);
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.requirements-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.requirements-text {
+    color: var(--color-error-dark);
+    font-size: 12px;
+    font-weight: 500;
+}

@@ -171,7 +171,7 @@ export class GameCard {
         if (!requirements) return false;
         
         // Проверяем базовые требования (карты на поле)
-        return context.positionSystem.findCardById(requirements) !== null;
+        return context.positionSystem.findCardById(requirements) !== null || context.inventory.findById(requirements) !== null;
     }
 }
 

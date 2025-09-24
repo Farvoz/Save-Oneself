@@ -80,12 +80,6 @@ export const Card: React.FC<CardProps> = ({
         return card.getCurrentEmoji();
     };
 
-    const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
-        if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
-        return 'var(--card-default)';
-    };
-
     const cardStyle: React.CSSProperties = {
         position: 'absolute',
         left: '0px',
@@ -93,13 +87,12 @@ export const Card: React.FC<CardProps> = ({
         width: '100px',
         height: '100px',
         cursor: isAvailableMove || isFlippable ? 'pointer' : 'default',
-        backgroundColor: getCardBackground(card)
     };
 
     return (
         <>
             <div 
-                className={`card ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isAvailableMove ? 'available-move' : ''} ${isFlippable ? 'flippable' : ''}`}
+                className={`card ${card.getCurrentType() === 'ship' ? 'ship-card' : ''} ${isPlayerPosition ? 'player-position' : ''} ${isFlipped ? 'flipped' : ''} ${isAvailableMove ? 'available-move' : ''} ${isFlippable ? 'flippable' : ''}`}
                 style={cardStyle}
                 data-position={`${row},${col}`}
                 data-testid={`card-${card.getCurrentId()}`}
