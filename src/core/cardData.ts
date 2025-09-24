@@ -1,4 +1,5 @@
 import { Direction, CardType, CardSide } from './Card';
+import { gameLogger } from './gameLogger';
 import { InventoryItem } from './Inventory';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
@@ -20,6 +21,12 @@ export const updateLives = (oldLives: number, lives: number): UpdateLivesResult 
     const newLives = lives < 0 
         ? Math.max(0, oldLives + lives)  // Decrease lives but not below 0
         : Math.min(16, oldLives + lives); // Increase lives but not above 16
+
+    if (lives < 0) {
+        gameLogger.info('Жизни уменьшены на ' + Math.abs(lives), { lives: newLives });
+    } else {
+        gameLogger.info('Жизни увеличены на ' + lives, { lives: newLives });
+    }
     
     return { lives: newLives };
 };
@@ -415,6 +422,7 @@ export const CARD_DATA: CardData = {
             addToInventory: false,
             onPlace: (context) => {
                 let newLives = context.lives;
+                let newContext = context;
 
                 const tornadoResult = context.positionSystem.findCardById('tornado');
                 const playerPosition = context.playerPosition;
@@ -426,15 +434,15 @@ export const CARD_DATA: CardData = {
 
                 // flip shelter and lit beacon back
                 const shelterItem = context.inventory.findById('shelter');
-                if (shelterItem) shelterItem.activate(context);
+                if (shelterItem) newContext = shelterItem.activate(newContext);
 
                 const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
-                if (litBeaconResult) litBeaconResult.card.flip(context);
+                if (litBeaconResult) newContext = litBeaconResult.card.flip(newContext);
                 
                 // flip tornado back
-                tornadoResult?.card.flip(context);
+                newContext = tornadoResult!.card.flip(newContext);
 
-                return { ...context, lives: newLives };
+                return { ...newContext, lives: newLives };
             }
         }
     },
@@ -449,13 +457,22 @@ export const CARD_DATA: CardData = {
             addToInventory: false,
             onPlace: (context) => {
                 const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition!);
+                let newContext = context;
+
                 if (farthestPos) {
-                    context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
+                    newContext.positionSystem.swapPositions(context.playerPosition!, farthestPos);
+
+                    // Срабатывает эффект onPlace у замененной карты, если не единственная карта на поле
+                    const swappedCard = context.positionSystem.getCard(context.playerPosition!);
+                    if (swappedCard && newContext.positionSystem.countNonShipCards() !== 1) {
+                        newContext = swappedCard.getCurrentSide().onPlace?.(newContext) ?? newContext;
+                    }   
+
                     // flip the mirage card after swap
                     const card = context.positionSystem.getCard(farthestPos);
-                    if (card) card.flip(context);
+                    if (card) newContext = card.flip(newContext);
                 }
-                return { ...context, positionSystem: context.positionSystem };
+                return { ...newContext, positionSystem: newContext.positionSystem };
             }
         },
         front: {

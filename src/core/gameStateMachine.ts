@@ -60,18 +60,12 @@ export const createGameStateMachine = () => {
                             0: [
                                 {
                                     target: 'gameOver',
-                                    guard: ({ context }) => Boolean(context.gameOverMessage),
-                                    actions: ({ context }) => {
-                                        gameLogger.info('Game over condition met', { message: context.gameOverMessage });
-                                    }
+                                    guard: ({ context }) => Boolean(context.gameOverMessage)
                                 },
                                 {
                                     target: 'placingCardAndShip',
                                     guard: ({ context }) => { 
                                         return !context.positionSystem.getCard(context.playerPosition!) && !context.hasPlacedCard 
-                                    },
-                                    actions: () => {
-                                        gameLogger.info('Нужно разместить карту');
                                     }
                                 },
                                 { target: 'checkingCardEffects' }
@@ -135,9 +129,6 @@ export const createGameStateMachine = () => {
                                 {
                                     target: 'gameOver',
                                     guard: ({ context }) => Boolean(context.gameOverMessage),
-                                    actions: ({ context }) => {
-                                        gameLogger.info('Game over condition met', { message: context.gameOverMessage });
-                                    }
                                 },
                                 {
                                     target: 'moving',
@@ -153,7 +144,6 @@ export const createGameStateMachine = () => {
                     decreasingLives: { 
                         entry: [
                             assign(({ context }) => decreaseLive(context.lives)),
-                            ({ context: { lives } }) => gameLogger.info('Жизни уменьшены на 1', { lives })
                         ],
                         after: {
                             500: [
