@@ -6,7 +6,6 @@
     min-width: 200px;
     max-width: 250px;
     box-shadow: 0 2px 4px var(--shadow-light);
-    position: fixed;
     right: 6px;
     top: 55px;
 }
