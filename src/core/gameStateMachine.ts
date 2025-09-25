@@ -1,6 +1,6 @@
 import { createMachine, assign } from 'xstate';
 import { INITIAL_STATE } from './initial';
-import { shuffleDeck, movePlayer, moveShip, decreaseLive, placeCard, placeShip, hasFlippableCards, checkVictory, checkDefeat } from './gameActions';
+import { shuffleDeck, movePlayer, moveShip, decreaseLive, placeCard, placeShip, hasFlippableCards, checkDefeat } from './gameActions';
 import { gameLogger } from './gameLogger';  
 import { Position } from './PositionSystem';
 import type { GameContext } from './initial';
@@ -226,17 +226,14 @@ export const createGameStateMachine = () => {
                                 } else {
                                     gameLogger.info('Корабль не перемещён');
                                 }
-                            }
+                            },
+                            assign(({ context }) => applyCardHandlers(context, 'onShipMove'))
                         ],
                         after: {
                             500: [
-                                {   
-                                    target: 'gameOver', 
-                                    guard: ({ context }) => checkVictory(context), 
-                                    actions: assign({
-                                        gameOverMessage: 'Победа! Корабль заметил сигнал!',
-                                        isVictory: true
-                                    }) 
+                                {
+                                    target: 'gameOver',
+                                    guard: ({ context }) => Boolean(context.gameOverMessage && context.isVictory),
                                 },
                                 {             
                                     target: 'gameOver',
@@ -246,17 +243,8 @@ export const createGameStateMachine = () => {
                                         isVictory: false
                                     })
                                 },
-                                { target: 'checkingShipEffects' }
+                                { target: 'startOfRound' }
                             ]
-                        }
-                    },
-                    // Проверяем эффекты при движении корабля
-                    checkingShipEffects: {
-                        entry: [
-                            assign(({ context }) => applyCardHandlers(context, 'onShipMove'))
-                        ],
-                        after: {
-                            0: { target: 'startOfRound' }
                         }
                     },
                     gameOver: {

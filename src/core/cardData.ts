@@ -273,6 +273,26 @@ export const CARD_DATA: CardData = {
             emoji: '📜',
             description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то я выиграю!',
             addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const messageResult = context.positionSystem.findCardById('message');
+                if (!shipPos || !messageResult) return context;
+
+                const shipCard = context.positionSystem.getShipCard();
+                const isCorner = shipCard?.cornerManager?.isIslandCornerCard(messageResult.position) ?? false;
+                if (isCorner) return context;
+
+                const isAdjacent = context.positionSystem.isAdjacent(shipPos, messageResult.position);
+                if (isAdjacent) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль нашёл моё сообщение!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     higherGround: {
@@ -288,12 +308,25 @@ export const CARD_DATA: CardData = {
         },
         front: {
             id: 'lit-beacon',
-            russianName: 'Маяк',
+            russianName: 'Костёр',
             score: 7,
             type: 'front' as CardType,
             emoji: '🔥',
             description: 'Если корабль пересекает эту колонку, то я выиграю!',
             addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const beaconResult = context.positionSystem.findCardById('lit-beacon');
+                if (shipPos && beaconResult && shipPos.col === beaconResult.position.col) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль заметил костёр!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     telescope: {
@@ -368,6 +401,19 @@ export const CARD_DATA: CardData = {
             emoji: '🆘',
             description: 'Если корабль пересекает этот ряд, то я выиграю!',
             addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const sosResult = context.positionSystem.findCardById('sos');
+                if (shipPos && sosResult && shipPos.row === sosResult.position.row) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль заметил сигнал SOS!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     pig: {
