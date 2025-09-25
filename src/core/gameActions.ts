@@ -219,36 +219,6 @@ export const hasFlippableCards = (context: GameContext): boolean => {
     return false;
 };
 
-// Check if the game is won
-// return boolean
-// TODO: перенести в эффекты карт
-export const checkVictory = (context: GameContext): boolean => {
-    const shipPos = context.positionSystem.getShipPosition();
-    if (!shipPos) return false;
-    
-    const sosResult = context.positionSystem.findCardById('sos');
-    const beaconResult = context.positionSystem.findCardById('lit-beacon');
-    const messageResult = context.positionSystem.findCardById('message');
-    
-    const sosVictory = sosResult && shipPos.row === sosResult.position.row;
-    const beaconVictory = beaconResult && shipPos.col === beaconResult.position.col;
-    
-    // Check message victory condition
-    let messageVictory = false;
-    if (messageResult) {
-        const msgPos = messageResult.position;
-        
-        // Check if message card is not in a corner
-        const shipCard = context.positionSystem.getShipCard();
-        if (!shipCard?.cornerManager?.isIslandCornerCard(msgPos)) {
-            const isAdjacent = context.positionSystem.isAdjacent(shipPos, msgPos);
-            messageVictory = isAdjacent;
-        }
-    }
-    
-    return sosVictory || beaconVictory || messageVictory;
-};
-
 // Check if the game is lost (ship is out of bounds)
 export const checkDefeat = (context: GameContext): boolean => {
     const shipPos = context.positionSystem.getShipPosition();
