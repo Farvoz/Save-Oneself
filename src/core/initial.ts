@@ -3,6 +3,7 @@ import { createGameStateMachine } from './gameStateMachine';
 import { PositionSystem, Position } from './PositionSystem';
 import { CARD_DATA } from './cardData';
 import { GameCard, CardSide } from './Card';
+import { Inventory } from './Inventory';
 
 export { CARD_DATA };
 
@@ -17,11 +18,13 @@ export type GameContext = {
     isVictory: boolean;
     playerPosition?: Position;
     showStartTooltip: boolean;
+    inventory: Inventory;
+    cardsGivenLives: Set<string>; // Отслеживаем карты, которые уже дали жизни
 };
 
 export type GameEvent =
     | { type: 'MOVE_PLAYER'; row: number; col: number }
-    | { type: 'FLIP_CARD'; row: number; col: number }
+    | { type: 'ACTIVATE_CARD'; row: number; col: number }
     | { type: 'SKIP_PHASE' }
     | { type: 'SKIP_MOVES' };
 
@@ -44,5 +47,7 @@ export const INITIAL_STATE: GameContext = {
     hasPlacedCard: false,
     movesLeft: 0,
     hasMoved: false,
-    showStartTooltip: true
+    showStartTooltip: true,
+    inventory: Inventory.empty(),
+    cardsGivenLives: new Set<string>()
 }; 

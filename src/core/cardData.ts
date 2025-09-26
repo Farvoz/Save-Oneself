@@ -1,8 +1,10 @@
 import { Direction, CardType, CardSide } from './Card';
+import { gameLogger } from './gameLogger';
+import type { GameContext } from './initial';
+import { InventoryItem } from './Inventory';
 
 type CardKey = 'vines' | 'hook' | 'water' | 'flint' | 'palmTrees' | 'sticks' | 'bottle' | 
-    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' | 'pirates' | 
-    'mapRow' | 'mapCol';
+    'higherGround' | 'telescope' | 'rocks' | 'pig' | 'storm' | 'mirage' | 'pirates' | 'mapRow' | 'mapCol';
 
 type CardData = {
     [key in CardKey]: {
@@ -13,15 +15,91 @@ type CardData = {
 
 interface UpdateLivesResult {
     lives: number;
+    hasGivenLives?: boolean;
 }
 
 // Update lives (increase or decrease)
-export const updateLives = (oldLives: number, lives: number): UpdateLivesResult => {
+export const updateLives = (oldLives: number, lives: number, hasGivenLives?: boolean): UpdateLivesResult => {
+    // Для положительных жизней проверяем, не давала ли карта уже жизни
+    if (lives > 0 && hasGivenLives) {
+        gameLogger.info('Карта уже дала жизни, пропускаем', { lives: oldLives });
+        return { lives: oldLives, hasGivenLives: true };
+    }
+
     const newLives = lives < 0 
         ? Math.max(0, oldLives + lives)  // Decrease lives but not below 0
         : Math.min(16, oldLives + lives); // Increase lives but not above 16
+
+    if (lives < 0) {
+        gameLogger.info('Жизни уменьшены на ' + Math.abs(lives), { lives: newLives });
+    } else {
+        gameLogger.info('Жизни увеличены на ' + lives, { lives: newLives });
+    }
     
-    return { lives: newLives };
+    return { 
+        lives: newLives, 
+        hasGivenLives: lives > 0 ? true : hasGivenLives 
+    };
+};
+
+// Вспомогательная функция для обновления жизней с проверкой карты
+export const updateLivesWithCardCheck = (context: GameContext, cardId: string, lives: number): GameContext => {
+    const hasGivenLives = context.cardsGivenLives.has(cardId);
+    const { lives: newLives, hasGivenLives: newHasGivenLives } = updateLives(context.lives, lives, hasGivenLives);
+    
+    const newCardsGivenLives = new Set(context.cardsGivenLives);
+    if (lives > 0 && newHasGivenLives) {
+        newCardsGivenLives.add(cardId);
+    }
+    
+    return {
+        ...context,
+        lives: newLives,
+        cardsGivenLives: newCardsGivenLives
+    };
+};
+
+const mapCardSide: CardSide = {
+    id: 'map',
+    russianName: 'Карта',
+    type: 'back' as CardType,
+    emoji: '🗺️',
+    description: 'Полная карта сокровищ! Теперь я знаю, где искать сокровище!',
+    addToInventory: true,
+    canActivate: (context) => {
+        // Обе части карты должны быть на поле
+        const mapRResult = context.positionSystem.findCardById('map-r');
+        const mapCResult = context.positionSystem.findCardById('map-c');
+
+        if (!mapRResult || !mapCResult) return false;
+
+        // Игрок должен быть на пересечении ряда map-r и колонки map-c
+        return mapRResult.position.row === context.playerPosition!.row && 
+               mapCResult.position.col === context.playerPosition!.col;
+    },
+    onPlace: (context) => {
+        // Переворачиваем обе карты на поле
+        const mapRResult = context.positionSystem.findCardById('map-r');
+        const mapCResult = context.positionSystem.findCardById('map-c');
+        
+        let newContext = { ...context };
+        
+        if (mapRResult) {
+            newContext = mapRResult.card.flip(newContext);
+        }
+        
+        if (mapCResult) {
+            newContext = mapCResult.card.flip(newContext);
+        }
+        
+        // Удаляем карту из инвентаря после активации
+        newContext = {
+            ...newContext,
+            inventory: newContext.inventory.removeById('map')
+        };
+        
+        return newContext;
+    }
 };
 
 // Card data objects
@@ -36,6 +114,7 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🌿',
             description: 'В этих листьях можно спрятаться от шторма',
+            addToInventory: true,
         },
         front: {
             id: 'shelter',
@@ -45,9 +124,9 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🏠',
             description: 'Защищает от шторма',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+            addToInventory: true,
+            onPlace: (context) => {
+                return updateLivesWithCardCheck(context, 'shelter', 2);
             }
         }
     },
@@ -60,7 +139,8 @@ export const CARD_DATA: CardData = {
             requirementsText: 'нужна 💧',
             type: 'back' as CardType,
             emoji: '🎣',
-            description: 'Позволяет добыть питательную рыбу'
+            description: 'Позволяет добыть питательную рыбу',
+            addToInventory: true,
         },
         front: {
             id: 'fish',
@@ -69,9 +149,9 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🐟',
             description: 'Вкуснотища! Смогу ещё прожить на этом острове!',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 3);
-                return { ...context, lives };
+            addToInventory: true,
+            onPlace: (context) => {
+                return updateLivesWithCardCheck(context, 'fish', 3);
             }
         }
     },
@@ -85,9 +165,9 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '💧',
             description: 'Позволяет освежиться и набрать сил',
+            addToInventory: true,
             onPlace: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+                return updateLivesWithCardCheck(context, 'water', 2);
             }
         },
         front: {
@@ -97,9 +177,9 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🌊',
             description: 'Здесь можно освежиться и набрать сил',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+            addToInventory: true,
+            onPlace: (context) => {
+                return updateLivesWithCardCheck(context, 'waterfall', 2);
             }
         }
     },
@@ -111,7 +191,8 @@ export const CARD_DATA: CardData = {
             requirementsText: 'нужна 🌿',
             type: 'back' as CardType,
             emoji: '⚡',
-            description: 'Можно сжечь эти листья и сделать костер'
+            description: 'Можно сжечь эти листья и сделать костер',
+            addToInventory: true,
         },
         front: {
             id: 'torch',
@@ -119,7 +200,8 @@ export const CARD_DATA: CardData = {
             score: 2,
             type: 'front' as CardType,
             emoji: '🕯️',
-            description: 'Этот факел теперь можно отнести на вершину горы!'
+            description: 'Этот факел теперь можно отнести на вершину горы!',
+            addToInventory: true,
         }
     },
     palmTrees: {
@@ -131,7 +213,8 @@ export const CARD_DATA: CardData = {
             requirementsText: 'нужна 🧱',
             type: 'back' as CardType,
             emoji: '🌴',
-            description: 'А что я там вижу? Кокосы!'
+            description: 'А что я там вижу? Кокосы!',
+            addToInventory: true,
         },
         front: {
             id: 'coconuts',
@@ -140,9 +223,9 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🥥',
             description: 'Ммм, как вкусно!',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 2);
-                return { ...context, lives };
+            addToInventory: true,
+            onPlace: (context) => {
+                return updateLivesWithCardCheck(context, 'coconut', 2);
             }
         }
     },
@@ -155,7 +238,8 @@ export const CARD_DATA: CardData = {
             requirementsText: 'нужна ⚡',
             type: 'back' as CardType,
             emoji: '🥢',
-            description: 'Хм, эти ветки могут пригодиться для охоты'
+            description: 'Хм, эти ветки могут пригодиться для охоты',
+            addToInventory: true,
         },
         front: {
             id: 'spear',
@@ -163,18 +247,20 @@ export const CARD_DATA: CardData = {
             score: 2,
             type: 'front' as CardType,
             emoji: '🗡️',
-            description: 'Теперь мне не страшен кабан! Скорее наоборот :)'
+            description: 'Теперь мне не страшен кабан! Скорее наоборот :)',
+            addToInventory: true,
         }
     },
     bottle: {
         back: {
             id: 'bottle',
             russianName: 'Бутылка',
-            requirementsText: 'нужен корабль только на старте',
+            requirementsText: 'нужен корабль в первой клетке',
             type: 'back' as CardType,
             emoji: '🍾',
             description: 'Кажется, я смогу оставить здесь сообщение! Главное, чтобы не на углу!',
-            canFlip: (context) => {
+            addToInventory: false,
+            canActivate: (context) => {
                 const shipCard = context.positionSystem.getShipCard();
                 return shipCard !== null && shipCard.skipMove;
             }
@@ -185,7 +271,28 @@ export const CARD_DATA: CardData = {
             score: 3,
             type: 'front' as CardType,
             emoji: '📜',
-            description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то я выиграю!'
+            description: 'Если корабль пройдет рядом с этой клеткой и она не угловая, то я выиграю!',
+            addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const messageResult = context.positionSystem.findCardById('message');
+                if (!shipPos || !messageResult) return context;
+
+                const shipCard = context.positionSystem.getShipCard();
+                const isCorner = shipCard?.cornerManager?.isIslandCornerCard(messageResult.position) ?? false;
+                if (isCorner) return context;
+
+                const isAdjacent = context.positionSystem.isAdjacent(shipPos, messageResult.position);
+                if (isAdjacent) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль нашёл моё сообщение!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     higherGround: {
@@ -196,15 +303,30 @@ export const CARD_DATA: CardData = {
             requirementsText: 'нужна 🕯️',
             type: 'back' as CardType,
             emoji: '⛰️',
-            description: 'Отсюда открывается потрясающий вид на остров!'
+            description: 'Отсюда открывается потрясающий вид на остров!',
+            addToInventory: false,
         },
         front: {
             id: 'lit-beacon',
-            russianName: 'Маяк',
+            russianName: 'Костёр',
             score: 7,
             type: 'front' as CardType,
             emoji: '🔥',
-            description: 'Если корабль пересекает эту колонку, то я выиграю!'
+            description: 'Если корабль пересекает эту колонку, то я выиграю!',
+            addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const beaconResult = context.positionSystem.findCardById('lit-beacon');
+                if (shipPos && beaconResult && shipPos.col === beaconResult.position.col) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль заметил костёр!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     telescope: {
@@ -215,9 +337,10 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🔭',
             description: 'Теперь я смогу увидеть полное движение корабля! Хм, он огибает остров?',
-            canFlip: (context) => {
+            addToInventory: true,
+            canActivate: (context) => {
                 // Проверяем, что игрок находится на higher-ground
-                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                const playerCard = context.positionSystem.getCard(context.playerPosition!);
                 if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
                     return false;
                 }
@@ -231,6 +354,7 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🚢',
             description: 'Корабль после угла поплывет дальше, но только один раз',
+            addToInventory: true,
             onBeforeShipMove: (context) => {
                 const shipPos = context.positionSystem.getShipPosition();
                 const shipCard = context.positionSystem.getShipCard();
@@ -259,9 +383,10 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🧱',
             description: 'Я смогу подать SOS в этом ряду! Но как лучше увидеть склон?',
-            canFlip: (context) => {
+            addToInventory: false,
+            canActivate: (context) => {
                 // Проверяем, что игрок находится на higher-ground
-                const playerCard = context.positionSystem.getPosition(context.playerPosition!);
+                const playerCard = context.positionSystem.getCard(context.playerPosition!);
                 if (!playerCard || playerCard.getCurrentId() !== 'higher-ground') {
                     return false;
                 }
@@ -274,7 +399,21 @@ export const CARD_DATA: CardData = {
             score: 5,
             type: 'front' as CardType,
             emoji: '🆘',
-            description: 'Если корабль пересекает этот ряд, то я выиграю!'
+            description: 'Если корабль пересекает этот ряд, то я выиграю!',
+            addToInventory: false,
+            onShipMove: (context) => {
+                if (context.gameOverMessage) return context;
+                const shipPos = context.positionSystem.getShipPosition();
+                const sosResult = context.positionSystem.findCardById('sos');
+                if (shipPos && sosResult && shipPos.row === sosResult.position.row) {
+                    return {
+                        ...context,
+                        gameOverMessage: 'Победа! Корабль заметил сигнал SOS!',
+                        isVictory: true
+                    };
+                }
+                return context;
+            }
         }
     },
     pig: {
@@ -287,11 +426,12 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🐷',
             description: 'Дикий кабан меня поранил! А что, если я его добуду?',
+            addToInventory: false,
             onPlace: (context) => {
-                // Если есть spear, урон не наносится
-                const isProtected = context.positionSystem.findCardById('spear');
+                // Если есть spear или torch, урон не наносится
+                const isProtected = context.inventory.findById('spear') || context.inventory.findById('torch');
                 if (!isProtected) {
-                    const { lives } = updateLives(context.lives, -2);
+                    const { lives } = updateLives(context.lives, -2, false);
                     return { ...context, lives };
                 }
                 return context;
@@ -304,9 +444,9 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🍽️',
             description: 'Ммм, то-то же!',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, 3);
-                return { ...context, lives };
+            addToInventory: false,
+            onPlace: (context) => {
+                return updateLivesWithCardCheck(context, 'meat', 3);
             }
         }
     },
@@ -319,23 +459,25 @@ export const CARD_DATA: CardData = {
             type: 'back' as CardType,
             emoji: '🌧️',
             description: 'Меня настиг шторм! Где бы мне укрыться... Что, это приближается торнадо?!',
+            addToInventory: false,
             onPlace: (context) => {
                 // Если есть shelter, урон не наносится
-                const isProtected = context.positionSystem.findCardById('shelter');
+                const isProtected = context.inventory.findById('shelter');
                 if (!isProtected) {
-                    const { lives } = updateLives(context.lives, -2);
+                    const { lives } = updateLives(context.lives, -2, false);
                     return { ...context, lives };
                 }
                 return context;
             },
-            onRoundStart: (context) => {
+            afterPlace: (context) => {
+                let newContext = context;
                 if (context.positionSystem.countNonShipCards() === 13) {
                     const stormResult = context.positionSystem.findCardById('storm');
                     if (stormResult) {
-                        stormResult.card.flip(context);
+                        newContext = stormResult.card.flip(context);
                     }
                 }
-                return context;
+                return newContext;
             }
         },
         front: {
@@ -345,21 +487,30 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🌪️',
             description: 'Уничтожает убежище и костер, а затем переворачивается обратно',
-            onFlip: (context) => {
-                const { lives } = updateLives(context.lives, -3);
+            addToInventory: false,
+            onPlace: (context) => {
+                let newLives = context.lives;
+                let newContext = context;
 
-                // tornado flips back, and also flips shelter and lit beacon back
-                if (context.positionSystem.countNonShipCards() === 13) {
-                    // flip tornado back
-                    const tornadoCard = context.positionSystem.findCardById('tornado');
-                    if (tornadoCard) tornadoCard.card.flip(context);
-                    // flip shelter and lit beacon back
-                    const shelterResult = context.positionSystem.findCardById('shelter');
-                    const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
-                    if (shelterResult) shelterResult.card.flip(context);
-                    if (litBeaconResult) litBeaconResult.card.flip(context);
+                const tornadoResult = context.positionSystem.findCardById('tornado');
+                const playerPosition = context.playerPosition;
+
+                if (tornadoResult?.position.equals(playerPosition!)) {
+                    const { lives } = updateLives(context.lives, -3, false);
+                    newLives = lives;
                 }
-                return { ...context, lives };
+
+                // flip shelter and lit beacon back
+                const shelterItem = context.inventory.findById('shelter');
+                if (shelterItem) newContext = shelterItem.activate(newContext);
+
+                const litBeaconResult = context.positionSystem.findCardById('lit-beacon');
+                if (litBeaconResult) newContext = litBeaconResult.card.flip(newContext);
+                
+                // flip tornado back
+                newContext = tornadoResult!.card.flip(newContext);
+
+                return { ...newContext, lives: newLives };
             }
         }
     },
@@ -367,19 +518,29 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'mirage',
             russianName: 'Мираж',
-            requirementsText: 'найти пересечение',
+            requirementsText: 'при вскрытии',
             type: 'back' as CardType,
             emoji: '🌫️',
             description: 'Сразу же заменяет самую дальнюю карту и переворачивается',
+            addToInventory: false,
             onPlace: (context) => {
                 const farthestPos = context.positionSystem.findFarthestPosition(context.playerPosition!);
+                let newContext = context;
+
                 if (farthestPos) {
-                    context.positionSystem.swapPositions(context.playerPosition!, farthestPos);
+                    newContext.positionSystem.swapPositions(context.playerPosition!, farthestPos);
+
+                    // Срабатывает эффект onPlace у замененной карты, если не единственная карта на поле
+                    const swappedCard = context.positionSystem.getCard(context.playerPosition!);
+                    if (swappedCard && newContext.positionSystem.countNonShipCards() !== 1) {
+                        newContext = swappedCard.getCurrentSide().onPlace?.(newContext) ?? newContext;
+                    }   
+
                     // flip the mirage card after swap
-                    const card = context.positionSystem.getPosition(farthestPos);
-                    if (card) card.flip(context);
+                    const card = context.positionSystem.getCard(farthestPos);
+                    if (card) newContext = card.flip(newContext);
                 }
-                return { ...context, positionSystem: context.positionSystem };
+                return { ...newContext, positionSystem: newContext.positionSystem };
             }
         },
         front: {
@@ -388,12 +549,13 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🐍',
             description: 'Корабль перескочет соседнюю клетку - лучше не оставлять на берегу',
+            addToInventory: false,
             onShipMove: (context) => {
                 const shipPos = context.positionSystem.getShipPosition();
                 if (!shipPos) return context;
                 const adjacentPositions = context.positionSystem.getAdjacentPositions(shipPos);
                 const isAdjacent = adjacentPositions.some(adjPos => {
-                    const card = context.positionSystem.getPosition(adjPos);
+                    const card = context.positionSystem.getCard(adjPos);
                     return card && card.getCurrentId() === 'sea-serpent';
                 });
                 const shipCard = context.positionSystem.getShipCard();
@@ -417,18 +579,19 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'pirates',
             russianName: 'Пираты',
-            requirementsText: 'ждать отплытие',
+            requirementsText: 'ждать отплытие корабля',
             type: 'back' as CardType,
             emoji: '🏴‍☠️',
             description: 'Кажется, я вижу пиратов? Тогда нам не по пути...',
+            addToInventory: true,
             onBeforeShipMove: (context) => {
-                const thisCard = context.positionSystem.findCardById('pirates');
+                const thisItem = context.inventory.findById('pirates');
                 const shipCard = context.positionSystem.getShipCard();
                 
                 if (shipCard && !shipCard.skipMove) {
-                    const newContext = thisCard!.card.flip(context);
+                    const newContext = thisItem!.activate(context);
 
-                    newContext.positionSystem.removeShipPosition();
+                    newContext.positionSystem.removeShipPosition();                
 
                     return {
                         ...newContext,
@@ -444,6 +607,7 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🧭',
             description: 'Удача! Я нашел компас! Теперь смогу быстрее двигаться по изученным местам!',
+            addToInventory: true,
             onRoundStart: (context) => {
                 // Если компас есть на поле, movesLeft = 2
                 return { ...context, movesLeft: 2 };
@@ -455,9 +619,11 @@ export const CARD_DATA: CardData = {
             id: 'map-r',
             russianName: 'Карта сокровищ 1/2',
             type: 'back' as CardType,
-            emoji: '👈🗺️👉',
+            emoji: '👈🗺️👉',    
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этом ряду',
-            canFlip: (context) => {
+            addToInventory: false,
+            clickable: false,
+            canActivate: (context) => {
                 // Both map cards must be on the board
                 const mapRResult = context.positionSystem.findCardById('map-r');
                 const mapCResult = context.positionSystem.findCardById('map-c');
@@ -467,6 +633,23 @@ export const CARD_DATA: CardData = {
                 // Player must be at the intersection of map-r row and map-c column
                 return mapRResult.position.row === context.playerPosition!.row && 
                        mapCResult.position.col === context.playerPosition!.col;
+            },
+            onPlace: (context) => {
+                // Проверяем, есть ли вторая часть карты (map-c)
+                const mapCResult = context.positionSystem.findCardById('map-c');
+                const mapInInventory = context.inventory.findById('map');
+
+                if (mapCResult && !mapInInventory) {
+                    // Если есть вторая часть, добавляем карту в инвентарь
+                    const mapInventoryItem = new InventoryItem(mapCardSide, mapCardSide);
+                    
+                    return {
+                        ...context,
+                        inventory: context.inventory.add(mapInventoryItem)
+                    };
+                }
+                
+                return context;
             }
         },
         front: {
@@ -476,17 +659,11 @@ export const CARD_DATA: CardData = {
             type: 'front' as CardType,
             emoji: '🥃',
             description: 'Ром! Можно набрать сил!',
-            onFlip: (context) => {
-                // flip both map cards and add 1 life (rum effect)
-                const card = context.positionSystem.getPosition(context.playerPosition!);
+            addToInventory: false,
+            onPlace: (context) => {
+                const card = context.positionSystem.getCard(context.playerPosition!);
                 if (card) {
-                    // flip the other map card
-                    const otherMapId = 'map-c';
-                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip(context);
-                    // add 1 life
-                    const { lives } = updateLives(context.lives, 1);
-                    return { ...context, lives };
+                    return updateLivesWithCardCheck(context, 'rum', 1);
                 }
                 return context;
             }
@@ -496,10 +673,12 @@ export const CARD_DATA: CardData = {
         back: {
             id: 'map-c',
             russianName: 'Карта сокровищ 2/2',
-            type: 'back' as CardType,
+            type: 'back' as CardType,   
             emoji: '👇🗺️☝️',
             description: 'Я нашел часть карты! Кажется, сокровище где-то в этой колонке',
-            canFlip: (context) => {
+            addToInventory: false,
+            clickable: false,
+            canActivate: (context) => {
                 // Both map cards must be on the board
                 const mapRResult = context.positionSystem.findCardById('map-r');
                 const mapCResult = context.positionSystem.findCardById('map-c');
@@ -509,6 +688,23 @@ export const CARD_DATA: CardData = {
                 // Player must be at the intersection of map-r row and map-c column
                 return mapRResult.position.row === context.playerPosition!.row && 
                        mapCResult.position.col === context.playerPosition!.col;
+            },
+            onPlace: (context) => {
+                // Проверяем, есть ли первая часть карты (map-r)
+                const mapRResult = context.positionSystem.findCardById('map-r');
+                const mapInInventory = context.inventory.findById('map');
+                
+                if (mapRResult && !mapInInventory) {
+                    // Если есть первая часть, добавляем карту в инвентарь
+                    const mapInventoryItem = new InventoryItem(mapCardSide, mapCardSide);
+                    
+                    return {
+                        ...context,
+                        inventory: context.inventory.add(mapInventoryItem)
+                    };
+                }
+                
+                return context;
             }
         },
         front: {
@@ -516,22 +712,9 @@ export const CARD_DATA: CardData = {
             russianName: 'Сокровище',
             score: 10,
             type: 'front' as CardType,
-            emoji: '💎',
+            emoji: '💎',    
             description: 'Тепер это сокровище моё! Осталось только выбраться с острова...',
-            onFlip: (context) => {
-                // flip both map cards and add 1 life (rum effect)
-                const card = context.positionSystem.getPosition(context.playerPosition!);
-                if (card) {
-                    // flip the other map card
-                    const otherMapId = 'map-r';
-                    const otherMapResult = context.positionSystem.findCardById(otherMapId);
-                    if (otherMapResult) otherMapResult.card.flip(context);
-                    // add 1 life
-                    const { lives } = updateLives(context.lives, 1);
-                    return { ...context, lives };
-                }
-                return context;
-            }
+            addToInventory: false,
         }
     },
 } as const; 
@@ -542,4 +725,5 @@ export const ship: CardSide = {
     type: 'ship' as CardType,
     emoji: '⛵',
     description: 'Корабль плывет вдоль берега. Нужно как-то привлечь его внимание!',
+    addToInventory: false,
 } as const; 

@@ -4,6 +4,7 @@ import { useActorRef, useSelector } from '@xstate/react';
 import { Grid } from './Grid';
 import Counters from './Counters';  
 import GameOver from './GameOver';
+import Inventory from './Inventory';
 import { createGameStateMachine, isPlayerValidPosition, calculateScore, Position, GameState } from '../core';
 
 const machine = createGameStateMachine();
@@ -18,7 +19,10 @@ const Game: React.FC = () => {
         if (state.matches('playing.moving') && isPlayerValidPosition(context, new Position(row, col))) {
             gameService.send({ type: 'MOVE_PLAYER', row, col });
         } else if (state.matches('playing.checkingFlippable')) {
-            gameService.send({ type: 'FLIP_CARD', row, col });
+            const card = context.positionSystem.getCard(new Position(row, col));
+            if (card && card.isClickable()) {
+                gameService.send({ type: 'ACTIVATE_CARD', id: card.getCurrentId() });
+            }
         } else if (state.matches('playing.moving') && context.hasMoved && 
                    context.playerPosition && context.playerPosition.equals(new Position(row, col))) {
             // Клик на фигурку игрока для пропуска ходов
@@ -37,6 +41,21 @@ const Game: React.FC = () => {
             gameService.send({ type: 'SKIP_MOVES' });
         }
     }, [state, context, gameService]);
+
+    const handleInventoryItemClick = useCallback((id: string): void => {
+        if (state.matches('playing.checkingFlippable')) {
+            gameService.send({ type: 'ACTIVATE_CARD', id });
+        }
+    }, [state, gameService]);
+
+    const canActivateCard = useCallback((id: string): boolean => {
+        if (!state.matches('playing.checkingFlippable')) {
+            return false;
+        }
+        
+        const item = context.inventory.findById(id);
+        return Boolean(item && item.canActivate(context));
+    }, [state, context]);
 
     // Add keyboard event listener for space key
     useEffect(() => {
@@ -71,6 +90,11 @@ const Game: React.FC = () => {
                         gameService.send({ type: 'SKIP_MOVES' });
                     }
                 }}
+            />
+            <Inventory 
+                inventory={context.inventory} 
+                onItemClick={handleInventoryItemClick}
+                canActivate={canActivateCard}
             />
             <GameOver
                 message={context.gameOverMessage}

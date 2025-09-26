@@ -81,7 +81,7 @@ export class PositionSystem {
         this.occupiedPositions.set(pos.toString(), value);
     }
 
-    getPosition(pos: Position): GameCard | undefined {
+    getCard(pos: Position): GameCard | undefined {
         return this.occupiedPositions.get(pos.toString());
     }
 
@@ -94,8 +94,8 @@ export class PositionSystem {
     }
 
     swapPositions(pos1: Position, pos2: Position): void {
-        const value1 = this.getPosition(pos1);
-        const value2 = this.getPosition(pos2);
+        const value1 = this.getCard(pos1);
+        const value2 = this.getCard(pos2);
 
         if (value1 !== undefined) {
             this.setPosition(pos2, value1);

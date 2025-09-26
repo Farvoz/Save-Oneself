@@ -53,7 +53,7 @@ describe('PositionSystem', () => {
     const pos = new Position(1, 2);
     const card = new GameCard(CARD_DATA.vines.back, CARD_DATA.vines.front);
     positionSystem.setPosition(pos, card);
-    expect(positionSystem.getPosition(pos)).toEqual(card);
+    expect(positionSystem.getCard(pos)).toEqual(card);
   });
 
   test('should check if position exists', () => {
@@ -83,8 +83,8 @@ describe('PositionSystem', () => {
     positionSystem.setPosition(pos2, card2);
     positionSystem.swapPositions(pos1, pos2);
 
-    expect(positionSystem.getPosition(pos1)).toEqual(card2);
-    expect(positionSystem.getPosition(pos2)).toEqual(card1);
+    expect(positionSystem.getCard(pos1)).toEqual(card2);
+    expect(positionSystem.getCard(pos2)).toEqual(card1);
   });
 
   test('меняет местами с пустой клеткой', () => {
@@ -95,8 +95,8 @@ describe('PositionSystem', () => {
     positionSystem.setPosition(pos1, card1);
     positionSystem.swapPositions(pos1, pos2);
 
-    expect(positionSystem.getPosition(pos1)).toEqual(undefined);
-    expect(positionSystem.getPosition(pos2)).toEqual(card1);
+    expect(positionSystem.getCard(pos1)).toEqual(undefined);
+    expect(positionSystem.getCard(pos2)).toEqual(card1);
   });
 
   test('should get bounds of occupied positions', () => {

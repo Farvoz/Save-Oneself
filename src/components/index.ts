@@ -4,5 +4,7 @@ export * from './Counters';
 export * from './Game';
 export * from './GameOver';
 export * from './Grid';
+export * from './Inventory';
+export * from './InventoryTooltip';
 export * from './uikit';
 export * from './StartTooltip';

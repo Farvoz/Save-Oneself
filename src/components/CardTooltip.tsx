@@ -1,6 +1,7 @@
 import React from 'react';
 import './CardTooltip.css';
 import { GameCard } from '../core';
+import { SideInfo, RequirementsInfo } from './tooltip';
 
 interface CardTooltipProps {
     card: GameCard;
@@ -11,14 +12,6 @@ interface CardTooltipProps {
 export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, position }) => {
     if (!visible) return null;
 
-    const currentSide = card.getCurrentSide();
-    
-    // Функция для получения цвета карты (аналогично Card.tsx)
-    const getCardBackground = (cardObj: GameCard): string => {
-        if (cardObj.getCurrentType() === 'back') return 'var(--card-back)';
-        if (cardObj.getCurrentType() === 'front') return 'var(--card-front)';
-        return 'var(--card-default)';
-    };
     
     // Конвертируем координаты сетки в пиксели
     const cellSize = 100;
@@ -67,43 +60,6 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
         arrowClass = 'left-arrow';
     }
 
-    const getSideInfo = (side: { emoji: string; id: string; russianName?: string; description?: string; lives?: number; score?: number; direction?: string; requirementsText?: string }, isCurrent: boolean, backgroundColor?: string) => {
-        const emoji = side.emoji;
-        const name = side.russianName || side.id;
-        const description = side.description || 'Нет описания';
-        
-        const sideStyle: React.CSSProperties = backgroundColor ? {
-            backgroundColor: backgroundColor,
-            borderLeftColor: backgroundColor
-        } : {};
-        
-        return (
-            <div 
-                className={`side-info ${isCurrent ? 'current' : 'other'}`}
-                style={sideStyle}
-            >
-                <div className="side-header">
-                    <span className="side-emoji">{emoji}</span>
-                    <span className="side-name">{name}</span>
-                </div>
-                <div className="side-description">{description}</div>
-                
-                {(side.lives || side.score || side.direction) && (
-                    <div className="side-stats">
-                        {side.lives && (
-                            <span className="stat">{side.lives > 0 ? "💖" : "💔"} {side.lives}</span>
-                        )}
-                        {side.score && (
-                            <span className="stat">⭐ {side.score}</span>
-                        )}
-                        {side.direction && (
-                            <span className="stat">🧭 {side.direction}</span>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
-    };
 
     return (
         <div 
@@ -116,30 +72,35 @@ export const CardTooltip: React.FC<CardTooltipProps> = ({ card, visible, positio
             } as React.CSSProperties}
         >
             <div className="card-tooltip-content">
-                {/* Всегда показываем тыльную сторону первой */}
-                {card.getCurrentType() === 'back' ? (
-                    getSideInfo(currentSide, true, getCardBackground(card))
-                ) : (
-                    getSideInfo(card.backSide, false, 'var(--card-default)')
+                {/* Показываем тыльную сторону */}
+                <SideInfo
+                    emoji={card.backSide.emoji}
+                    name={card.backSide.russianName || card.backSide.id}
+                    description={card.backSide.description || 'Нет описания'}
+                    lives={card.backSide.lives}
+                    score={card.backSide.score}
+                    direction={card.backSide.direction}
+                    grayscale={card.getCurrentType() === 'front'}
+                />
+                
+                {/* Показываем требования для переворота */}
+                {card.backSide.requirementsText && (
+                    <RequirementsInfo
+                        requirementsText={card.backSide.requirementsText}
+                        className="side-requirements"
+                    />
                 )}
                 
-                {/* Показываем лицевую сторону только если это не корабль */}
-                {card.getCurrentType() !== 'ship' && (
-                    card.getCurrentType() === 'front' ? (
-                        getSideInfo(currentSide, true, getCardBackground(card))
-                    ) : (
-                        <div className="side-info hidden">
-                            <div className="side-header">
-                                <span className="side-emoji">❓</span>
-                                <span className="side-name"><i>Лицевая сторона</i></span>
-                            </div>
-                            
-                            <div className="side-requirements">
-                                <span className="requirement">📋 Можно перевернуть: {card.backSide.requirementsText || 'Нет требований'}</span>
-                            </div>
-                        </div>
-                    )
-                )}
+                {/* Показываем лицевую сторону */}
+                {card.getCurrentType() !== 'ship' && <SideInfo
+                    emoji={card.frontSide.emoji}
+                    name={card.frontSide.russianName || card.frontSide.id}
+                    description={card.frontSide.description || 'Нет описания'}
+                    lives={card.frontSide.lives}
+                    score={card.frontSide.score}
+                    direction={card.frontSide.direction}
+                    grayscale={card.getCurrentType() === 'back'}
+                />}
             </div>
         </div>
     );

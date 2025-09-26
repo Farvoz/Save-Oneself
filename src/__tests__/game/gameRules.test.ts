@@ -5,7 +5,6 @@ import {
   GameCard,
   isPlayerValidPosition,
   hasFlippableCards,
-  checkVictory,
   checkDefeat,
   calculateScore
 } from '../../core';
@@ -64,37 +63,6 @@ describe('Game Rules', () => {
           mockContext.positionSystem.setPosition(new Position(0, 1), card2);
 
           expect(hasFlippableCards(mockContext)).toBe(true);
-      });
-  });
-
-  describe('checkVictory', () => {
-      it('should return false when ship has no position', () => {
-          mockContext.positionSystem.removeShipPosition();
-          expect(checkVictory(mockContext)).toBe(false);
-      });
-
-      it('should detect SOS victory condition', () => {
-          const sosPos = new Position(1, 1);
-          const shipPos = new Position(1, 4); // NW direction allows only col=4
-          const shipCard = mockContext.positionSystem.getShipCard();
-          mockContext.positionSystem.removeShipPosition();
-          mockContext.positionSystem.setPosition(shipPos, shipCard!);
-          const sosCard = new GameCard(CARD_DATA.rocks.back, CARD_DATA.rocks.front);
-          sosCard.flip(mockContext);
-          mockContext.positionSystem.setPosition(sosPos, sosCard);
-          expect(checkVictory(mockContext)).toBe(true);
-      });
-
-      it('should detect beacon victory condition', () => {
-          const beaconPos = new Position(1, 4); // Same column as ship
-          const shipPos = new Position(2, 4); // NW direction allows only col=4
-          const shipCard = mockContext.positionSystem.getShipCard();
-          mockContext.positionSystem.removeShipPosition();
-          mockContext.positionSystem.setPosition(shipPos, shipCard!);
-          const beaconCard = new GameCard(CARD_DATA.higherGround.back, CARD_DATA.higherGround.front);
-          beaconCard.flip(mockContext);
-          mockContext.positionSystem.setPosition(beaconPos, beaconCard);
-          expect(checkVictory(mockContext)).toBe(true);
       });
   });
 

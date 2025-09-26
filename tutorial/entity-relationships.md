@@ -73,20 +73,21 @@ graph TB
 - **GameStateMachine** (`src/core/gameStateMachine.ts`):
   - Использует XState для управления состояниями
   - Инициализируется `INITIAL_STATE`
-  - Управляет фазами: `startOfRound` → `moving` → `checkingCardPlacement` → `checkingCardEffects` → `checkingMoveResult` → `decreasingLives` → `checkingFlippable` → `shipMoving` → `checkingShipEffects`
-  - Вызывает обработчики сторон карт: `onRoundStart`, `onPlace`, `onBeforeShipMove`, `onShipMove`
+  - Управляет фазами: `startOfRound` → `moving` → `checkingCardPlacement` → `placingCardAndShip` → `checkingCardEffects` → `checkingMoveResult` → `decreasingLives` → `checkingFlippable` → `shipMoving`
+  - При входе в `playing` колода перемешивается один раз
+  - Вызывает обработчики сторон карт: `onRoundStart`, `onPlace`, `afterPlace`, `onBeforeShipMove`, `onShipMove`
 
 ### 2) Система карт
 
 - **CardSide** (`src/core/Card.ts`): описывает сторону карты и содержит обработчики:
   - `id`, `lives`, `direction`, `requirements`, `type`, `emoji`, `description`, `score`
-  - Обработчики: `onPlace`, `onFlip`, `onBeforeShipMove`, `onShipMove`, `onRoundStart`
-  - `canFlip` - проверка возможности переворота
+  - Обработчики: `onPlace`, `afterPlace`, `onBeforeShipMove`, `onShipMove`, `onRoundStart`
+  - `canActivate` - проверка возможности переворота
 
 - **GameCard** (`src/core/Card.ts`):
   - Две стороны (`backSide`/`frontSide`), переключается через `flip()`
   - Методы доступа к текущим свойствам: `getCurrentId()`, `getCurrentEmoji()`, `getCurrentType()`, `getCurrentDirection()`, `getCurrentLives()`, `getCurrentScore()`
-  - Базовая реализация `canFlip()` учитывает требования через `PositionSystem`
+  - Базовая реализация `canActivate()` учитывает требования через `PositionSystem`
 
 - **ShipCard** (`src/core/ShipCard.ts`):
   - Наследуется от `GameCard`, хранит `ShipCornerManager`
@@ -104,7 +105,7 @@ graph TB
 
 - **PositionSystem** (`src/core/PositionSystem.ts`):
   - Хранит карты по ключу строки координат (`occupiedPositions: Map<string, GameCard>`)
-  - Оперирует картами: `getPosition()`, `setPosition()`, `removePosition()`, `hasPosition()`
+  - Оперирует картами: `getCard()`, `setPosition()`, `removePosition()`, `hasPosition()`
   - Работа с кораблем: `getShipPosition()`, `getShipCard()`, `moveShip()`, `removeShipPosition()`
   - Поиск и фильтрация: `findCardById()`, `findAllBy()`, `findFarthestPosition()`
   - Геометрия: `getBounds()`, `getAdjacentPositions()`, `isAdjacent()`, `isOutOfBounds()`
@@ -135,7 +136,6 @@ graph TB
   - `decreaseLive()` - уменьшение жизней
   - `isPlayerValidPosition()` - валидация позиции игрока
   - `hasFlippableCards()` - проверка наличия переворачиваемых карт
-  - `checkVictory()` - проверка условий победы (SOS, маяк, сообщение)
   - `checkDefeat()` - проверка поражения (корабль вне границ)
   - `calculateScore()` - подсчет итогового счета
 
@@ -144,24 +144,24 @@ graph TB
 1. **`startOfRound`**: сброс флагов `hasPlacedCard`, `hasMoved`, вызов `onRoundStart` для всех карт
 2. **`moving`**: игрок делает шаг (`MOVE_PLAYER`) или пропускает ходы (`SKIP_MOVES`)
 3. **`checkingCardPlacement`**: если клетка пустая и карта не размещена — `placeCard()`, потенциально `placeShip()`
-4. **`checkingCardEffects`**: вызов `onPlace` только для текущей клетки
+4. **`checkingCardEffects`**: вызов `onPlace` только для текущей клетки, затем глобальный `afterPlace`
 5. **`checkingMoveResult`**: проверка победы/поражения, иначе уменьшение жизней
-6. **`decreasingLives`**: уменьшение жизней на 1
-7. **`checkingFlippable`**: по желанию игрока `FLIP_CARD` для переворачиваемых карт
+6. **`decreasingLives`**: уменьшение жизней на 1 (с задержкой 500ms до переходов)
+7. **`checkingFlippable`**: по желанию игрока `ACTIVATE_CARD` для переворачиваемых карт
 8. **`shipMoving`**: 
    - Вызов `onBeforeShipMove` для всех карт
    - Движение корабля через `moveShip()`
-   - Проверка победы/поражения
-   - Вызов `onShipMove` для всех карт
+   - Вызов `onShipMove` для всех карт (именно здесь эффекты карт формируют `gameOverMessage`/`isVictory`)
+   - Проверка поражения по кораблю (`checkDefeat()`); при отсутствии завершения — переход к `startOfRound`
 
 ### 6) Особенности обработчиков карт
 
-- **`onPlace`**: срабатывает при размещении карты (например, вода +2 жизни, шторм -2 жизни)
-- **`onFlip`**: срабатывает при перевороте карты (например, кокосы +2 жизни)
+- **`onPlace`**: срабатывает при размещении/перевороте карты
+- **`afterPlace`**: дополнительные эффекты сразу после `onPlace` (глобально для всех карт и инвентаря)
 - **`onBeforeShipMove`**: срабатывает перед движением корабля (телескоп, пираты)
 - **`onShipMove`**: срабатывает после движения корабля (морской змей)
 - **`onRoundStart`**: срабатывает в начале раунда (шторм, компас)
-- **`canFlip`**: проверяет условия для переворота (бутылка, карты карты, телескоп, камни)
+- **`canActivate`**: проверяет условия для переворота (бутылка, карты карты, телескоп, камни)
 
 ## Примечания по архитектуре
 

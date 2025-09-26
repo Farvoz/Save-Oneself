@@ -10,7 +10,6 @@
     
     /* Фоновые цвета */
     --bg-main: #f0f0f0;           /* основной фон */
-    --bg-card: #E8F5E9;           /* фон карт */
     --bg-tooltip: #f8f4e6;        /* фон тултипов */
     --bg-tooltip-alt: #f8f9fa;    /* альтернативный фон тултипов */
     --bg-overlay: rgba(255, 255, 255, 0.7);     /* белый оверлей */
@@ -47,7 +46,6 @@
     
     /* Специальные цвета карт */
     --card-back: #F5F5DC;         /* задняя сторона карты */
-    --card-front: #E8F5E9;        /* лицевая сторона карты */
     --card-mechanics: rgba(139, 69, 19, 0.1);     /* фон механик */
     
     /* Сетка */
@@ -76,16 +74,32 @@ body {
 
 /* Game container styles */
 .game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto auto;
     gap: 6px;
     padding: 6px;
     max-width: 1200px;
     margin: 0 auto;
+    align-items: start;
 }
 
+/* Размещение компонентов в grid */
 .game-info {
+    grid-column: 2;
+    grid-row: 1;
     width: 100%;
     max-width: 900px;
+}
+
+/* Grid занимает вторую колонку, вторую строку */
+.game-container > div:nth-child(2) {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* Inventory занимает третью колонку, обе строки */
+.game-container > div:nth-child(3) {
+    grid-column: 3;
+    grid-row: 2;
 }

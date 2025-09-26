@@ -1,0 +1,54 @@
+.inventory-tooltip {
+    position: fixed;
+    z-index: var(--z-tooltip-base);
+    pointer-events: none;
+    width: 300px;
+    animation: inventoryTooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes inventoryTooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inventory-tooltip-content {
+    background-color: var(--bg-tooltip-alt);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    line-height: 1.4;
+}
+
+/* Текущий элемент */
+.inventory-tooltip-current {
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+/* Требования активации */
+.inventory-tooltip-requirements {
+    margin-bottom: 8px;
+}
+
+/* Будущее преобразование */
+.inventory-tooltip-future {
+    background-color: var(--color-info-bg);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.inventory-tooltip-future .side-description {
+    font-size: 12px;
+}
+
+.inventory-tooltip-future .stat {
+    font-size: 11px;
+    opacity: 0.8;
+}
